@@ -50,3 +50,7 @@ flutter test
 ```
 
 La documentación del alcance funcional, endpoints y pantallas está en [docs/documentacion-entrega-movil.md](docs/documentacion-entrega-movil.md).
+
+## Integración continua
+
+GitHub Actions ejecuta `flutter analyze` y `flutter test` cuando hay cambios en `mobile/` en un pull request o al subir cambios a `main`. También se puede iniciar manualmente desde la pestaña **Actions** del repositorio.
