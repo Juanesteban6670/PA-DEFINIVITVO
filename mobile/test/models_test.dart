@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cartagena_segura/data/api_client.dart';
@@ -52,6 +54,110 @@ void main() {
         expect(result, {'token': 'new-jwt'});
       },
     );
+
+    test('preserves the API message and status on server errors', () async {
+      final client = MockClient(
+        (_) async => http.Response(
+          '{"success":false,"message":"Servicio no disponible","data":null}',
+          503,
+        ),
+      );
+      final api = ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: client,
+      );
+
+      await expectLater(
+        api.get('Incidents'),
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.statusCode, 'statusCode', 503)
+              .having(
+                (error) => error.message,
+                'message',
+                'Servicio no disponible',
+              ),
+        ),
+      );
+      api.close();
+    });
+
+    test('reports malformed JSON from a successful response', () async {
+      final api = ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient((_) async => http.Response('{invalid json', 200)),
+      );
+
+      await expectLater(
+        api.get('Incidents'),
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.statusCode, 'statusCode', 200)
+              .having(
+                (error) => error.message,
+                'message',
+                contains('respuesta no válida'),
+              ),
+        ),
+      );
+      api.close();
+    });
+
+    test('returns null for an empty successful response', () async {
+      final api = ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient((_) async => http.Response('', 204)),
+      );
+
+      expect(await api.get('Notifications'), isNull);
+      api.close();
+    });
+
+    test('wraps connection failures in ApiException', () async {
+      final api = ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient(
+          (_) async => throw const SocketException('connection refused'),
+        ),
+      );
+
+      await expectLater(
+        api.get('Incidents'),
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.statusCode, 'statusCode', isNull)
+              .having(
+                (error) => error.message,
+                'message',
+                contains('No fue posible conectar con la API'),
+              ),
+        ),
+      );
+      api.close();
+    });
+
+    test('times out a request and surfaces a connection error', () async {
+      final pendingResponse = Completer<http.Response>();
+      final api = ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient((_) => pendingResponse.future),
+        requestTimeout: const Duration(milliseconds: 1),
+      );
+
+      await expectLater(
+        api.get('Incidents'),
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.statusCode, 'statusCode', isNull)
+              .having(
+                (error) => error.message,
+                'message',
+                contains('No fue posible conectar con la API'),
+              ),
+        ),
+      );
+      api.close();
+    });
   });
 
   test('parses the authentication response returned by Spring', () {

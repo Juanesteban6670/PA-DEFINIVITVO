@@ -40,6 +40,8 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080/api
 
 La API debe estar ejecutándose localmente para probar inicio de sesión, reportes, mapa y contactos. Sin API se puede revisar la interfaz de acceso, pero las operaciones que envían solicitudes no funcionarán. Esta vista previa ayuda a validar la disposición visual y no sustituye una prueba en Android o iOS: permisos, GPS, llamadas telefónicas y almacenamiento seguro nativo deben verificarse en un dispositivo/emulador correspondiente.
 
+Al enviar un reporte exitosamente, la lista de incidentes se vuelve a consultar para que el mapa refleje los datos más recientes.
+
 ## Verificaciones
 
 ```powershell

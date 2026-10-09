@@ -6,9 +6,14 @@ import '../data/api_client.dart';
 import '../data/models.dart';
 
 class IncidentsMapScreen extends StatefulWidget {
-  const IncidentsMapScreen({required this.api, super.key});
+  const IncidentsMapScreen({
+    required this.api,
+    required this.incidentRefresh,
+    super.key,
+  });
 
   final ApiClient api;
+  final ValueNotifier<int> incidentRefresh;
 
   @override
   State<IncidentsMapScreen> createState() => _IncidentsMapScreenState();
@@ -20,8 +25,26 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   @override
   void initState() {
     super.initState();
+    widget.incidentRefresh.addListener(_onIncidentRefresh);
     _incidents = _loadIncidents();
   }
+
+  @override
+  void didUpdateWidget(covariant IncidentsMapScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.incidentRefresh != widget.incidentRefresh) {
+      oldWidget.incidentRefresh.removeListener(_onIncidentRefresh);
+      widget.incidentRefresh.addListener(_onIncidentRefresh);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.incidentRefresh.removeListener(_onIncidentRefresh);
+    super.dispose();
+  }
+
+  void _onIncidentRefresh() => _reload();
 
   Future<List<Incident>> _loadIncidents() async {
     final response = await widget.api.get('Incidents');
@@ -36,7 +59,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         .toList();
   }
 
-  void _reload() => setState(() => _incidents = _loadIncidents());
+  void _reload() {
+    setState(() {
+      _incidents = _loadIncidents();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

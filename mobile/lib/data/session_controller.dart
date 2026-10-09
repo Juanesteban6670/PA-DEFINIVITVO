@@ -89,15 +89,27 @@ class SessionController extends ChangeNotifier {
       throw const FormatException('La API no devolvió un token de sesión');
     }
 
-    await storage.write(
-      _userKey,
-      jsonEncode({
-        'username': authenticatedUser.username,
-        'fullName': authenticatedUser.fullName,
-        'email': authenticatedUser.email,
-      }),
-    );
-    await storage.write(_tokenKey, authenticatedUser.token);
+    try {
+      await storage.write(
+        _userKey,
+        jsonEncode({
+          'username': authenticatedUser.username,
+          'fullName': authenticatedUser.fullName,
+          'email': authenticatedUser.email,
+        }),
+      );
+      await storage.write(_tokenKey, authenticatedUser.token);
+    } on Exception catch (error) {
+      try {
+        await storage.delete(_tokenKey);
+        await storage.delete(_userKey);
+      } on Exception catch (cleanupError) {
+        throw Exception(
+          'No se pudo guardar la sesión ($error) ni limpiar el estado local ($cleanupError)',
+        );
+      }
+      rethrow;
+    }
     api.token = authenticatedUser.token;
     user = authenticatedUser;
     sessionNotice = null;

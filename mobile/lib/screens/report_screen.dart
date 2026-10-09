@@ -4,9 +4,10 @@ import 'package:geolocator/geolocator.dart';
 import '../data/api_client.dart';
 
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({required this.api, super.key});
+  const ReportScreen({required this.api, this.onReportSubmitted, super.key});
 
   final ApiClient api;
+  final VoidCallback? onReportSubmitted;
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -83,6 +84,7 @@ class _ReportScreenState extends State<ReportScreen> {
         'imageUrls': <String>[],
       });
       if (!mounted) return;
+      widget.onReportSubmitted?.call();
       _description.clear();
       _location.clear();
       setState(() => _position = null);

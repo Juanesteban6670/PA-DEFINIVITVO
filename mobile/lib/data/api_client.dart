@@ -13,12 +13,17 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  ApiClient({required String baseUrl, http.Client? client})
+  ApiClient({
+    required String baseUrl,
+    http.Client? client,
+    this.requestTimeout = const Duration(seconds: 20),
+  })
     : _baseUrl = _normalizeBaseUrl(baseUrl),
       _client = client ?? http.Client();
 
   final String _baseUrl;
   final http.Client _client;
+  final Duration requestTimeout;
   String? token;
   Future<void> Function()? onUnauthorized;
 
@@ -78,7 +83,7 @@ class ApiClient {
       }
       final streamed = await _client
           .send(request)
-          .timeout(const Duration(seconds: 20));
+          .timeout(requestTimeout);
       response = await http.Response.fromStream(streamed);
     } on Exception catch (error) {
       throw ApiException('No fue posible conectar con la API: $error');

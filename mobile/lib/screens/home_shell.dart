@@ -16,6 +16,13 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _selectedIndex = 0;
+  final _incidentRefresh = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    _incidentRefresh.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +32,14 @@ class _HomeShellState extends State<HomeShell> {
         name: user.fullName.isEmpty ? user.username : user.fullName,
         onSelectTab: (index) => setState(() => _selectedIndex = index),
       ),
-      IncidentsMapScreen(api: widget.session.api),
-      ReportScreen(api: widget.session.api),
+      IncidentsMapScreen(
+        api: widget.session.api,
+        incidentRefresh: _incidentRefresh,
+      ),
+      ReportScreen(
+        api: widget.session.api,
+        onReportSubmitted: () => _incidentRefresh.value++,
+      ),
       EmergencyScreen(api: widget.session.api),
     ];
 

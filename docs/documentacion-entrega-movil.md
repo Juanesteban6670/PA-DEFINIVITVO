@@ -40,6 +40,7 @@ El alcance implementado en `mobile/` comprende:
 - El acceso al contenido principal depende de que exista una sesión restaurada o iniciada.
 - El formulario requiere usuario y contraseña para iniciar sesión. En registro se requieren usuario, nombre, correo y contraseña; el teléfono es opcional. La validación local de contraseña exige al menos seis caracteres y la validación de correo comprueba que contenga `@`.
 - Un reporte requiere tipo, descripción y dirección o referencia. El uso del GPS es opcional y depende de que el usuario otorgue permisos y tenga habilitados los servicios de ubicación.
+- Después de enviar un reporte correctamente, el mapa vuelve a consultar los incidentes para reflejar los datos actualizados.
 - El reporte envía prioridad elegida y una lista `imageUrls` vacía. No se implementa selección ni carga de fotografías desde la app móvil actual.
 - En el mapa, solo se dibujan marcadores para incidentes con latitud y longitud. Al seleccionar un marcador se muestran descripción, ubicación, estado y prioridad.
 - Los contactos proceden de la API. El número 123 está configurado directamente en la interfaz móvil.
@@ -232,7 +233,7 @@ La barra superior de las cuatro vistas autenticadas incluye el nombre de la app 
 | **Acceso / Registro** | Una misma pantalla alterna entre modo de inicio de sesión y creación de cuenta. Presenta identidad visual, campos de formulario y errores de validación/API. | Envía `POST /Auth/Login` o `POST /Auth/Register`. En registro agrega nombre, correo y teléfono. Permite alternar entre los modos. |
 | **Inicio** | Saludo con el nombre completo (o usuario como alternativa), mensaje de bienvenida, accesos destacados y recordatorio de llamar al 123 ante peligro inmediato. | Atajos a Reportar, Mapa y Emergencias. No realiza por sí sola una consulta de incidentes. |
 | **Mapa ciudadano** | Mapa centrado inicialmente en Cartagena con mosaicos de OpenStreetMap, pines coloreados según prioridad y resumen de cantidad de reportes/con ubicación. | Consulta `GET /Incidents`, permite actualizar y seleccionar marcadores para ver detalles. Incidentes sin coordenadas no aparecen como pines. |
-| **Reportar un incidente** | Formulario de tipo, descripción, dirección/referencia y prioridad; muestra las coordenadas si el usuario solicita GPS. | Valida campos obligatorios, solicita permisos de ubicación y envía `POST /Incidents`. Al completar, limpia descripción, dirección y coordenadas y muestra confirmación/error. No adjunta fotos. |
+| **Reportar un incidente** | Formulario de tipo, descripción, dirección/referencia y prioridad; muestra las coordenadas si el usuario solicita GPS. | Valida campos obligatorios, solicita permisos de ubicación y envía `POST /Incidents`. Al completar, limpia descripción, dirección y coordenadas, muestra confirmación/error y, ante éxito, actualiza la consulta del mapa. No adjunta fotos. |
 | **Emergencias** | Tarjeta destacada para el 123 y directorio de contactos obtenidos desde la API. | Consulta `GET /EmergencyContacts`, permite reintentar si falla y solicita al sistema operativo abrir el marcador telefónico para llamar. |
 
 ### 3.3 Navegación y componentes
