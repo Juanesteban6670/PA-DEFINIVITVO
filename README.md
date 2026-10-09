@@ -54,3 +54,9 @@ La documentación del alcance funcional, endpoints y pantallas está en [docs/do
 ## Integración continua
 
 GitHub Actions ejecuta `flutter analyze` y `flutter test` cuando hay cambios en `mobile/` en un pull request o al subir cambios a `main`. También se puede iniciar manualmente desde la pestaña **Actions** del repositorio.
+
+## Desarrolladores y creadores
+
+- Juan Esteban de los Ríos Tibocha
+- Robinson Emiro Castaño Mercado
+- Álvaro Cervantes Noel
