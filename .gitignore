@@ -1,0 +1,17 @@
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+backend/target/
+
+# Logs and local tooling
+*.log
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db

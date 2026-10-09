@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/Ctg_Seg.ico" />
+    <link rel="shortcut icon" href="/Ctg_Seg.ico" />
+    <title>Cartagena Segura — Sistema de Seguridad Ciudadana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --bg: #080d14;
+          --surface: #0e1621;
+          --surface2: #131d2a;
+          --border: #1e2e42;
+          --accent: #00d4ff;
+          --accent2: #ff6b35;
+          --accent3: #00ff88;
+          --text: #e8f4ff;
+          --muted: #4a6a8a;
+          --font-display: 'Syne', sans-serif;
+          --font-mono: 'Space Mono', monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: var(--font-display);
+          min-height: 100vh;
+          overflow-x: hidden;
+        }
+
+        body::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+          background-size: 40px 40px;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        body::after {
+          content: '';
+          position: fixed;
+          top: -2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, var(--accent), transparent);
+          animation: scan 6s linear infinite;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        @keyframes scan {
+          0%   { top: -2px; opacity: 0.6; }
+          100% { top: 100%; opacity: 0.2; }
+        }
+
+        /* ── HEADER ── */
+        header {
+          position: relative;
+          z-index: 10;
+          padding: clamp(20px, 4vw, 48px) clamp(16px, 5vw, 60px) clamp(16px, 3vw, 32px);
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+          background: linear-gradient(180deg, rgba(0,212,255,0.04) 0%, transparent 100%);
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 14px; }
+
+        .logo-icon {
+          width: 46px; height: 46px;
+          border: 2px solid var(--accent);
+          border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px;
+          flex-shrink: 0;
+          box-shadow: 0 0 20px rgba(0,212,255,0.3), inset 0 0 20px rgba(0,212,255,0.05);
+          animation: pulse-border 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-border {
+          0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.3), inset 0 0 20px rgba(0,212,255,0.05); }
+          50%       { box-shadow: 0 0 40px rgba(0,212,255,0.6), inset 0 0 30px rgba(0,212,255,0.1); }
+        }
+
+        .logo-text h1 { font-size: clamp(16px, 3vw, 22px); font-weight: 800; letter-spacing: -0.5px; }
+        .logo-text p  { font-size: 10px; color: var(--muted); font-family: var(--font-mono); margin-top: 2px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+        .status-badge {
+          display: flex; align-items: center; gap: 8px;
+          padding: 7px 14px;
+          background: rgba(0,255,136,0.08);
+          border: 1px solid rgba(0,255,136,0.3);
+          border-radius: 100px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--accent3);
+          white-space: nowrap;
+        }
+
+        .status-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: var(--accent3);
+          flex-shrink: 0;
+          animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.3; }
+        }
+
+        .clock { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+        /* ── MAIN ── */
+        main {
+          position: relative;
+          z-index: 10;
+          padding: clamp(24px, 4vw, 48px) clamp(16px, 5vw, 60px);
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        /* ── HERO ── */
+        .hero {
+          margin-bottom: clamp(32px, 5vw, 56px);
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .hero-title {
+          font-size: clamp(28px, 5vw, 64px);
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -1.5px;
+        }
+
+        .hero-title .highlight {
+          background: linear-gradient(90deg, var(--accent), var(--accent3));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-sub { margin-top: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+        .version-chip {
+          padding: 6px 14px;
+          background: rgba(255,107,53,0.1);
+          border: 1px solid rgba(255,107,53,0.3);
+          border-radius: 6px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          color: var(--accent2);
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        /* ── METRICS ── */
+        .metrics {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+          margin-bottom: 32px;
+        }
+
+        @media (max-width: 860px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 460px) { .metrics { grid-template-columns: 1fr 1fr; gap: 10px; } }
+
+        .metric-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: clamp(16px, 3vw, 24px);
+          position: relative;
+          overflow: hidden;
+          transition: border-color 0.3s, transform 0.2s;
+          cursor: default;
+        }
+
+        .metric-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        .metric-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: var(--card-color, var(--accent));
+          opacity: 0.7;
+        }
+
+        .metric-card .label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .metric-card .value { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -1px; color: var(--card-color, var(--accent)); line-height: 1; margin-bottom: 5px; }
+        .metric-card .sub   { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+
+        /* ── CONTENT GRID ── */
+        .content-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        @media (max-width: 860px) { .content-grid { grid-template-columns: 1fr; } }
+
+        .panel {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .panel-header {
+          padding: 18px 22px;
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .panel-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+        .panel-badge { padding: 3px 10px; border-radius: 100px; font-family: var(--font-mono); font-size: 10px; }
+        .badge-ok   { background: rgba(0,255,136,0.1); color: var(--accent3); border: 1px solid rgba(0,255,136,0.2); }
+        .badge-warn { background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+        .badge-info { background: rgba(0,212,255,0.1); color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+
+        .panel-body { padding: 18px 22px; }
+
+        /* ── SERVICE STATUS ── */
+        .service-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 13px 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .service-row:last-child { border-bottom: none; }
+        .service-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+        .service-icon {
+          width: 34px; height: 34px;
+          border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 15px;
+          flex-shrink: 0;
+        }
+
+        .service-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .service-desc { font-family: var(--font-mono); font-size: 9px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .service-ping { font-family: var(--font-mono); font-size: 10px; color: var(--accent3); white-space: nowrap; flex-shrink: 0; }
+
+        /* ── ENDPOINTS TABLE ── */
+        .endpoints-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0 32px;
+        }
+        @media (max-width: 700px) { .endpoints-grid { grid-template-columns: 1fr; } }
+
+        .endpoint-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 9px 0;
+          border-bottom: 1px solid var(--border);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          min-width: 0;
+        }
+        .endpoint-row:last-child { border-bottom: none; }
+
+        .method {
+          padding: 3px 7px;
+          border-radius: 4px;
+          font-size: 9px;
+          font-weight: 700;
+          min-width: 48px;
+          text-align: center;
+          flex-shrink: 0;
+        }
+
+        .get    { background: rgba(0,255,136,0.1); color: var(--accent3); }
+        .post   { background: rgba(0,212,255,0.1); color: var(--accent); }
+        .patch  { background: rgba(255,107,53,0.1); color: var(--accent2); }
+        .delete { background: rgba(255,60,60,0.1);  color: #ff6060; }
+
+        .endpoint-path { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+        .endpoint-auth { font-size: 9px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+
+        /* ── QUICK LINKS ── */
+        .links-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        @media (max-width: 400px) { .links-grid { grid-template-columns: 1fr; } }
+
+        .link-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px;
+          background: var(--surface2);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          text-decoration: none;
+          color: var(--text);
+          transition: all 0.2s;
+          min-width: 0;
+        }
+        .link-card:hover { border-color: var(--accent); background: rgba(0,212,255,0.05); transform: translateY(-1px); }
+
+        .link-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .link-label { font-size: 13px; font-weight: 600; }
+        .link-url   { font-family: var(--font-mono); font-size: 9px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ── TECH STACK ── */
+        .stack-divider { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .stack-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        @media (max-width: 400px) { .stack-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .stack-item {
+          padding: 10px 8px;
+          background: var(--surface2);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          text-align: center;
+        }
+        .stack-item .tech { font-size: 11px; font-weight: 600; }
+        .stack-item .ver  { font-family: var(--font-mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
+
+        /* ── FULL WIDTH PANEL ── */
+        .full-panel { grid-column: 1 / -1; }
+
+
+
+        /* ── AI PANEL ── */
+        .ai-panel {
+          background: linear-gradient(135deg, rgba(167,139,250,0.06) 0%, var(--surface) 60%);
+          border: 1px solid rgba(167,139,250,0.25);
+        }
+
+        .ai-panel .panel-header { border-bottom-color: rgba(167,139,250,0.2); }
+
+        .ai-features {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 12px;
+        }
+        @media (max-width: 540px) { .ai-features { grid-template-columns: 1fr 1fr; } }
+
+        .ai-feature {
+          padding: 12px;
+          background: rgba(167,139,250,0.06);
+          border: 1px solid rgba(167,139,250,0.15);
+          border-radius: 10px;
+        }
+        .ai-feature .af-icon { font-size: 18px; margin-bottom: 6px; }
+        .ai-feature .af-title { font-size: 11px; font-weight: 600; color: #c4b5fd; margin-bottom: 3px; }
+        .ai-feature .af-desc  { font-family: var(--font-mono); font-size: 9px; color: var(--muted); line-height: 1.5; }
+
+        .ai-pending-notice {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 14px;
+          background: rgba(255,107,53,0.06);
+          border: 1px solid rgba(255,107,53,0.2);
+          border-radius: 10px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--accent2);
+        }
+
+        /* ── ROLES / AUTH ── */
+        .roles-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+        @media (max-width: 540px) { .roles-grid { grid-template-columns: 1fr; } }
+
+        .role-card {
+          padding: 14px;
+          background: var(--surface2);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+        }
+        .role-card .role-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+        .role-card .role-perms { font-size: 12px; color: var(--muted); line-height: 1.8; }
+        .role-card .role-perms span { display: block; }
+        .role-card .role-perms span::before { content: '→ '; color: var(--accent); }
+
+        /* ── MOBILE MENU TOGGLE ── */
+        .mobile-nav-hint {
+          display: none;
+          text-align: center;
+          padding: 10px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--muted);
+          border-bottom: 1px solid var(--border);
+        }
+        @media (max-width: 540px) { .mobile-nav-hint { display: block; } }
+
+        /* ── FOOTER ── */
+        footer {
+          position: relative;
+          z-index: 10;
+          padding: 20px clamp(16px, 5vw, 60px);
+          border-top: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        footer p { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+
+        .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+        .footer-links a { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent); }
+
+        /* ── FADE IN ANIMATIONS ── */
+        .fade-in { opacity: 0; transform: translateY(16px); animation: fadeUp 0.6s ease forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        .fade-in:nth-child(1) { animation-delay: 0.05s; }
+        .fade-in:nth-child(2) { animation-delay: 0.12s; }
+        .fade-in:nth-child(3) { animation-delay: 0.19s; }
+        .fade-in:nth-child(4) { animation-delay: 0.26s; }
+        .fade-in:nth-child(5) { animation-delay: 0.33s; }
+        .fade-in:nth-child(6) { animation-delay: 0.40s; }
+        .fade-in:nth-child(7) { animation-delay: 0.47s; }
+        .fade-in:nth-child(8) { animation-delay: 0.54s; }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <div class="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 3L4 7.5V14c0 5.5 4.2 10.2 10 11.5C19.8 24.2 24 19.5 24 14V7.5L14 3Z"
+                      fill="rgba(0,120,255,0.25)"
+                      stroke="#00d4ff"
+                      stroke-width="1.5"
+                      stroke-linejoin="round"/>
+                <path d="M14 7L7.5 10V14.5c0 3.8 2.9 7 6.5 7.8 3.6-.8 6.5-4 6.5-7.8V10L14 7Z"
+                      fill="rgba(0,160,255,0.3)"
+                      stroke="#5edfff"
+                      stroke-width="1"
+                      stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="logo-text">
+            <h1>Cartagena Segura</h1>
+            <p>Sistema de Seguridad Ciudadana · API v1.0</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            SISTEMA OPERATIVO
+        </div>
+        <div class="clock" id="clock">--:--:--</div>
+    </div>
+</header>
+
+<div class="mobile-nav-hint">↓ Desplázate para ver todos los paneles</div>
+
+<main>
+
+    <!-- HERO -->
+    <div class="hero fade-in">
+        <div>
+            <h2 class="hero-title">Panel de<br><span class="highlight">Control del Sistema</span></h2>
+            <p class="hero-sub">// Spring Boot 3.4.3 · Java 21 · PostgreSQL + MongoDB · JWT Auth · Groq AI</p>
+        </div>
+        <div class="version-chip">v1.0.0-SNAPSHOT · BUILD OK</div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+        <div class="metric-card fade-in" style="--card-color: #00ff88;">
+            <div class="label">Uptime</div>
+            <div class="value" id="uptime">00:00:00</div>
+            <div class="sub">desde el último reinicio</div>
+        </div>
+        <div class="metric-card fade-in" style="--card-color: #00d4ff;">
+            <div class="label">Endpoints</div>
+            <div class="value">20</div>
+            <div class="sub">rutas REST disponibles</div>
+        </div>
+        <div class="metric-card fade-in" style="--card-color: #ff6b35;">
+            <div class="label">Puerto</div>
+            <div class="value">8080</div>
+            <div class="sub">Tomcat embedded · HTTP</div>
+        </div>
+        <div class="metric-card fade-in" style="--card-color: #a78bfa;">
+            <div class="label">Java</div>
+            <div class="value">21</div>
+            <div class="sub">Oracle JDK · LTS release</div>
+        </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+        <!-- SERVICES STATUS -->
+        <div class="panel fade-in">
+            <div class="panel-header">
+                <span class="panel-title">Estado de Servicios</span>
+                <span class="panel-badge badge-ok">3/4 OK</span>
+            </div>
+            <div class="panel-body">
+                <div class="service-row">
+                    <div class="service-left">
+                        <div class="service-icon" style="background: rgba(0,255,136,0.1);">🐘</div>
+                        <div>
+                            <div class="service-name">PostgreSQL</div>
+                            <div class="service-desc">Supabase · aws-1-us-east-1 · Pool: 5</div>
+                        </div>
+                    </div>
+                    <div class="service-ping">● CONECTADO</div>
+                </div>
+                <div class="service-row">
+                    <div class="service-left">
+                        <div class="service-icon" style="background: rgba(0,255,136,0.1);">🍃</div>
+                        <div>
+                            <div class="service-name">MongoDB Atlas</div>
+                            <div class="service-desc">Replica Set · SA_EAST_1 · 3 nodos</div>
+                        </div>
+                    </div>
+                    <div class="service-ping">● CONECTADO</div>
+                </div>
+                <div class="service-row">
+                    <div class="service-left">
+                        <div class="service-icon" style="background: rgba(0,212,255,0.1);">🔐</div>
+                        <div>
+                            <div class="service-name">Spring Security + JWT</div>
+                            <div class="service-desc">BCrypt · Token 24h · Stateless</div>
+                        </div>
+                    </div>
+                    <div class="service-ping">● ACTIVO</div>
+                </div>
+                <div class="service-row">
+                    <div class="service-left">
+                        <div class="service-icon" style="background: rgba(167,139,250,0.1);">🤖</div>
+                        <div>
+                            <div class="service-name">Spring AI · Groq</div>
+                            <div class="service-desc">1.0.0-M6 · Groq Cloud · LLaMA 3</div>
+                        </div>
+                    </div>
+                    <div id="groq-status" style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0;">◌ VERIFICANDO</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK LINKS -->
+        <div class="panel fade-in">
+            <div class="panel-header">
+                <span class="panel-title">Accesos Rápidos</span>
+                <span class="panel-badge badge-info">DEV</span>
+            </div>
+            <div class="panel-body">
+                <div class="links-grid">
+                    <a href="/swagger-ui.html" class="link-card">
+                        <div class="link-icon" style="background: rgba(0,212,255,0.1);">📋</div>
+                        <div>
+                            <div class="link-label">Swagger UI</div>
+                            <div class="link-url">/swagger-ui.html</div>
+                        </div>
+                    </a>
+                    <a href="/api-docs" class="link-card">
+                        <div class="link-icon" style="background: rgba(255,107,53,0.1);">📄</div>
+                        <div>
+                            <div class="link-label">OpenAPI JSON</div>
+                            <div class="link-url">/api-docs</div>
+                        </div>
+                    </a>
+                    <a href="/actuator/health" class="link-card">
+                        <div class="link-icon" style="background: rgba(0,255,136,0.1);">💚</div>
+                        <div>
+                            <div class="link-label">Health Check</div>
+                            <div class="link-url">/actuator/health</div>
+                        </div>
+                    </a>
+                    <a href="/actuator/metrics" class="link-card">
+                        <div class="link-icon" style="background: rgba(167,139,250,0.1);">📊</div>
+                        <div>
+                            <div class="link-label">Métricas</div>
+                            <div class="link-url">/actuator/metrics</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="stack-divider">
+                    <div class="stack-grid">
+                        <div class="stack-item"><div class="tech">Spring Boot</div><div class="ver">3.4.3</div></div>
+                        <div class="stack-item"><div class="tech">Hibernate</div><div class="ver">6.6.8</div></div>
+                        <div class="stack-item"><div class="tech">Tomcat</div><div class="ver">10.1.36</div></div>
+                        <div class="stack-item"><div class="tech">jjwt</div><div class="ver">0.12.6</div></div>
+                        <div class="stack-item"><div class="tech">SpringDoc</div><div class="ver">2.8.4</div></div>
+                        <div class="stack-item"><div class="tech">MapStruct</div><div class="ver">1.6.3</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENDPOINTS -->
+        <div class="panel fade-in full-panel">
+            <div class="panel-header">
+                <span class="panel-title">Endpoints Principales</span>
+                <span class="panel-badge badge-info">20 RUTAS</span>
+            </div>
+            <div class="panel-body">
+                <div class="endpoints-grid">
+                    <div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/auth/register</span><span class="endpoint-auth">PUBLIC</span></div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/auth/login</span><span class="endpoint-auth">PUBLIC</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/incidents</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/incidents</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method patch">PATCH</span><span class="endpoint-path">/api/incidents/{id}/status</span><span class="endpoint-auth">ADMIN</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/zones</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/zones</span><span class="endpoint-auth">ADMIN</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/notifications/unread</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/emergency-contacts</span><span class="endpoint-auth">PUBLIC</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/actuator/health</span><span class="endpoint-auth">PUBLIC</span></div>
+                    </div>
+                    <div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/incidents/{id}</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/incidents/{id}/history</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/incidents/{id}/comments</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/incidents/{id}/comments</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method patch">PATCH</span><span class="endpoint-path">/api/notifications/read-all</span><span class="endpoint-auth">USER</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/logs</span><span class="endpoint-auth">ADMIN</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api/reports</span><span class="endpoint-auth">ADMIN</span></div>
+                        <div class="endpoint-row"><span class="method post">POST</span><span class="endpoint-path">/api/emergency-contacts</span><span class="endpoint-auth">ADMIN</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/swagger-ui.html</span><span class="endpoint-auth">PUBLIC</span></div>
+                        <div class="endpoint-row"><span class="method get">GET</span><span class="endpoint-path">/api-docs</span><span class="endpoint-auth">PUBLIC</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROLES & AUTH -->
+        <div class="panel fade-in full-panel">
+            <div class="panel-header">
+                <span class="panel-title">Roles y Permisos</span>
+                <span class="panel-badge badge-info">JWT · BCrypt</span>
+            </div>
+            <div class="panel-body">
+                <div class="roles-grid">
+                    <div class="role-card">
+                        <div class="role-label" style="color: var(--accent3);">👥 USER</div>
+                        <div class="role-perms">
+                            <span>Consultar incidentes</span>
+                            <span>Reportar incidente</span>
+                            <span>Comentar incidente</span>
+                            <span>Ver notificaciones</span>
+                            <span>Ver zonas</span>
+                        </div>
+                    </div>
+                    <div class="role-card">
+                        <div class="role-label" style="color: var(--accent2);">🛡️ ADMIN</div>
+                        <div class="role-perms">
+                            <span>Todo de USER</span>
+                            <span>Cambiar estado de incidente</span>
+                            <span>Gestionar zonas</span>
+                            <span>Ver logs del sistema</span>
+                            <span>Generar reportes</span>
+                            <span>Gestionar contactos</span>
+                        </div>
+                    </div>
+                    <div class="role-card">
+                        <div class="role-label" style="color: var(--accent);">🌐 PUBLIC</div>
+                        <div class="role-perms">
+                            <span>Registrarse</span>
+                            <span>Iniciar sesión</span>
+                            <span>Ver contactos de emergencia</span>
+                            <span>Health Check</span>
+                            <span>Documentación API</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPRING AI PANEL -->
+        <div class="panel ai-panel fade-in full-panel">
+            <div class="panel-header">
+                <span class="panel-title">Módulo Spring AI</span>
+                <span id="ai-panel-badge" class="panel-badge" style="background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3);">GROQ · VERIFICANDO</span>
+            </div>
+            <div class="panel-body">
+                <div id="ai-notice" class="ai-pending-notice" style="margin-bottom: 14px;">
+                    <span>◌</span>
+                    <span id="ai-notice-text">Verificando conexión con Groq Cloud...</span>
+                </div>
+                <div class="ai-features">
+                    <div class="ai-feature">
+                        <div class="af-icon">📍</div>
+                        <div class="af-title">Análisis de Zonas</div>
+                        <div class="af-desc">Predicción de riesgo por sector geográfico de Cartagena</div>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="af-icon">📋</div>
+                        <div class="af-title">Clasificación</div>
+                        <div class="af-desc">Categorización automática de incidentes reportados</div>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="af-icon">📊</div>
+                        <div class="af-title">Reportes IA</div>
+                        <div class="af-desc">Generación de resúmenes ejecutivos con lenguaje natural</div>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="af-icon">🔔</div>
+                        <div class="af-title">Alertas Inteligentes</div>
+                        <div class="af-desc">Priorización automática de notificaciones críticas</div>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="af-icon">💬</div>
+                        <div class="af-title">Asistente Virtual</div>
+                        <div class="af-desc">Chat para orientación ciudadana sobre seguridad</div>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="af-icon">📈</div>
+                        <div class="af-title">Tendencias</div>
+                        <div class="af-desc">Detección de patrones delictivos en tiempo real</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</main>
+
+<footer>
+    <p>© 2026 Cartagena Segura · ProAula · Spring Boot 3.4.3</p>
+    <div class="footer-links">
+        <a href="/swagger-ui.html">Docs</a>
+        <a href="/actuator/health">Health</a>
+        <a href="/api-docs">OpenAPI</a>
+        <a href="/actuator/metrics">Métricas</a>
+    </div>
+</footer>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent =
+            now.toLocaleTimeString('es-CO', { hour12: false });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    const start = Date.now();
+    function updateUptime() {
+        const elapsed = Math.floor((Date.now() - start) / 1000);
+        const h = Math.floor(elapsed / 3600).toString().padStart(2, '0');
+        const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('uptime').textContent = `${h}:${m}:${s}`;
+    }
+    updateUptime();
+    setInterval(updateUptime, 1000);
+
+    // Health check general
+    fetch('/actuator/health')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'UP') {
+                const badge = document.querySelector('.status-badge');
+                badge.innerHTML = '<div class="status-dot"></div> SISTEMA OPERATIVO';
+            }
+        })
+        .catch(() => {});
+
+    // Groq / Spring AI health check via /api/ai/summary
+    fetch('/api/ai/summary', { method: 'GET' })
+        .then(r => {
+            const groqEl    = document.getElementById('groq-status');
+            const noticeEl  = document.getElementById('ai-notice');
+            const noticeMsg = document.getElementById('ai-notice-text');
+            const badgeEl   = document.getElementById('ai-panel-badge');
+
+            if (r.ok) {
+                // ACTIVO
+                groqEl.textContent = '● ACTIVO';
+                groqEl.style.color = 'var(--accent3)';
+
+                noticeEl.style.background = 'rgba(0,255,136,0.06)';
+                noticeEl.style.border     = '1px solid rgba(0,255,136,0.2)';
+                noticeEl.style.color      = 'var(--accent3)';
+                noticeEl.querySelector('span').textContent = '✓';
+                noticeMsg.textContent = 'Spring AI 1.0.0-M6 conectado con Groq Cloud · LLaMA 3 respondiendo correctamente.';
+
+                badgeEl.textContent         = 'GROQ · ACTIVO';
+                badgeEl.style.background    = 'rgba(0,255,136,0.1)';
+                badgeEl.style.color         = 'var(--accent3)';
+                badgeEl.style.borderColor   = 'rgba(0,255,136,0.3)';
+            } else {
+                throw new Error('not ok');
+            }
+        })
+        .catch(() => {
+            const groqEl    = document.getElementById('groq-status');
+            const noticeMsg = document.getElementById('ai-notice-text');
+            const badgeEl   = document.getElementById('ai-panel-badge');
+
+            groqEl.textContent = '◎ PENDIENTE';
+            groqEl.style.color = 'var(--accent2)';
+
+            noticeMsg.textContent = 'Spring AI 1.0.0-M6 con Groq Cloud configurado pero sin respuesta activa.';
+            document.getElementById('ai-notice').querySelector('span').textContent = '⚠';
+
+            badgeEl.textContent = 'GROQ · PENDIENTE';
+        });
+</script>
+</body>
+</html>

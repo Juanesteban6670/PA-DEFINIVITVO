@@ -1,0 +1,28 @@
+{
+  "short_name": "CartagenaSegura",
+  "name": "Cartagena Segura - Sentinel",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "AppIcon.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "AppIcon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#060B14",
+  "background_color": "#060B14",
+  "orientation": "portrait",
+  "description": "Sistema de monitoreo ciudadano y reportes en tiempo real para Cartagena."
+}

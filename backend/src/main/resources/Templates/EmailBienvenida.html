@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bienvenido a Cartagena Segura</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:wght@400;500&display=swap');
+
+    body { margin: 0; padding: 0; background-color: #f5f3ef; font-family: 'DM Sans', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    table { border-collapse: collapse; }
+    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+
+    .wrapper { width: 100%; table-layout: fixed; background-color: #f5f3ef; padding-bottom: 40px; padding-top: 40px; }
+    .main-table { width: 100%; max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; }
+
+    /* HEADER */
+    .header { 
+      background-color: #0c1e3c; 
+      background-image: 
+        radial-gradient(circle at 100% 0%, rgba(65, 165, 230, 0.15) 0%, transparent 50%),
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
+      padding: 50px 40px; 
+      color: #ffffff; 
+      text-align: left;
+    }
+    
+    .logo-badge { width: 72px; height: 72px; text-align: center; }
+    .logo-img { width: 72px; height: 72px; border-radius: 12px; display: block; }
+    
+    .logo-name { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: #ffffff; line-height: 1; }
+    .logo-sub { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+    .tag { display: inline-block; background: rgba(65,165,230,0.15); border: 1px solid rgba(65,165,230,0.25); border-radius: 100px; padding: 4px 12px; font-size: 11px; color: #78c0f0; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 35px; }
+    .title { font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.1; margin: 15px 0 10px; letter-spacing: -1px; }
+    .title span { color: #41a5e6; }
+    .desc { font-size: 14px; color: rgba(255,255,255,0.45); font-weight: 300; line-height: 1.6; }
+
+    /* BODY */
+    .body-content { padding: 45px 40px; background-color: #ffffff; border-left: 1px solid #e8e4de; border-right: 1px solid #e8e4de; }
+    .intro { font-size: 15px; color: #4a4640; line-height: 1.75; margin: 0 0 32px; }
+
+    /* ACCOUNT CARD */
+    .account-card { border: 1px solid #e4e0da; border-radius: 12px; overflow: hidden; margin-bottom: 36px; }
+    .card-head { background: #f8f6f2; border-bottom: 1px solid #e4e0da; padding: 12px 20px; font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 600; color: #9c9690; text-transform: uppercase; letter-spacing: 1.4px; }
+    .card-head-dot { width: 6px; height: 6px; background: #c8c2bb; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
+
+    .info-row { padding: 14px 20px; border-bottom: 1px solid #f0ece6; }
+    .info-row:last-child { border-bottom: none; }
+    .label { font-size: 12px; color: #a8a29c; text-transform: uppercase; letter-spacing: 0.8px; width: 120px; vertical-align: middle; }
+    .value { font-size: 14px; color: #1a1614; font-weight: 500; vertical-align: middle; }
+    .role-pill { background: #eaf7f0; border: 1px solid #c0e8d4; border-radius: 100px; padding: 3px 10px; color: #1a7a48; font-size: 11px; font-weight: 600; display: inline-block; }
+
+    /* FEATURES */
+    .features-title { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600; color: #9c9690; text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 18px; }
+    .feature-item { padding: 14px 0; border-bottom: 1px solid #f0ece6; }
+    .feature-icon { font-size: 20px; width: 44px; vertical-align: top; }
+    .feature-main { vertical-align: top; }
+    .feature-main strong { display: block; font-size: 14px; color: #1a1614; font-weight: 500; margin-bottom: 2px; }
+    .feature-main span { font-size: 13px; color: #888280; line-height: 1.55; font-weight: 300; }
+
+    /* CTA */
+    .cta-area { text-align: center; padding: 32px 0 36px; border-top: 1px solid #f0ece6; }
+    .btn { background-color: #0c1e3c; color: #ffffff !important; padding: 15px 44px; border-radius: 10px; display: inline-block; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600; text-decoration: none; }
+
+    /* ALERT */
+    .alert { background: #fdf9ee; border: 1px solid #e8d99a; border-radius: 10px; padding: 16px 20px; margin-top: 20px; }
+    .alert-text { font-size: 12.5px; color: #7a6720; line-height: 1.65; }
+
+    /* FOOTER */
+    .footer { background-color: #0c1e3c; border-radius: 0 0 16px 16px; padding: 32px 48px; text-align: center; }
+    .footer-name { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .footer-sub { font-size: 11px; color: rgba(255,255,255,0.2); margin: 6px 0 18px; }
+    .footer-nav a { color: rgba(255,255,255,0.3); font-size: 11.5px; margin: 0 10px; text-decoration: none; }
+    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.15); line-height: 1.7; margin-top: 20px; }
+
+    @media only screen and (max-width: 600px) {
+      .header, .body-content, .footer { padding: 30px 25px !important; }
+      .title { font-size: 26px !important; }
+      .label { width: 90px !important; }
+      .main-table { border-radius: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <table class="main-table" align="center" border="0" cellpadding="0" cellspacing="0">
+    <!-- HEADER -->
+    <tr>
+      <td class="header">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="logo-badge">
+              <img src="https://img.icons8.com/fluency/96/shield.png" alt="Logo" class="logo-img" />
+            </td>
+            <td style="padding-left: 14px;">
+              <div class="logo-name">Cartagena Segura</div>
+              <div class="logo-sub">Seg. Ciudadana · 2026</div>
+            </td>
+          </tr>
+        </table>
+        <div class="tag">Registro exitoso</div>
+        <h1 class="title">Bienvenido,<br><span><span th:text="${username}">Usuario</span></span>.</h1>
+        <p class="desc">Ahora formas parte de la comunidad que trabaja<br>para hacer de Cartagena una ciudad más segura.</p>
+      </td>
+    </tr>
+
+    <!-- BODY -->
+    <tr>
+      <td class="body-content">
+        <p class="intro">
+          Tu cuenta en <strong>Cartagena Segura</strong> ha sido creada exitosamente. A continuación encontrarás los datos de tu registro y todo lo que puedes hacer desde la plataforma.
+        </p>
+
+        <!-- ACCOUNT INFO -->
+        <table class="account-card" width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="card-head">
+              <div class="card-head-dot"></div>
+              <span>Datos de tu cuenta</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr class="info-row">
+                  <td class="label" style="padding: 14px 20px;">Usuario</td>
+                  <td class="value" style="padding: 14px 20px;" th:text="${username}">usuario123</td>
+                </tr>
+                <tr class="info-row">
+                  <td class="label" style="padding: 14px 20px;">Nombre</td>
+                  <td class="value" style="padding: 14px 20px;" th:text="${fullName}">Nombre Completo</td>
+                </tr>
+                <tr class="info-row">
+                  <td class="label" style="padding: 14px 20px;">Correo</td>
+                  <td class="value" style="padding: 14px 20px;" th:text="${email}">usuario@email.com</td>
+                </tr>
+                <tr class="info-row">
+                  <td class="label" style="padding: 14px 20px;">Rol</td>
+                  <td style="padding: 14px 20px;"><div class="role-pill">CIUDADANO</div></td>
+                </tr>
+                <tr class="info-row" style="border-bottom: none;">
+                  <td class="label" style="padding: 14px 20px;">Registrado</td>
+                  <td class="value" style="padding: 14px 20px;" th:text="${#temporals.format(registeredAt, 'dd/MM/yyyy HH:mm')}">07/03/2026 17:31</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- FEATURES -->
+        <div class="features-title">Qué puedes hacer</div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="feature-item">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="feature-icon">📍</td>
+                  <td class="feature-main">
+                    <strong>Reportar incidentes</strong>
+                    <span>Notifica situaciones de riesgo en tu zona con ubicación GPS, descripción y fotos.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-item">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="feature-icon">🗺️</td>
+                  <td class="feature-main">
+                    <strong>Ver el mapa en tiempo real</strong>
+                    <span>Visualiza todos los incidentes reportados en Cartagena en tiempo real.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-item">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="feature-icon">🔔</td>
+                  <td class="feature-main">
+                    <strong>Recibir notificaciones</strong>
+                    <span>Mantente informado sobre el estado de tus reportes.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-item">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="feature-icon">🚨</td>
+                  <td class="feature-main">
+                    <strong>Contactos de emergencia</strong>
+                    <span>Accede rápidamente a Policía, Bomberos, Hospitales y más.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-item" style="border-bottom: none;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="feature-icon">📊</td>
+                  <td class="feature-main">
+                    <strong>Estadísticas de la ciudad</strong>
+                    <span>Consulta el tablero de análisis con datos de seguridad de Cartagena.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- CTA -->
+        <div class="cta-area">
+          <p style="font-size: 12px; color: #b0aba5; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 16px;">Accede a la plataforma</p>
+          <a th:href="${appUrl}" href="https://cartagena-segura.vercel.app" class="btn">Ingresar a Cartagena Segura</a>
+          <p style="margin-top: 14px; font-size: 12px; color: #b0aba5;">O visita <a th:href="${appUrl}" href="https://cartagena-segura.vercel.app" style="color: #41a5e6; text-decoration: none;">cartagena-segura.vercel.app</a></p>
+        </div>
+
+        <!-- ALERT -->
+        <table class="alert" width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td valign="top" style="width: 30px; font-size: 14px;">⚠️</td>
+            <td class="alert-text">
+              <strong>Seguridad:</strong> Nunca compartas tu contraseña con nadie. Si no reconoces este registro, contacta al administrador de inmediato. Tu sesión expira cada <strong>24 horas</strong>.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td class="footer">
+        <table align="center" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><img src="https://img.icons8.com/fluency/48/shield.png" style="width: 22px; vertical-align: middle;" /></td>
+            <td class="footer-name">Cartagena Segura</td>
+          </tr>
+        </table>
+        <div class="footer-sub">Sistema de Seguridad Ciudadana · 2026</div>
+        <div class="footer-nav">
+          <a th:href="${appUrl}" href="https://cartagena-segura.vercel.app">Plataforma</a> |
+          <a href="#">Privacidad</a> |
+          <a href="#">Soporte</a>
+        </div>
+        <div class="footer-copy">
+          Este correo fue enviado automáticamente por el sistema.<br>
+          Por favor no respondas directamente a este mensaje.
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+# =========================
+# SECRETOS - NUNCA SUBIR
+# =========================
+.env
+.env.local
+.env.production
+.env.staging
+
+# =========================
+# MAVEN
+# =========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# =========================
+# INTELLIJ IDEA
+# =========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# =========================
+# VS CODE
+# =========================
+.vscode/
+*.code-workspace
+
+# =========================
+# SISTEMA OPERATIVO
+# =========================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# LOGS
+# =========================
+*.log
+logs/
+spring-shell.log
+
+# =========================
+# JAVA
+# =========================
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# =========================
+# SPRING BOOT
+# =========================
+spring-boot-starter-*.jar
