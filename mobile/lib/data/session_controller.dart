@@ -7,17 +7,20 @@ import 'api_client.dart';
 import 'models.dart';
 
 class SessionController extends ChangeNotifier {
-  SessionController({required this.api, required this.storage});
+  SessionController({required this.api, required this.storage}) {
+    api.onUnauthorized = _handleUnauthorized;
+  }
 
   static const _tokenKey = 'session.token';
   static const _userKey = 'session.user';
 
   final ApiClient api;
-  final FlutterSecureStorage storage;
+  final SessionStorage storage;
 
   AppUser? user;
   bool initialized = false;
   String? initializationError;
+  String? sessionNotice;
 
   @override
   void dispose() {
@@ -27,9 +30,12 @@ class SessionController extends ChangeNotifier {
 
   Future<void> initialize() async {
     try {
-      final token = await storage.read(key: _tokenKey);
-      final profileJson = await storage.read(key: _userKey);
-      if (token != null && profileJson != null) {
+      final token = await storage.read(_tokenKey);
+      final profileJson = await storage.read(_userKey);
+      if (token == null || profileJson == null) {
+        if (token != null) await storage.delete(_tokenKey);
+        if (profileJson != null) await storage.delete(_userKey);
+      } else {
         final profile = jsonDecode(profileJson);
         if (profile is! Map<String, dynamic>) {
           throw const FormatException(
@@ -83,25 +89,64 @@ class SessionController extends ChangeNotifier {
       throw const FormatException('La API no devolvió un token de sesión');
     }
 
-    await storage.write(key: _tokenKey, value: authenticatedUser.token);
     await storage.write(
-      key: _userKey,
-      value: jsonEncode({
+      _userKey,
+      jsonEncode({
         'username': authenticatedUser.username,
         'fullName': authenticatedUser.fullName,
         'email': authenticatedUser.email,
       }),
     );
+    await storage.write(_tokenKey, authenticatedUser.token);
     api.token = authenticatedUser.token;
     user = authenticatedUser;
+    sessionNotice = null;
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    await storage.delete(key: _tokenKey);
-    await storage.delete(key: _userKey);
+  Future<void> logout() => _clearSession(
+    'No se pudo borrar completamente la sesión local',
+  );
+
+  Future<void> _handleUnauthorized() => _clearSession(
+    'La sesión fue rechazada y no se pudo borrar completamente la sesión local',
+  );
+
+  Future<void> _clearSession(String storageFailureMessage) async {
     api.token = null;
     user = null;
+    sessionNotice = null;
     notifyListeners();
+    try {
+      await storage.delete(_tokenKey);
+      await storage.delete(_userKey);
+    } on Exception catch (error) {
+      sessionNotice = '$storageFailureMessage: $error';
+      notifyListeners();
+    }
   }
+}
+
+abstract interface class SessionStorage {
+  Future<String?> read(String key);
+
+  Future<void> write(String key, String value);
+
+  Future<void> delete(String key);
+}
+
+class SecureSessionStorage implements SessionStorage {
+  const SecureSessionStorage(this._storage);
+
+  final FlutterSecureStorage _storage;
+
+  @override
+  Future<String?> read(String key) => _storage.read(key: key);
+
+  @override
+  Future<void> write(String key, String value) =>
+      _storage.write(key: key, value: value);
+
+  @override
+  Future<void> delete(String key) => _storage.delete(key: key);
 }

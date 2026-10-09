@@ -20,6 +20,7 @@ class ApiClient {
   final String _baseUrl;
   final http.Client _client;
   String? token;
+  Future<void> Function()? onUnauthorized;
 
   void close() => _client.close();
 
@@ -83,13 +84,26 @@ class ApiClient {
       throw ApiException('No fue posible conectar con la API: $error');
     }
 
+    String? sessionCleanupError;
+    if (response.statusCode == 401 && token != null && onUnauthorized != null) {
+      try {
+        await onUnauthorized!();
+      } on Exception catch (error) {
+        sessionCleanupError = error.toString();
+      }
+    }
+
     dynamic decoded;
     if (response.bodyBytes.isNotEmpty) {
       try {
         decoded = jsonDecode(utf8.decode(response.bodyBytes));
       } on FormatException {
         throw ApiException(
-          'La API devolvió una respuesta no válida (HTTP ${response.statusCode})',
+          [
+            'La API devolvió una respuesta no válida (HTTP ${response.statusCode})',
+            if (sessionCleanupError != null)
+              'No se pudo limpiar la sesión local: $sessionCleanupError',
+          ].join('. '),
           statusCode: response.statusCode,
         );
       }
@@ -97,13 +111,17 @@ class ApiClient {
 
     final envelope = decoded is Map<String, dynamic> ? decoded : null;
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = envelope?['message']?.toString();
-      throw ApiException(
-        message?.isNotEmpty == true
-            ? message!
-            : 'La API respondió con HTTP ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
+      var message =
+          envelope?['message']?.toString() ??
+          'La API respondió con HTTP ${response.statusCode}';
+      if (message.isEmpty) {
+        message = 'La API respondió con HTTP ${response.statusCode}';
+      }
+      if (sessionCleanupError != null) {
+        message =
+            '$message. No se pudo limpiar la sesión local: $sessionCleanupError';
+      }
+      throw ApiException(message, statusCode: response.statusCode);
     }
 
     if (envelope != null && envelope['success'] == false) {

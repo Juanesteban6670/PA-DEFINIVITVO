@@ -40,4 +40,13 @@ Sigue la [guía de despliegue](docs/deployment.md) antes de publicar.
 
 ## Aplicación móvil
 
-La app ciudadana en Flutter usa la misma API y guarda el JWT con almacenamiento seguro del dispositivo. Consulta [mobile/README.md](mobile/README.md) para ejecutarla o compilar Android; compilar para iOS requiere macOS y Xcode.
+La app ciudadana en Flutter usa la misma API REST y guarda el JWT con almacenamiento seguro del dispositivo. Las solicitudes autenticadas envían el token como `Authorization: Bearer <JWT>`; si la API lo rechaza con HTTP 401, la app limpia la sesión local y solicita autenticarse de nuevo. Consulta [mobile/README.md](mobile/README.md) para ejecutarla o compilar Android; compilar para iOS requiere macOS y Xcode.
+
+Las pruebas móviles incluyen cobertura del cliente HTTP y de la restauración, rechazo y borrado de sesiones. Ejecútalas desde `mobile/`:
+
+```powershell
+flutter analyze
+flutter test
+```
+
+La documentación del alcance funcional, endpoints y pantallas está en [docs/documentacion-entrega-movil.md](docs/documentacion-entrega-movil.md).

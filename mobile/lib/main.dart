@@ -26,7 +26,7 @@ class _CartagenaAppState extends State<CartagenaApp> {
     super.initState();
     _session = SessionController(
       api: ApiClient(baseUrl: const String.fromEnvironment('API_BASE_URL')),
-      storage: const FlutterSecureStorage(),
+      storage: const SecureSessionStorage(FlutterSecureStorage()),
     )..initialize();
   }
 

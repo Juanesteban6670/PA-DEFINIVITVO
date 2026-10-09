@@ -121,10 +121,11 @@ class _SignInScreenState extends State<SignInScreen> {
                       required: true,
                       password: true,
                     ),
-                    if (_error != null) ...[
+                    if (_error != null ||
+                        widget.session.sessionNotice != null) ...[
                       const SizedBox(height: 12),
                       Text(
-                        _error!,
+                        _error ?? widget.session.sessionNotice!,
                         style: TextStyle(color: theme.colorScheme.error),
                         textAlign: TextAlign.center,
                       ),
