@@ -5,6 +5,7 @@ import Com.Backend.CartagenaSegura.Model.User;
 import Com.Backend.CartagenaSegura.Repository.RoleRepository;
 import Com.Backend.CartagenaSegura.Repository.UserRepository;
 import Com.Backend.CartagenaSegura.Security.JwtUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -101,13 +102,6 @@ public class AuthService {
         userRepository.save(user);
 
         String resetUrl = frontendUrl + "/ResetPassword?token=" + token;
-        String localUrl = "http://localhost:3000/ResetPassword?token=" + token;
-        
-        // DEBUG: Imprimir en consola para pruebas locales
-        System.out.println("\n=========================================================");
-        System.out.println("RECOVERY LINK (DEBUG): " + localUrl);
-        System.out.println("PRODUCTION LINK: " + resetUrl);
-        System.out.println("=========================================================\n");
 
         emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetUrl);
         

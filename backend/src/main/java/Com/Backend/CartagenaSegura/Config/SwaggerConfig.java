@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,9 @@ import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String apiBaseUrl;
 
     @Bean
     public OpenAPI openAPI() {
@@ -44,8 +48,7 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT"))
                 )
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Servidor de desarrollo"),
-                        new Server().url("https://api.cartagenasegura.com").description("Servidor de producción")
+                        new Server().url(apiBaseUrl).description("Servidor configurado")
                 ))
                 // Configurar esquema de seguridad JWT
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))

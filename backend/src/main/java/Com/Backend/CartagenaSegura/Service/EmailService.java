@@ -24,8 +24,11 @@ public class EmailService {
     @Value("${apps.script.url}")
     private String appsScriptUrl;
 
-    @Value("${app.base-url:https://cartagena-segura-production.up.railway.app}")
+    @Value("${app.base-url:http://localhost:8080}")
     private String apiBaseUrl;
+
+    @Value("${app.frontend-url:https://cartagena-segura.vercel.app}")
+    private String frontendUrl;
 
     public EmailService(TemplateEngine templateEngine, ObjectMapper objectMapper) {
         this.templateEngine = templateEngine;
@@ -40,7 +43,7 @@ public class EmailService {
             context.setVariable("email",        to);
             context.setVariable("fullName",     fullName != null ? fullName : username);
             context.setVariable("registeredAt", LocalDateTime.now());
-            context.setVariable("appUrl",       "https://cartagena-segura.vercel.app");
+            context.setVariable("appUrl",       frontendUrl);
             context.setVariable("apiUrl",       apiBaseUrl);
 
             // Se genera el HTML desde la plantilla
@@ -83,7 +86,7 @@ public class EmailService {
             Context context = new Context();
             context.setVariable("username", username);
             context.setVariable("resetUrl", resetUrl);
-            context.setVariable("appUrl",   "https://cartagena-segura.vercel.app");
+            context.setVariable("appUrl",   frontendUrl);
             context.setVariable("apiUrl",   apiBaseUrl);
 
             String html = templateEngine.process("EmailResetPassword", context);

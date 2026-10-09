@@ -2,8 +2,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 
 const api = axios.create({
-  //baseURL: 'https://cartagena-segura-production.up.railway.app/api',
-  baseURL: 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 })

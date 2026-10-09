@@ -22,5 +22,5 @@ COPY --from=builder /app/target/*.jar app.jar
 # Exponer el puerto
 EXPOSE 8080
 
-# Ejecutar la aplicación — PORT viene del .env o del servidor de despliegue
-ENTRYPOINT ["sh", "-c", "java -jar -Dserver.port=${PORT:-8080} app.jar"]
+# Spring Boot reads PORT from the hosting environment.
+ENTRYPOINT ["java", "-jar", "app.jar"]
