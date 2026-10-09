@@ -30,6 +30,16 @@ flutter build apk --release --dart-define=API_BASE_URL=https://tu-api-publica/ap
 
 El cliente guarda el JWT en almacenamiento seguro del dispositivo. No se debe usar `localhost` como URL en un APK distribuido: en cada teléfono `localhost` se refiere a ese mismo teléfono.
 
+## Simulación visual en navegador
+
+El soporte web permite revisar rápidamente las pantallas Flutter desde Chrome o Edge con el tamaño de vista configurado como teléfono. Desde `mobile/`:
+
+```powershell
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080/api
+```
+
+La API debe estar ejecutándose localmente para probar inicio de sesión, reportes, mapa y contactos. Sin API se puede revisar la interfaz de acceso, pero las operaciones que envían solicitudes no funcionarán. Esta vista previa ayuda a validar la disposición visual y no sustituye una prueba en Android o iOS: permisos, GPS, llamadas telefónicas y almacenamiento seguro nativo deben verificarse en un dispositivo/emulador correspondiente.
+
 ## Verificaciones
 
 ```powershell
