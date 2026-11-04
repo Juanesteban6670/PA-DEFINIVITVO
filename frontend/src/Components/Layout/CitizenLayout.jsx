@@ -39,7 +39,7 @@ export default function CitizenLayout() {
       <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 3000 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(29,78,216,0.06)', border: '1px solid rgba(29,78,216,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/LogoFull.png" alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+            <img src="/app-icon.svg" alt="Cartagena Segura" style={{ width: 20, height: 20, objectFit: 'contain' }} />
           </div>
           <div>
             <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>Cartagena Segura</p>

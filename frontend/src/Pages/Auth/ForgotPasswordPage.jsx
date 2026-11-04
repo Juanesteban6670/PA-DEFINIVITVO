@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
       <div className="relative w-full max-w-sm sm:max-w-md animate-slide-up">
         <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 border border-white/20 rounded-2xl mb-4 backdrop-blur">
-            <img src="/LogoFull.png" alt="Cartagena Segura" className="w-10 h-10 object-contain" />
+            <img src="/app-icon.svg" alt="Cartagena Segura" className="w-10 h-10 object-contain" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Recuperar Acceso</h1>
           <p className="text-white/60 text-xs sm:text-sm mt-1">Ingresa tu correo para restablecer tu contraseña</p>

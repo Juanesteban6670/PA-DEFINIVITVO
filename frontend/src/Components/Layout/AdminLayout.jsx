@@ -37,7 +37,7 @@ export default function AdminLayout() {
       <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/LogoFull.png" alt="Logo" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+            <img src="/app-icon.svg" alt="Cartagena Segura" style={{ width: 22, height: 22, objectFit: 'contain' }} />
           </div>
           <div>
             <p style={{ fontSize: 13, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.2 }}>Cartagena Segura</p>

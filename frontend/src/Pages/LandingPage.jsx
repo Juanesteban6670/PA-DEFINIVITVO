@@ -160,7 +160,7 @@ export default function LandingPage() {
             <div className="relative group cursor-pointer">
               <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 flex items-center justify-center shadow-inner">
-                <img src="/LogoFull.png" alt="Logo" className="w-6 h-6 object-contain" />
+                <img src="/app-icon.svg" alt="Cartagena Segura" className="w-6 h-6 object-contain" />
               </div>
             </div>
             <div className="hidden sm:block">
@@ -458,7 +458,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center shadow-lg">
-                  <img src="/LogoFull.png" alt="Logo" className="w-7 h-7" />
+                  <img src="/app-icon.svg" alt="Cartagena Segura" className="w-7 h-7" />
                 </div>
                 <div>
                   <span className="text-white font-black text-xl tracking-tighter">Cartagena Segura</span>
