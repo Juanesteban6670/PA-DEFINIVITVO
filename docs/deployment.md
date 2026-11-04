@@ -1,54 +1,79 @@
-# Despliegue nuevo de Cartagena Segura
+# Puesta en marcha y despliegue de Cartagena Segura
 
-## Arquitectura
+## Arquitectura desplegable
 
-- **Web:** alojamiento estático para Vite/React. Directorio raíz de compilación: `frontend`; comandos: `npm ci` y `npm run build`; salida: `dist`.
-- **API:** alojamiento de contenedores que admita el [Dockerfile del backend](../backend/Dockerfile); directorio raíz: `backend`. El contenedor escucha el puerto `PORT` asignado por el proveedor.
-- **PostgreSQL y MongoDB:** instancias nuevas administradas y accesibles desde la API. No es necesario instalar estas bases de datos en los equipos que usan la aplicación.
-- **Archivos de evidencia:** el backend guarda archivos en disco local. En producción, monta almacenamiento persistente en el contenedor en la ruta configurada por `UPLOAD_DIR`; de lo contrario, los archivos se pueden perder al reiniciar o volver a desplegar.
-- **Flutter:** el cliente móvil separado en `mobile/` usa la URL HTTPS pública de esta misma API, configurada al compilar mediante `--dart-define=API_BASE_URL=https://<api-publica>/api`.
+El proyecto se ejecuta con Docker Compose:
 
-Crear las cuentas, proyectos e instancias en los proveedores es un paso manual que requiere acceso a las cuentas del propietario. Esta guía prepara los puntos de configuración, pero no crea cuentas ni credenciales.
+- **Frontend:** React/Vite compilado y servido por Nginx.
+- **API:** backend Spring Boot.
+- **Datos:** PostgreSQL y MongoDB con volúmenes persistentes y sin puertos expuestos a Internet.
+- **HTTPS opcional/producción:** Caddy termina TLS automáticamente y publica web/API bajo un mismo dominio.
 
-## Variables de entorno del backend
+El teléfono Android o iOS abre la URL de la web en Chrome o Safari. No necesita instalar Flutter, crear un APK/IPA ni publicar en una tienda. La PWA precarga los archivos de interfaz y ofrece una página informativa offline; no almacena respuestas del API, datos personales, sesiones ni reportes.
 
-Configura estas variables en el panel del servicio de API. Usa credenciales nuevas y guarda todos los valores sensibles como secretos del proveedor:
+## Requisitos
 
-| Variable | Valor |
-| --- | --- |
-| `DB_URL` | URL JDBC de la instancia PostgreSQL nueva, por ejemplo `jdbc:postgresql://HOST:5432/BASE?sslmode=require` |
-| `DB_USERNAME` | Usuario de PostgreSQL |
-| `DB_PASSWORD` | Contraseña de PostgreSQL |
-| `MONGO_URI` | URI de conexión de la instancia MongoDB nueva |
-| `MONGO_DATABASE` | Nombre de la base MongoDB |
-| `JWT_SECRET` | Secreto aleatorio, privado, de al menos 32 caracteres |
-| `JWT_EXPIRATION` | Vigencia del token en milisegundos, por ejemplo `86400000` |
-| `GROQ_API_KEY` | Clave de Groq, si se habilita la integración de IA |
-| `APPS_SCRIPT_URL` | URL del servicio de Google Apps Script, si se habilita el correo |
-| `PORT` | Lo asigna el proveedor de hosting |
-| `BASE_URL` | URL HTTPS pública de la API, sin `/api` al final |
-| `FRONTEND_URL` | URL HTTPS pública de la aplicación web |
-| `CORS_ALLOWED_ORIGINS` | Orígenes web autorizados separados por comas, sin rutas ni comodines |
-| `UPLOAD_DIR` | Ruta del volumen persistente de archivos, por ejemplo `/app/uploads` |
+- Docker Desktop o Docker Engine con Docker Compose v2.
+- Para producción: un VPS con puertos 80 y 443 disponibles y un dominio cuyo DNS apunte al VPS.
 
-Ejemplo de orígenes CORS: `https://mi-web.example.com`. Para incluir un segundo cliente web, sepáralo con una coma. El cliente Flutter nativo no requiere habilitar cualquier origen CORS; si se construye Flutter Web, incluye su origen exacto.
+## Ejecución local
 
-## Variables de entorno del frontend
+En PowerShell, desde la raíz del repositorio:
 
-Configura `VITE_API_URL` durante la compilación de Vite con la URL HTTPS pública de la API y el prefijo `/api`, por ejemplo `https://mi-api.example.com/api`. Vite incorpora este valor en los archivos de la web; nunca pongas secretos en variables `VITE_*`.
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+docker compose ps
+```
 
-En desarrollo, deja `VITE_API_URL` vacío: Vite usa `/api` y reenvía las solicitudes a `http://localhost:8080`. El destino local se puede cambiar con `API_PROXY_TARGET`.
+Abre `http://localhost:3000`. Compose inicia las bases de datos, espera sus comprobaciones de salud y luego inicia API y web. La primera compilación descarga dependencias y puede tardar. Los cambios de backend/frontend se incorporan reconstruyendo con `docker compose up --build -d`.
 
-## Lista de comprobación
+El archivo `.env.example` contiene credenciales exclusivamente locales. `.env` está excluido de Git. Para borrar contenedores sin borrar datos usa `docker compose down`; **no** agregues `-v` salvo que quieras eliminar bases de datos, archivos y certificados persistidos.
 
-1. Crear instancias nuevas de PostgreSQL y MongoDB y permitir conexiones únicamente desde el servicio de la API.
-2. Desplegar el backend con `backend/Dockerfile`, las variables anteriores y un volumen persistente para `UPLOAD_DIR`.
-3. Comprobar `https://<api-publica>/actuator/health`.
-4. Desplegar `frontend/` con `npm ci` y `npm run build`; configurar `VITE_API_URL` antes de compilar.
-5. Añadir el origen público de la web a `CORS_ALLOWED_ORIGINS` y establecer `FRONTEND_URL` en el backend.
-6. Verificar inicio de sesión, registro, recuperación de contraseña, mapas y carga/consulta de archivos desde un dispositivo distinto.
-7. No subir `.env`, contraseñas, claves API ni cadenas de conexión al repositorio.
+## Probar desde un teléfono en la red local
 
-## Aplicación Flutter
+La publicación local queda ligada a `127.0.0.1` por seguridad. Para una prueba temporal en una red privada, cambia `WEB_BIND_ADDRESS` en `.env` a `0.0.0.0`, agrega `http://<IP-del-PC>:3000` a `CORS_ALLOWED_ORIGINS`, abre el puerto `WEB_PORT` solo en una red confiable y visita desde el teléfono `http://<IP-del-PC>:3000`. Limita el acceso con el firewall y restaura la configuración al terminar. Las funciones del navegador que requieren contexto seguro, como geolocalización, deben probarse en un despliegue HTTPS real.
 
-La app `mobile/` ya contiene el MVP ciudadano y usa la misma API. Su URL se inyecta en compilación mediante `--dart-define=API_BASE_URL=...`; así no depende de `localhost` cuando se distribuye. La app almacena el JWT con almacenamiento seguro del dispositivo. Flutter no puede usar `localhost` para llegar a la API publicada ni al PC del desarrollador.
+## Despliegue en un VPS con HTTPS
+
+1. Instala Docker Engine y Compose v2 en el VPS y clona el repositorio.
+2. Copia `.env.example` a `.env`; cambia todas las contraseñas y `JWT_SECRET` por valores aleatorios privados. Usa una contraseña Mongo compatible con URI (por ejemplo, caracteres alfanuméricos y `-._~`) o codifica sus caracteres reservados.
+3. Configura `DOMAIN` con el nombre DNS real y cambia `BASE_URL`, `FRONTEND_URL` y `CORS_ALLOWED_ORIGINS` al origen HTTPS exacto, por ejemplo `https://segura.example.com`. No agregues comodines.
+4. Asegúrate de que el DNS apunte al VPS y que los puertos TCP 80/443 (y opcionalmente UDP 443) estén permitidos.
+5. Inicia todos los servicios, incluyendo el perfil HTTPS:
+
+   ```sh
+   docker compose --profile production up --build -d
+   docker compose ps
+   ```
+
+6. Visita `https://<tu-dominio>`. Caddy solicitará y renovará los certificados TLS automáticamente. La API se sirve en el mismo origen bajo `/api`; el navegador no necesita una URL de API diferente.
+7. En el teléfono instala la PWA: en Android abre la URL con Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS abre la URL con Safari y usa **Compartir > Añadir a pantalla de inicio**. HTTPS es necesario para instalación PWA, geolocalización y otras capacidades seguras.
+
+PostgreSQL, MongoDB y la API no publican puertos al host. El frontend solo se publica en loopback y Caddy es el punto de entrada en producción. No habilites puertos de bases de datos en el firewall.
+
+## Persistencia y respaldos
+
+Compose mantiene datos en volúmenes `postgres_data`, `mongo_data`, `uploaded_files`, `caddy_data` y `caddy_config`. Los volúmenes sobreviven a recrear contenedores, pero **no** sustituyen copias de seguridad. Programa respaldos de PostgreSQL, MongoDB y archivos de evidencia, guarda las copias fuera del VPS y prueba periódicamente su restauración. Protege también `.env` (permisos restringidos); no lo subas a Git ni lo incluyas en imágenes.
+
+## Configuración e integraciones
+
+- `POSTGRES_*`, `MONGO_*`: bases locales del stack. No publiques los servicios de datos externamente.
+- `JWT_SECRET`: secreto privado aleatorio; nunca reutilices el valor de ejemplo.
+- `GROQ_API_KEY` y `APPS_SCRIPT_URL`: opcionales según las funciones de IA/correo habilitadas.
+- `CORS_ALLOWED_ORIGINS`: orígenes permitidos, separados por comas. En producción indica únicamente la URL web HTTPS.
+- `BASE_URL` y `FRONTEND_URL`: enlaces públicos usados por la API, por ejemplo para archivos y correos.
+- `WEB_PORT`: puerto local de loopback para abrir la aplicación en el propio servidor/desarrollador.
+
+El Docker Compose incluido usa bases de datos autocontenidas y persistentes en el servidor. Si se cambia a bases de datos administradas, se deben adaptar `DB_URL`, `DB_SSL`, `DB_SSLMODE`, `MONGO_URI` y retirar los servicios locales correspondientes. Las claves de servicios externos deben configurarse como secretos, nunca en variables `VITE_*` que terminarían dentro del navegador.
+
+## Verificación y límites
+
+- Backend: se sirve bajo el mismo origen en `/api`; Actuator se usa para la comprobación interna del contenedor.
+- Frontend/PWA: comprueba la instalación desde Chrome Android y Safari iOS reales, acceso a las rutas, mapas, GPS y reportes.
+- Sin Internet, la PWA solo muestra la página de ayuda; no permite consultar incidentes/contactos ni enviar reportes.
+- El proyecto no crea dominio, cuentas de hosting ni credenciales. El propietario debe configurarlos y validar datos de prueba antes de usarlo con información real.
+
+## Flutter nativo
+
+`mobile/` permanece como cliente Flutter independiente y opcional. Para el flujo Android/iOS basado en web descrito aquí no se requiere compilar Android ni disponer de macOS/Xcode. La [guía Flutter](../mobile/README.md) se conserva para quien quiera ejecutar ese cliente por separado.

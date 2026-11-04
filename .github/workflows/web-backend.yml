@@ -1,0 +1,127 @@
+name: Web and backend checks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "compose.yaml"
+      - "Caddyfile"
+      - ".env.example"
+      - ".github/workflows/web-backend.yml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "compose.yaml"
+      - "Caddyfile"
+      - ".env.example"
+      - ".github/workflows/web-backend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Lint PWA entry and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint:pwa
+
+      - name: Build PWA
+        run: npm run build
+
+  backend:
+    name: Test and build API
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cartagena_segura
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cartagena_segura"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping: 1}).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/cartagena_segura?sslmode=disable
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSL: "false"
+      DB_SSLMODE: disable
+      MONGO_URI: mongodb://localhost:27017/
+      MONGO_DATABASE: cartagena_segura
+      JWT_SECRET: test-secret-test-secret-test-secret-32
+      JWT_EXPIRATION: 86400000
+      GROQ_API_KEY: ""
+      APPS_SCRIPT_URL: ""
+      BASE_URL: http://localhost:8080
+      FRONTEND_URL: http://localhost:3000
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      UPLOAD_DIR: uploads
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Test and package
+        run: bash ./mvnw -B verify
+
+  containers:
+    name: Validate Docker deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare local environment
+        run: cp .env.example .env
+
+      - name: Validate Compose configuration
+        run: docker compose --profile production config --quiet
+
+      - name: Build application images
+        run: docker compose build backend frontend

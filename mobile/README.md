@@ -1,6 +1,16 @@
-# Aplicación móvil Cartagena Segura
+# Cliente Flutter nativo opcional
 
-Cliente Flutter ciudadano para Android e iOS. Consume la API REST de `backend/`; no mantiene una base de datos distinta. Incluye inicio y registro de sesión, mapa de incidentes, envío de reportes de texto con GPS y contactos de emergencia. La carga de fotografías se puede añadir en una siguiente iteración.
+## Flujo recomendado para Android e iOS
+
+Para usar Cartagena Segura desde un teléfono, el proyecto prioriza la web/PWA: abre la URL HTTPS en Chrome (Android) o Safari (iOS) y, si se desea, añádela a la pantalla de inicio. No hace falta compilar ni instalar esta app Flutter. Consulta [la guía de despliegue](../docs/deployment.md).
+
+La web instalada necesita Internet para iniciar sesión, consultar datos y reportar. Sin conexión solo muestra instrucciones; no guarda datos ni reportes pendientes.
+
+## App Flutter independiente
+
+Esta carpeta conserva el cliente nativo Flutter existente, que puede ejecutarse por separado y requiere una API accesible. No es el flujo principal de distribución en Android/iOS.
+
+Consume la API REST de `backend/`; no mantiene una base de datos distinta. Incluye inicio y registro de sesión, mapa de incidentes, envío de reportes de texto con GPS y contactos de emergencia. La carga de fotografías se puede añadir en una siguiente iteración.
 
 ## Requisitos
 

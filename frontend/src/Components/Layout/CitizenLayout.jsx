@@ -25,13 +25,14 @@ export default function CitizenLayout() {
   const initial = user?.username?.[0]?.toUpperCase() ?? 'U'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#F8FAFC', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+    <div className="citizen-app-shell" style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#F8FAFC', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         .nav-link-item { transition: all 0.2s; text-decoration: none; }
         .nav-link-item:hover .nav-icon { background: rgba(29,78,216,0.06) !important; }
         .top-avatar { transition: all 0.2s; }
         .top-avatar:hover { opacity: 0.8; }
+        .citizen-app-shell { padding-top: env(safe-area-inset-top); }
       `}</style>
 
       {/* TOP BAR */}
@@ -65,7 +66,7 @@ export default function CitizenLayout() {
       </header>
 
       {/* MAIN */}
-      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: 72 }}>
+      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(72px + env(safe-area-inset-bottom))' }}>
         <Outlet />
       </main>
 

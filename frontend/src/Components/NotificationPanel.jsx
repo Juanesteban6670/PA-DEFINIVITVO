@@ -45,8 +45,8 @@ export default function NotificationPanel() {
       navigator.serviceWorker.ready.then(reg => {
         reg.showNotification(title, {
           body: translatedBody,
-          icon: '/AppIcon.png',
-          badge: '/AppIcon.png',
+          icon: '/app-icon-192.png',
+          badge: '/app-icon-192.png',
           vibrate: [100, 50, 100],
           tag: 'cartagena-segura',
           renotify: true,
@@ -59,11 +59,11 @@ export default function NotificationPanel() {
     // Fallback para navegadores antiguos o si el SW falla
     if (Notification.permission === 'granted') {
       try {
-        new Notification(title, { 
-          body: translatedBody, 
-          icon: '/AppIcon.png', 
-          tag: 'cartagena-segura', 
-          renotify: true 
+        new Notification(title, {
+          body: translatedBody,
+          icon: '/app-icon-192.png',
+          tag: 'cartagena-segura',
+          renotify: true,
         });
       } catch (e) {
         console.error("Error al disparar notificación nativa:", e);
