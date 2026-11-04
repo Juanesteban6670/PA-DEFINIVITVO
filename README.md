@@ -1,6 +1,6 @@
 # Cartagena Segura
 
-Plataforma ciudadana con API REST en Spring Boot y web React instalable como PWA. En Android e iOS, el flujo recomendado es abrir la URL HTTPS desde el navegador y, opcionalmente, añadirla a la pantalla de inicio; no hace falta instalar Flutter ni publicar en una tienda.
+Cartagena Segura es una plataforma ciudadana con una API REST Spring Boot y una web React que se prepara para instalarse como PWA. En Android e iOS, el flujo previsto es abrir la web publicada mediante HTTPS desde el navegador y, opcionalmente, añadirla a la pantalla de inicio. No hace falta instalar Flutter ni publicar en una tienda.
 
 ## Componentes
 
@@ -10,27 +10,37 @@ Plataforma ciudadana con API REST en Spring Boot y web React instalable como PWA
 - `mobile/`: cliente Flutter nativo opcional e independiente.
 - `docs/deployment.md`: ejecución local, despliegue HTTPS y uso en teléfonos.
 
-## Desarrollo local
+## Estado actual
 
-Requisito: Docker Desktop (Windows/macOS) o Docker Engine con el plugin Docker Compose.
+El repositorio ya incluye el frontend PWA, archivos Docker Compose para web/API/PostgreSQL/MongoDB, y una configuración opcional de Caddy para HTTPS en un servidor con dominio. La instalación debe funcionar bajo conexión; sin Internet la PWA muestra instrucciones y no guarda reportes ni datos personales.
 
-```powershell
-Copy-Item .env.example .env
-docker compose up --build -d
-docker compose ps
-```
+El frontend se compiló y se comprobó en navegador en tamaños móviles, incluyendo la shell PWA y su pantalla sin conexión. La auditoría de dependencias de producción del frontend no detectó vulnerabilidades. No se ha confirmado todavía un despliegue público ni una prueba en dispositivos Android/iOS reales. En la última validación local no estaban disponibles Docker ni Java, por lo que faltan probar el stack Compose y las verificaciones Maven; el workflow de GitHub Actions también debe confirmarse en **Actions**.
 
-Abre `http://localhost:3000`. El primer inicio compila los contenedores y puede tardar. `.env.example` contiene valores solo para desarrollo; reemplázalos antes de publicar. No ejecutes `docker compose down -v` salvo que quieras borrar los datos persistidos.
+## Ejecutar localmente
 
-Para desarrollar solo el frontend con Vite, consulta [frontend/README.md](frontend/README.md).
+Requisito: Docker Desktop o Docker Engine con Docker Compose v2.
+
+1. Copia `.env.example` a `.env`.
+2. Desde la raíz del repositorio ejecuta:
+
+   ```powershell
+   docker compose up --build -d
+   docker compose ps
+   ```
+
+3. Abre `http://localhost:3000`.
+
+La primera construcción puede tardar. Los datos se conservan en volúmenes de Docker. `docker compose down` detiene los servicios sin borrar esos volúmenes; evita `docker compose down -v` si necesitas conservar los datos. Los valores de ejemplo son solo locales, no los uses como secretos de producción.
+
+Para desarrollar solo la web se requieren Node.js y npm; instrucciones en [frontend/README.md](frontend/README.md). Para ejecutar y verificar el backend fuera de Docker se requiere Java 21; consulta [backend/README.md](backend/README.md).
 
 ## Usar en Android e iOS
 
-Despliega la aplicación con HTTPS y visita su URL en el teléfono. En Android, usa Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS, abre la URL en Safari y selecciona **Compartir > Añadir a pantalla de inicio**. También se puede usar directamente en el navegador.
+Una vez configurados el servidor, dominio, DNS y secretos, despliega la aplicación con HTTPS y visita su URL en el teléfono. En Android, usa Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS, abre la URL en Safari y selecciona **Compartir > Añadir a pantalla de inicio**. También se puede usar directamente en el navegador.
 
-Sin conexión solo se muestra una página de ayuda; no se guardan sesiones, datos personales ni reportes. La ubicación y el mapa requieren permisos y conectividad. La PWA no reemplaza una prueba en dispositivos reales.
+Sin conexión solo se muestra una página de ayuda; no se guardan sesiones, datos personales ni reportes. La ubicación y el mapa requieren permisos y conectividad. Las capacidades de instalación y GPS deben comprobarse en dispositivos reales.
 
-Consulta la [guía de despliegue](docs/deployment.md) para activar HTTPS automático con Caddy y configurar dominio, secretos y respaldos.
+El despliegue público aún requiere la infraestructura y los secretos del propietario. Consulta la [guía de despliegue](docs/deployment.md) para activar HTTPS automático con Caddy, configurar dominio y secretos, y preparar respaldos.
 
 ## Cliente Flutter opcional
 
@@ -40,7 +50,7 @@ El alcance Flutter está descrito en [docs/documentacion-entrega-movil.md](docs/
 
 ## Integración continua
 
-GitHub Actions valida lint/build de la web y prueba/compila el backend. El workflow Flutter existente continúa validando el cliente nativo opcional.
+GitHub Actions está configurado para validar lint/build de la web, ejecutar `mvn verify` con Java 21 y comprobar/construir los contenedores. El workflow Flutter existente valida el cliente nativo opcional. Revisa la pestaña **Actions** para confirmar el resultado de las ejecuciones; la existencia de los workflows no implica que todas las comprobaciones ya hayan pasado.
 
 ## Desarrolladores y creadores
 
