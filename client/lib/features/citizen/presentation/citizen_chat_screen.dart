@@ -32,8 +32,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     super.initState();
     _messages.add(
       const _ChatMessage(
-        text:
-            'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
+        text: 'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
       ),
     );
     _restoreHistory();
@@ -109,8 +108,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         ..clear()
         ..add(
           const _ChatMessage(
-            text:
-                'Conversación nueva. ¿En qué puedo orientarte sobre seguridad ciudadana?',
+            text: 'Conversación nueva. ¿En qué puedo orientarte sobre seguridad ciudadana?',
           ),
         );
     });
@@ -196,9 +194,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _scrollToEnd() {

@@ -141,7 +141,9 @@ class SafeRouteService {
     List<Map<String, dynamic>> rawRoutes = [];
 
     try {
-      final response = await httpClient.get(url).timeout(const Duration(seconds: 7));
+      final response = await httpClient
+          .get(url)
+          .timeout(const Duration(seconds: 7));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         if (data['code'] == 'Ok' && data['routes'] is List) {
@@ -183,11 +185,18 @@ class SafeRouteService {
         points.addAll([origin, destination]);
       }
 
-      final distanceMeters = ((raw['distance'] as num?) ?? _distance.as(LengthUnit.Meter, origin, destination)).toDouble();
-      final durationSeconds = ((raw['duration'] as num?) ?? (distanceMeters / 8.5)).toDouble();
+      final distanceMeters =
+          ((raw['distance'] as num?) ??
+                  _distance.as(LengthUnit.Meter, origin, destination))
+              .toDouble();
+      final durationSeconds =
+          ((raw['duration'] as num?) ?? (distanceMeters / 8.5)).toDouble();
 
       // Evaluar peligrosidad
-      final (dangerIndex, hazards) = _evaluateRouteSafety(points, validIncidents);
+      final (dangerIndex, hazards) = _evaluateRouteSafety(
+        points,
+        validIncidents,
+      );
       final safetyScore = max(5, min(100, 100 - dangerIndex.round()));
 
       final safetyLevel = switch (dangerIndex) {
@@ -302,7 +311,10 @@ class SafeRouteService {
   }
 
   /// Muestrea puntos espaciados uniformemente a lo largo de la polilínea
-  static List<LatLng> _samplePolyline(List<LatLng> points, {double stepMeters = 50.0}) {
+  static List<LatLng> _samplePolyline(
+    List<LatLng> points, {
+    double stepMeters = 50.0,
+  }) {
     if (points.length <= 2) return points;
 
     final samples = <LatLng>[points.first];
@@ -329,7 +341,10 @@ class SafeRouteService {
   }
 
   /// Genera una ruta de contingencia conectando origen y destino con puntos intermedios
-  static Map<String, dynamic> _generateFallbackRoute(LatLng origin, LatLng destination) {
+  static Map<String, dynamic> _generateFallbackRoute(
+    LatLng origin,
+    LatLng destination,
+  ) {
     final dist = _distance.as(LengthUnit.Meter, origin, destination);
     final midLat = (origin.latitude + destination.latitude) / 2;
     final midLon = (origin.longitude + destination.longitude) / 2;
@@ -363,26 +378,34 @@ class SafeRouteService {
     );
 
     try {
-      final response = await httpClient.get(
-        url,
-        headers: {'User-Agent': 'CartagenaSegura/1.0 (contacto@cartagenasegura.gov.co)'},
-      ).timeout(const Duration(seconds: 5));
+      final response = await httpClient
+          .get(
+            url,
+            headers: {
+              'User-Agent':
+                  'CartagenaSegura/1.0 (contacto@cartagenasegura.gov.co)',
+            },
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final list = jsonDecode(response.body) as List;
-        return list.map((item) {
-          final lat = double.tryParse(item['lat']?.toString() ?? '') ?? 0.0;
-          final lon = double.tryParse(item['lon']?.toString() ?? '') ?? 0.0;
-          final displayName = item['display_name']?.toString() ?? clean;
-          final name = item['name']?.toString() ?? clean;
+        return list
+            .map((item) {
+              final lat = double.tryParse(item['lat']?.toString() ?? '') ?? 0.0;
+              final lon = double.tryParse(item['lon']?.toString() ?? '') ?? 0.0;
+              final displayName = item['display_name']?.toString() ?? clean;
+              final name = item['name']?.toString() ?? clean;
 
-          return DestinationPreset(
-            name: name.isNotEmpty ? name : clean,
-            description: displayName,
-            location: LatLng(lat, lon),
-            category: 'Búsqueda',
-          );
-        }).where((p) => p.location.latitude != 0.0).toList();
+              return DestinationPreset(
+                name: name.isNotEmpty ? name : clean,
+                description: displayName,
+                location: LatLng(lat, lon),
+                category: 'Búsqueda',
+              );
+            })
+            .where((p) => p.location.latitude != 0.0)
+            .toList();
       }
     } catch (_) {
       // Si falla, se filtra sobre los presets locales

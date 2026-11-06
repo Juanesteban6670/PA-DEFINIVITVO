@@ -30,16 +30,21 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
   bool _expandedAlerts = false;
 
   SafeRoute get _currentRoute =>
-      widget.routes.isNotEmpty && widget.selectedRouteIndex < widget.routes.length
-          ? widget.routes[widget.selectedRouteIndex]
-          : widget.routes.first;
+      widget.routes.isNotEmpty &&
+          widget.selectedRouteIndex < widget.routes.length
+      ? widget.routes[widget.selectedRouteIndex]
+      : widget.routes.first;
 
   @override
   Widget build(BuildContext context) {
     final route = _currentRoute;
-    final theme = Theme.of(context);
 
-    final (badgeBg, badgeFg, badgeBorder, badgeIcon) = switch (route.safetyLevel) {
+    final (
+      badgeBg,
+      badgeFg,
+      badgeBorder,
+      badgeIcon,
+    ) = switch (route.safetyLevel) {
       SafetyLevel.safe => (
         const Color(0xFFECFDF5),
         const Color(0xFF047857),
@@ -83,7 +88,11 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
             child: Row(
               children: [
-                const Icon(Icons.navigation, color: Color(0xFF1D4ED8), size: 18),
+                const Icon(
+                  Icons.navigation,
+                  color: Color(0xFF1D4ED8),
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -113,7 +122,10 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                 ),
                 IconButton(
                   tooltip: 'Centrar en el mapa',
-                  icon: const Icon(Icons.center_focus_strong_outlined, size: 20),
+                  icon: const Icon(
+                    Icons.center_focus_strong_outlined,
+                    size: 20,
+                  ),
                   onPressed: widget.onCenterRoute,
                 ),
                 IconButton(
@@ -170,7 +182,10 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeBg,
                     borderRadius: BorderRadius.circular(12),
@@ -250,7 +265,10 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => setState(() => _expandedAlerts = !_expandedAlerts),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(10),
@@ -311,7 +329,10 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                               '${h.type}: ${h.description.isNotEmpty ? h.description : h.location}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF334155)),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF334155),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -334,7 +355,11 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
                 children: const [
-                  Icon(Icons.check_circle_outline, color: Color(0xFF059669), size: 15),
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Color(0xFF059669),
+                    size: 15,
+                  ),
                   SizedBox(width: 6),
                   Text(
                     'No hay reportes de peligro activos sobre este trayecto.',

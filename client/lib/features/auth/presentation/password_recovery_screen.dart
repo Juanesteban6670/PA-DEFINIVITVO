@@ -66,8 +66,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
         await widget.session.requestPasswordReset(_email.text);
         if (!mounted) return;
         setState(
-          () => _message =
-              'Si el correo está registrado, recibirás instrucciones para recuperar tu cuenta.',
+          () => _message = 'Si el correo está registrado, recibirás instrucciones para recuperar tu cuenta.',
         );
       }
     } on ApiException catch (error) {
@@ -159,9 +158,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                         ),
                         validator: (value) =>
                             value == null ||
-                                !RegExp(
-                                  r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                                ).hasMatch(value.trim())
+                                !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                    .hasMatch(value.trim())
                             ? 'Escribe un correo válido'
                             : null,
                       ),

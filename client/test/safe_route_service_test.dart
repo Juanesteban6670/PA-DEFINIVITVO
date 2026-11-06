@@ -19,45 +19,48 @@ void main() {
       }
     });
 
-    test('calculateRoutes returns clean route with 100% safety when no incidents', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response(
-          jsonEncode({
-            'code': 'Ok',
-            'routes': [
-              {
-                'distance': 2500.0,
-                'duration': 300.0,
-                'geometry': {
-                  'coordinates': [
-                    [-75.5478, 10.4236],
-                    [-75.5500, 10.4100],
-                    [-75.5562, 10.4001],
-                  ],
+    test(
+      'calculateRoutes returns clean route with 100% safety when no incidents',
+      () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 2500.0,
+                  'duration': 300.0,
+                  'geometry': {
+                    'coordinates': [
+                      [-75.5478, 10.4236],
+                      [-75.5500, 10.4100],
+                      [-75.5562, 10.4001],
+                    ],
+                  },
                 },
-              }
-            ],
-          }),
-          200,
+              ],
+            }),
+            200,
+          );
+        });
+
+        final routes = await SafeRouteService.calculateRoutes(
+          origin: const LatLng(10.4236, -75.5478),
+          destination: const LatLng(10.4001, -75.5562),
+          incidents: const [],
+          client: mockClient,
         );
-      });
 
-      final routes = await SafeRouteService.calculateRoutes(
-        origin: const LatLng(10.4236, -75.5478),
-        destination: const LatLng(10.4001, -75.5562),
-        incidents: const [],
-        client: mockClient,
-      );
-
-      expect(routes.length, 1);
-      final route = routes.first;
-      expect(route.safetyScore, 100);
-      expect(route.safetyLevel, SafetyLevel.safe);
-      expect(route.hazardsOnRoute.isEmpty, isTrue);
-      expect(route.formattedDistance, '2.5 km');
-      expect(route.formattedDuration, '5 min');
-      expect(route.isRecommended, isTrue);
-    });
+        expect(routes.length, 1);
+        final route = routes.first;
+        expect(route.safetyScore, 100);
+        expect(route.safetyLevel, SafetyLevel.safe);
+        expect(route.hazardsOnRoute.isEmpty, isTrue);
+        expect(route.formattedDistance, '2.5 km');
+        expect(route.formattedDuration, '5 min');
+        expect(route.isRecommended, isTrue);
+      },
+    );
 
     test('calculateRoutes penalizes route when critical incidents are in trajectory', () async {
       final mockClient = MockClient((request) async {
@@ -75,7 +78,7 @@ void main() {
                     [-75.5490, 10.4220],
                   ],
                 },
-              }
+              },
             ],
           }),
           200,

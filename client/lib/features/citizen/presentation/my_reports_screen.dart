@@ -5,6 +5,7 @@ import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
 import 'package:cartagena_segura/shared/theme.dart';
+
 import 'report_screen.dart';
 
 class MyReportsScreen extends StatefulWidget {
@@ -237,9 +238,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             children: [
               Text(
                 incident.type,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -551,10 +551,8 @@ class _PendingReports extends StatelessWidget {
       const SizedBox(height: 16),
       Text(
         'Pendientes de enviar (${drafts.length})',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppColors.navy,
-          fontWeight: FontWeight.w800,
-        ),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w800),
       ),
       const SizedBox(height: 8),
       for (final draft in drafts)

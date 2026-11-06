@@ -4,6 +4,7 @@ import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/theme.dart';
+
 import 'citizen_chat_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {

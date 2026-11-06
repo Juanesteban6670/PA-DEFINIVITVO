@@ -407,9 +407,8 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                 Text(title),
                 Text(
                   value,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),

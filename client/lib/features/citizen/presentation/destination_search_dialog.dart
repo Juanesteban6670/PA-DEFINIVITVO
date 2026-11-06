@@ -7,15 +7,13 @@ import 'package:cartagena_segura/core/data/safe_route_service.dart';
 
 /// Modal para seleccionar o buscar un destino hacia el cual calcular la Ruta Segura.
 class DestinationSearchDialog extends StatefulWidget {
-  const DestinationSearchDialog({
-    required this.currentLocation,
-    super.key,
-  });
+  const DestinationSearchDialog({required this.currentLocation, super.key});
 
   final LatLng? currentLocation;
 
   @override
-  State<DestinationSearchDialog> createState() => _DestinationSearchDialogState();
+  State<DestinationSearchDialog> createState() =>
+      _DestinationSearchDialogState();
 }
 
 class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
@@ -118,14 +116,14 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                           ),
                         )
                       : (_searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () {
-                                _searchController.clear();
-                                _onSearchChanged('');
-                              },
-                            )
-                          : null),
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
+                            : null),
                   filled: true,
                   fillColor: const Color(0xFFF1F5F9),
                   border: OutlineInputBorder(
@@ -163,14 +161,21 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                   ? ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       itemCount: _searchResults.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final item = _searchResults[index];
                         return ListTile(
-                          leading: const Icon(Icons.place, color: Color(0xFF1D4ED8)),
+                          leading: const Icon(
+                            Icons.place,
+                            color: Color(0xFF1D4ED8),
+                          ),
                           title: Text(
                             item.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                           subtitle: Text(
                             item.description,
@@ -212,13 +217,22 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                             ),
                             title: Text(
                               preset.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
                             ),
                             subtitle: Text(
                               preset.description,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                              ),
                             ),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 12),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 12,
+                            ),
                             onTap: () => Navigator.of(context).pop(preset),
                           ),
                       ],

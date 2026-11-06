@@ -80,11 +80,12 @@ class _ReportScreenState extends State<ReportScreen> {
       });
       await _saveDraft();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Ubicación GPS actualizada')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ubicación GPS actualizada')),
+      );
     } on LocationAccessException catch (error) {
-      if (error.isPermissionBlocked || (kIsWeb && error.settingsTarget != null)) {
+      if (error.isPermissionBlocked ||
+          (kIsWeb && error.settingsTarget != null)) {
         if (!mounted) return;
         await showLocationBlockedDialog(context);
       } else {
@@ -490,9 +491,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -641,15 +641,18 @@ class _ReportScreenState extends State<ReportScreen> {
                                 _locating
                                     ? 'Obteniendo GPS…'
                                     : (_latitude == null || _longitude == null
-                                        ? 'Añadir ubicación GPS'
-                                        : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
-                                              '${_longitude!.toStringAsFixed(5)}'),
+                                          ? 'Añadir ubicación GPS'
+                                          : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
+                                                '${_longitude!.toStringAsFixed(5)}'),
                               ),
                             ),
                             if (_latitude != null && _longitude != null)
                               IconButton(
                                 tooltip: 'Quitar coordenadas GPS',
-                                icon: const Icon(Icons.cancel_outlined, size: 20),
+                                icon: const Icon(
+                                  Icons.cancel_outlined,
+                                  size: 20,
+                                ),
                                 onPressed: () {
                                   setState(() {
                                     _latitude = null;

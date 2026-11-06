@@ -8,6 +8,7 @@ import 'package:cartagena_segura/features/auth/presentation/sign_in_screen.dart'
 import 'package:cartagena_segura/features/citizen/presentation/home_shell.dart';
 import 'package:cartagena_segura/features/citizen/presentation/notifications_screen.dart';
 import 'package:cartagena_segura/features/landing/presentation/landing_screen.dart';
+
 import 'providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {

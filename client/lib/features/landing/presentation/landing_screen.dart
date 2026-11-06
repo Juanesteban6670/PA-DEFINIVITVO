@@ -103,10 +103,8 @@ class LandingScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   Text(
                     'Reporta incidentes, consulta información y encuentra ayuda de emergencia en Cartagena.',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white70,
-                      height: 1.55,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(color: Colors.white70, height: 1.55),
                   ),
                   const SizedBox(height: 26),
                   Wrap(
@@ -224,8 +222,7 @@ class LandingScreen extends StatelessWidget {
       context,
       sectionKey: _missionKey,
       title: 'Una comunidad conectada',
-      subtitle:
-          'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
+      subtitle: 'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
       child: const SizedBox.shrink(),
     ),
   );

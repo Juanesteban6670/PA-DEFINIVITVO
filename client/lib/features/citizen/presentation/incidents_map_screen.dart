@@ -104,7 +104,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       setState(() => _position = position);
       _mapController.move(LatLng(position.latitude, position.longitude), 15);
     } on LocationAccessException catch (error) {
-      if (error.isPermissionBlocked || (kIsWeb && error.settingsTarget != null)) {
+      if (error.isPermissionBlocked ||
+          (kIsWeb && error.settingsTarget != null)) {
         if (!mounted) return;
         await showLocationBlockedDialog(context);
       } else {
@@ -150,9 +151,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openDestinationSearch() async {
@@ -311,9 +311,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   Expanded(
                     child: Text(
                       'Incidentes (${filtered.length})',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                   IconButton(
@@ -357,7 +356,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         userAgentPackageName:
                             'com.cartagenasegura.cartagena_segura',
                       ),
-                      if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
+                      if (_safeRoutes case final routes?
+                          when routes.isNotEmpty) ...[
                         PolylineLayer(
                           polylines: [
                             for (var i = 0; i < routes.length; i++)
@@ -372,7 +372,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                             Polyline(
                               points: routes[_selectedRouteIndex].points,
                               strokeWidth: 6.0,
-                              color: _routeColor(routes[_selectedRouteIndex].safetyLevel),
+                              color: _routeColor(
+                                routes[_selectedRouteIndex].safetyLevel,
+                              ),
                               borderColor: Colors.white,
                               borderStrokeWidth: 2.0,
                             ),
@@ -388,10 +390,22 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF1D4ED8),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
-                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                    ),
+                                  ],
                                 ),
-                                child: const Icon(Icons.navigation, color: Colors.white, size: 18),
+                                child: const Icon(
+                                  Icons.navigation,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
                             ),
                             Marker(
@@ -402,23 +416,47 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFDC2626),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
-                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                    ),
+                                  ],
                                 ),
-                                child: const Icon(Icons.flag, color: Colors.white, size: 18),
+                                child: const Icon(
+                                  Icons.flag,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
                             ),
-                            for (final hazard in routes[_selectedRouteIndex].hazardsOnRoute)
+                            for (final hazard
+                                in routes[_selectedRouteIndex].hazardsOnRoute)
                               Marker(
-                                point: LatLng(hazard.latitude!, hazard.longitude!),
+                                point: LatLng(
+                                  hazard.latitude!,
+                                  hazard.longitude!,
+                                ),
                                 width: 32,
                                 height: 32,
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFEF2F2),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFFDC2626), width: 1.5),
-                                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                                    border: Border.all(
+                                      color: const Color(0xFFDC2626),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                      ),
+                                    ],
                                   ),
                                   child: const Icon(
                                     Icons.warning_amber_rounded,
@@ -486,7 +524,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           backgroundColor: const Color(0xFF1D4ED8),
                           foregroundColor: Colors.white,
                           elevation: 4,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -495,7 +536,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         icon: const Icon(Icons.alt_route, size: 18),
                         label: const Text(
                           'Trazar Ruta Segura',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ),
@@ -511,10 +555,17 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         borderRadius: BorderRadius.circular(14),
                         color: const Color(0xFF0F172A),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           child: Row(
                             children: [
-                              const Icon(Icons.touch_app, color: Colors.amberAccent, size: 20),
+                              const Icon(
+                                Icons.touch_app,
+                                color: Colors.amberAccent,
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               const Expanded(
                                 child: Text(
@@ -527,8 +578,14 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                                onPressed: () => setState(() => _isSelectingDestinationOnMap = false),
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
+                                onPressed: () => setState(
+                                  () => _isSelectingDestinationOnMap = false,
+                                ),
                               ),
                             ],
                           ),
@@ -545,21 +602,31 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       child: Center(
                         child: Card(
                           elevation: 6,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                                 SizedBox(width: 10),
                                 Text(
                                   'Calculando rutas e índices de seguridad…',
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ],
                             ),
@@ -595,7 +662,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         child: SafeRouteSheet(
                           routes: routes,
                           selectedRouteIndex: _selectedRouteIndex,
-                          destinationName: _selectedDestination?.name ?? 'Destino seleccionado',
+                          destinationName:
+                              _selectedDestination?.name ??
+                              'Destino seleccionado',
                           onSelectRoute: (idx) {
                             setState(() => _selectedRouteIndex = idx);
                             _centerRoute();

@@ -150,7 +150,11 @@ Future<void> showLocationBlockedDialog(BuildContext context) async {
             const SizedBox(height: 12),
             const Text(
               'También puedes continuar escribiendo la dirección o barrio manualmente.',
-              style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF64748B),
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ),

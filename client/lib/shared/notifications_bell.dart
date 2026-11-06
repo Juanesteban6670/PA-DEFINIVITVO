@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
+
 import 'notification_bridge.dart';
 
 class NotificationsBell extends StatefulWidget {
