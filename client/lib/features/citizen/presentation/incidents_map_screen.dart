@@ -15,7 +15,7 @@ import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
-enum MapTileTheme { auto, lightVoyager, darkMatter, standardOsm }
+enum MapTileTheme { auto, light, dark, satellite }
 
 class IncidentsMapScreen extends StatefulWidget {
   const IncidentsMapScreen({
@@ -283,17 +283,17 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   void _cycleTileTheme() {
     setState(() {
       _tileTheme = switch (_tileTheme) {
-        MapTileTheme.auto => MapTileTheme.lightVoyager,
-        MapTileTheme.lightVoyager => MapTileTheme.darkMatter,
-        MapTileTheme.darkMatter => MapTileTheme.standardOsm,
-        MapTileTheme.standardOsm => MapTileTheme.auto,
+        MapTileTheme.auto => MapTileTheme.light,
+        MapTileTheme.light => MapTileTheme.dark,
+        MapTileTheme.dark => MapTileTheme.satellite,
+        MapTileTheme.satellite => MapTileTheme.auto,
       };
     });
     final label = switch (_tileTheme) {
       MapTileTheme.auto => 'Estilo de mapa: Automático (sigue el tema)',
-      MapTileTheme.lightVoyager => 'Estilo de mapa: Moderno Claro (Voyager)',
-      MapTileTheme.darkMatter => 'Estilo de mapa: Cyber Oscuro (Dark Matter)',
-      MapTileTheme.standardOsm => 'Estilo de mapa: Estándar (OpenStreetMap)',
+      MapTileTheme.light => 'Estilo de mapa: Claro (OpenStreetMap estándar)',
+      MapTileTheme.dark => 'Estilo de mapa: Modo Oscuro (Cyber)',
+      MapTileTheme.satellite => 'Estilo de mapa: Vista Satelital (Esri)',
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(label), duration: const Duration(seconds: 2)),
@@ -304,31 +304,16 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Determinar la plantilla de tiles adecuada
-    final (urlTemplate, subdomains) = switch (_tileTheme) {
-      MapTileTheme.auto =>
-        isDark
-            ? (
-                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                const ['a', 'b', 'c', 'd'],
-              )
-            : (
-                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                const ['a', 'b', 'c', 'd'],
-              ),
-      MapTileTheme.lightVoyager => (
-        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        const ['a', 'b', 'c', 'd'],
-      ),
-      MapTileTheme.darkMatter => (
-        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        const ['a', 'b', 'c', 'd'],
-      ),
-      MapTileTheme.standardOsm => (
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        const <String>[],
-      ),
+    final isDarkMap = switch (_tileTheme) {
+      MapTileTheme.auto => isDark,
+      MapTileTheme.dark => true,
+      MapTileTheme.light => false,
+      MapTileTheme.satellite => false,
     };
+    final isSatellite = _tileTheme == MapTileTheme.satellite;
+    final urlTemplate = isSatellite
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     return FutureBuilder<List<Incident>>(
       future: _incidents,
@@ -374,11 +359,21 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 onTap: (tapPosition, point) => _onMapTap(point),
               ),
               children: [
-                TileLayer(
-                  urlTemplate: urlTemplate,
-                  subdomains: subdomains,
-                  userAgentPackageName: 'com.cartagenasegura.cartagena_segura',
-                ),
+                if (isDarkMap)
+                  darkModeTilesContainerBuilder(
+                    context,
+                    TileLayer(
+                      urlTemplate: urlTemplate,
+                      userAgentPackageName:
+                          'com.cartagenasegura.cartagena_segura',
+                    ),
+                  )
+                else
+                  TileLayer(
+                    urlTemplate: urlTemplate,
+                    userAgentPackageName:
+                        'com.cartagenasegura.cartagena_segura',
+                  ),
 
                 // Capa de Rutas Seguras (PolylineLayer)
                 if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
@@ -524,9 +519,13 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   ],
                 ),
 
-                const RichAttributionWidget(
+                RichAttributionWidget(
                   attributions: [
-                    TextSourceAttribution('OpenStreetMap · CartoDB'),
+                    TextSourceAttribution(
+                      isSatellite
+                          ? 'Esri, Maxar, Earthstar Geographics'
+                          : 'OpenStreetMap contributors',
+                    ),
                   ],
                 ),
               ],
@@ -607,9 +606,13 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         visualDensity: VisualDensity.compact,
                         onPressed: _cycleTileTheme,
                         icon: Icon(
-                          _tileTheme == MapTileTheme.darkMatter
-                              ? Icons.nightlight_round
-                              : Icons.layers_outlined,
+                          switch (_tileTheme) {
+                            MapTileTheme.auto => Icons.auto_mode_rounded,
+                            MapTileTheme.light => Icons.wb_sunny_outlined,
+                            MapTileTheme.dark => Icons.nightlight_round,
+                            MapTileTheme.satellite =>
+                              Icons.satellite_alt_outlined,
+                          },
                           size: 20,
                           color: isDark ? AppColors.sky : AppColors.brightBlue,
                         ),
