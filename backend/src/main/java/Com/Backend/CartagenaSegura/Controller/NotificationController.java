@@ -50,8 +50,10 @@ public class NotificationController {
     @PatchMapping("/{id}/Read")
     @Operation(summary = "Marcar como leída")
     public ResponseEntity<ApiResponse<Notification>> markAsRead(
-            @Parameter(description = "ID de la notificación") @PathVariable String id) {
-        return ResponseEntity.ok(ApiResponse.ok("Marcada como leída", notificationService.markAsRead(id)));
+            @Parameter(description = "ID de la notificación") @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.ok("Marcada como leída",
+                notificationService.markAsRead(id, userDetails.getUsername())));
     }
 
     @PatchMapping("/ReadAll")
@@ -64,8 +66,9 @@ public class NotificationController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar notificación")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @Parameter(description = "ID de la notificación") @PathVariable String id) {
-        notificationService.delete(id);
+            @Parameter(description = "ID de la notificación") @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        notificationService.delete(id, userDetails.getUsername());
         return ResponseEntity.ok(ApiResponse.ok("Notificación eliminada", null));
     }
 }

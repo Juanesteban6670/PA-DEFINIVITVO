@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 "/actuator/**"
                         ).permitAll()
                         // ===== Auth - publico =====
+                        .requestMatchers(HttpMethod.PUT, "/api/Auth/Profile").authenticated()
                         .requestMatchers("/api/Auth/**").permitAll()
                         
                         // ===== Estadisticas publicas para Landing Page (Solo GET) =====
@@ -80,7 +81,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/Zones").permitAll()
 
                         // ===== Archivos de evidencia - publico (solo GET) =====
-                        .requestMatchers(HttpMethod.GET, "/api/Files/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/Files/**", "/api/files/**").permitAll()
                         // ===== Contactos de emergencia - publico =====
                         .requestMatchers("/api/EmergencyContacts", "/api/EmergencyContacts/**").permitAll()
                         // ===== Solo ADMIN =====

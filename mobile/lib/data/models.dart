@@ -103,3 +103,34 @@ class EmergencyContact {
         notes: json['notes']?.toString() ?? '',
       );
 }
+
+class AppNotification {
+  const AppNotification({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.read,
+    this.type = '',
+    this.relatedEntityId,
+    this.createdAt,
+  });
+
+  final String id;
+  final String title;
+  final String message;
+  final bool read;
+  final String type;
+  final String? relatedEntityId;
+  final DateTime? createdAt;
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      AppNotification(
+        id: json['id']?.toString() ?? '',
+        title: json['title']?.toString() ?? 'Notificación',
+        message: json['message']?.toString() ?? '',
+        read: json['read'] == true,
+        type: json['type']?.toString() ?? '',
+        relatedEntityId: json['relatedEntityId']?.toString(),
+        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+      );
+}

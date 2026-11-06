@@ -3,13 +3,67 @@ import 'package:flutter/material.dart';
 import '../data/session_controller.dart';
 import '../theme.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.session, super.key});
 
   final SessionController session;
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _fullName = TextEditingController();
+  final _email = TextEditingController();
+  final _phone = TextEditingController();
+  bool _editing = false;
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _fullName.dispose();
+    _email.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  void _startEditing() {
+    final user = widget.session.user!;
+    _fullName.text = user.fullName;
+    _email.text = user.email;
+    _phone.text = user.phone;
+    setState(() => _editing = true);
+  }
+
+  Future<void> _save() async {
+    if (_fullName.text.trim().isEmpty || !_email.text.trim().contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingresa un nombre y un correo válidos')),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await widget.session.updateProfile(
+        fullName: _fullName.text,
+        email: _email.text,
+        phone: _phone.text,
+      );
+      if (mounted) setState(() => _editing = false);
+    } on Exception catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo actualizar: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = widget.session;
     final user = session.user!;
     final initial = user.username.isEmpty
         ? 'U'
@@ -80,6 +134,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.person_outline,
                   label: 'Nombre completo',
                   value: user.fullName,
+                  controller: _editing ? _fullName : null,
                 ),
                 const Divider(height: 1, indent: 58),
                 _ProfileRow(
@@ -92,12 +147,16 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.mail_outline,
                   label: 'Correo',
                   value: user.email,
+                  controller: _editing ? _email : null,
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const Divider(height: 1, indent: 58),
                 _ProfileRow(
                   icon: Icons.phone_outlined,
                   label: 'Teléfono',
                   value: user.phone,
+                  controller: _editing ? _phone : null,
+                  keyboardType: TextInputType.phone,
                 ),
               ],
             ),
@@ -110,6 +169,39 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
+        if (_editing)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _saving
+                      ? null
+                      : () => setState(() => _editing = false),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _saving ? null : _save,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save_outlined),
+                  label: Text(_saving ? 'Guardando…' : 'Guardar'),
+                ),
+              ),
+            ],
+          )
+        else
+          OutlinedButton.icon(
+            onPressed: _startEditing,
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Editar perfil'),
+          ),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.red,
@@ -141,7 +233,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         const Text(
-          'Tus datos de perfil son los que devuelve la API. La edición de nombre y teléfono no está disponible en el backend.',
+          'Tu información se actualiza con tu cuenta. Para eliminarla, contacta al equipo administrador.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.muted, fontSize: 11),
         ),
@@ -155,11 +247,15 @@ class _ProfileRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.controller,
+    this.keyboardType,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final TextEditingController? controller;
+  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -187,14 +283,25 @@ class _ProfileRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 3),
-              Text(
-                value.isEmpty ? 'No especificado' : value,
-                style: TextStyle(
-                  color: value.isEmpty ? AppColors.muted : AppColors.navy,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              if (controller != null)
+                TextField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: 'Tu ${label.toLowerCase()}',
+                    isDense: true,
+                  ),
+                )
+              else
+                Text(
+                  value.isEmpty ? 'No especificado' : value,
+                  style: TextStyle(
+                    color: value.isEmpty ? AppColors.muted : AppColors.navy,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

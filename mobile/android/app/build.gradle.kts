@@ -1,8 +1,24 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val releaseProperties = Properties()
+val releasePropertiesFile = rootProject.file("key.properties")
+if (releasePropertiesFile.isFile) {
+    releasePropertiesFile.inputStream().use(releaseProperties::load)
+}
+fun releaseValue(property: String, environment: String): String? =
+    System.getenv(environment)?.takeIf(String::isNotBlank)
+        ?: releaseProperties.getProperty(property)?.takeIf(String::isNotBlank)
+
+val releaseStoreFile = releaseValue("storeFile", "ANDROID_KEYSTORE_PATH")
+val releaseStorePassword = releaseValue("storePassword", "ANDROID_STORE_PASSWORD")
+val releaseKeyAlias = releaseValue("keyAlias", "ANDROID_KEY_ALIAS")
+val releaseKeyPassword = releaseValue("keyPassword", "ANDROID_KEY_PASSWORD")
 
 android {
     namespace = "com.cartagenasegura.cartagena_segura"
@@ -29,11 +45,33 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseStoreFile != null) storeFile = file(releaseStoreFile)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name.contains("Release", ignoreCase = true)) {
+        doFirst {
+            val keystore = releaseStoreFile?.let(::file)
+            if (keystore == null || !keystore.isFile ||
+                releaseStorePassword == null || releaseKeyAlias == null ||
+                releaseKeyPassword == null) {
+                throw GradleException(
+                    "Configura ANDROID_KEYSTORE_PATH, ANDROID_STORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD, o mobile/android/key.properties. No se usa firma debug para release.",
+                )
+            }
         }
     }
 }

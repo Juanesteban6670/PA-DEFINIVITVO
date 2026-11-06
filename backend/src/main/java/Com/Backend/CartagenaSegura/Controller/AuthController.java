@@ -8,10 +8,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @RestController
 @RequestMapping("/api/Auth")
@@ -71,6 +74,16 @@ public class AuthController {
         AuthResponse response = authService.login(request,
                 httpRequest.getRemoteAddr(), httpRequest.getHeader("User-Agent"));
         return ResponseEntity.ok(ApiResponse.ok("Login exitoso", response));
+    }
+
+    @PutMapping("/Profile")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Actualizar perfil del usuario autenticado")
+    public ResponseEntity<ApiResponse<ProfileResponse>> updateProfile(
+            @RequestBody ProfileUpdateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.ok("Perfil actualizado",
+                authService.updateProfile(userDetails.getUsername(), request)));
     }
 
     @PostMapping("/ForgotPassword")

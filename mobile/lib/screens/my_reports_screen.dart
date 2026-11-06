@@ -3,18 +3,21 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/incident_repository.dart';
 import '../data/models.dart';
+import '../data/report_draft_store.dart';
 import '../theme.dart';
 import 'report_screen.dart';
 
 class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({
     required this.api,
+    required this.drafts,
     required this.incidentRefresh,
     required this.onReportSubmitted,
     super.key,
   });
 
   final ApiClient api;
+  final ReportDraftStore drafts;
   final ValueNotifier<int> incidentRefresh;
   final VoidCallback onReportSubmitted;
 
@@ -24,12 +27,14 @@ class MyReportsScreen extends StatefulWidget {
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
   late Future<List<Incident>> _incidents;
+  late Future<List<ReportDraft>> _pending;
 
   @override
   void initState() {
     super.initState();
     widget.incidentRefresh.addListener(_reload);
     _incidents = loadIncidents(widget.api, mine: true);
+    _pending = widget.drafts.readPending();
   }
 
   @override
@@ -51,6 +56,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     if (mounted) {
       setState(() {
         _incidents = loadIncidents(widget.api, mine: true);
+        _pending = widget.drafts.readPending();
       });
     }
   }
@@ -60,10 +66,52 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       MaterialPageRoute<void>(
         builder: (_) => ReportScreen(
           api: widget.api,
+          drafts: widget.drafts,
           onReportSubmitted: widget.onReportSubmitted,
         ),
       ),
     );
+  }
+
+  Future<void> _retryPending(ReportDraft draft) async {
+    try {
+      await submitReportDraft(
+        widget.api,
+        draft,
+        onImagesUploaded: widget.drafts.updatePending,
+      );
+      await deleteReportPhotos(draft.photoPaths);
+      await widget.drafts.removePending(draft.idempotencyKey);
+      widget.onReportSubmitted();
+      _reload();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reporte pendiente enviado')),
+        );
+      }
+    } on Exception catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('No se pudo reenviar: $error')));
+      }
+    }
+  }
+
+  Future<void> _deletePending(ReportDraft draft) async {
+    try {
+      await deleteReportPhotos(draft.photoPaths);
+      await widget.drafts.removePending(draft.idempotencyKey);
+      _reload();
+    } on Exception catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo borrar el envío pendiente: $error'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -134,6 +182,24 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   ),
                 ),
             ],
+            FutureBuilder<List<ReportDraft>>(
+              future: _pending,
+              builder: (context, pendingSnapshot) {
+                final pending = pendingSnapshot.data ?? const <ReportDraft>[];
+                if (pendingSnapshot.hasError) {
+                  return _ReportsError(
+                    message: pendingSnapshot.error.toString(),
+                    onRetry: _reload,
+                  );
+                }
+                if (pending.isEmpty) return const SizedBox.shrink();
+                return _PendingReports(
+                  drafts: pending,
+                  onRetry: _retryPending,
+                  onDelete: _deletePending,
+                );
+              },
+            ),
           ],
         );
       },
@@ -445,6 +511,59 @@ class _ReportsError extends StatelessWidget {
         ],
       ),
     ),
+  );
+}
+
+class _PendingReports extends StatelessWidget {
+  const _PendingReports({
+    required this.drafts,
+    required this.onRetry,
+    required this.onDelete,
+  });
+
+  final List<ReportDraft> drafts;
+  final ValueChanged<ReportDraft> onRetry;
+  final ValueChanged<ReportDraft> onDelete;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const SizedBox(height: 16),
+      Text(
+        'Pendientes de enviar (${drafts.length})',
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w800),
+      ),
+      const SizedBox(height: 8),
+      for (final draft in drafts)
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.cloud_upload_outlined),
+            title: Text(draft.type),
+            subtitle: Text(
+              draft.location,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: Wrap(
+              spacing: 4,
+              children: [
+                IconButton(
+                  tooltip: 'Reintentar envío',
+                  onPressed: () => onRetry(draft),
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  tooltip: 'Eliminar envío pendiente',
+                  onPressed: () => onDelete(draft),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ),
+        ),
+    ],
   );
 }
 

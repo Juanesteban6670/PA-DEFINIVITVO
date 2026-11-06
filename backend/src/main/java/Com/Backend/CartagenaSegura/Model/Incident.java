@@ -28,6 +28,7 @@ public class Incident {
 
     @Indexed
     private String reportedBy;     // userId del usuario que reporto
+    private String idempotencyKey;
 
     private List<String> imageUrls; // Fotos del incidente
 
@@ -92,6 +93,9 @@ public class Incident {
 
     public String getReportedBy() { return reportedBy; }
     public void setReportedBy(String reportedBy) { this.reportedBy = reportedBy; }
+
+    public String getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
 
     public List<String> getImageUrls() { return imageUrls; }
     public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }

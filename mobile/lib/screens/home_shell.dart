@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../data/session_controller.dart';
+import '../data/report_draft_store.dart';
 import '../theme.dart';
 import 'emergency_screen.dart';
 import 'incidents_map_screen.dart';
 import 'my_reports_screen.dart';
+import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'welcome_screen.dart';
 
@@ -32,6 +34,10 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final api = widget.session.api;
+    final drafts = ReportDraftStore(
+      storage: widget.session.storage,
+      owner: widget.session.user!.username,
+    );
     final wideLayout = MediaQuery.sizeOf(context).width >= 700;
     final pages = [
       WelcomeScreen(
@@ -41,6 +47,7 @@ class _HomeShellState extends State<HomeShell> {
       ),
       MyReportsScreen(
         api: api,
+        drafts: drafts,
         incidentRefresh: _incidentRefresh,
         onReportSubmitted: () => _incidentRefresh.value++,
       ),
@@ -68,30 +75,45 @@ class _HomeShellState extends State<HomeShell> {
               child: Image.asset('assets/brand/app-icon.png'),
             ),
             const SizedBox(width: 10),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cartagena Segura',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.navy,
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cartagena Segura',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.navy,
+                    ),
                   ),
-                ),
-                Text(
-                  'Ciudadano',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.muted,
-                    letterSpacing: 0.4,
+                  Text(
+                    'Ciudadano',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.muted,
+                      letterSpacing: 0.4,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Notificaciones',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => NotificationsScreen(api: api),
+              ),
+            ),
+            icon: const Icon(Icons.notifications_outlined),
+          ),
           IconButton(
             tooltip: 'Perfil',
             onPressed: () => _selectTab(4),

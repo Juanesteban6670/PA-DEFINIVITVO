@@ -6,9 +6,13 @@ import Com.Backend.CartagenaSegura.Model.IncidentHistory;
 import Com.Backend.CartagenaSegura.Repository.IncidentHistoryRepository;
 import Com.Backend.CartagenaSegura.Repository.IncidentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class IncidentService {
@@ -32,6 +36,17 @@ public class IncidentService {
     }
 
     public Incident create(CreateIncidentRequest req, String reportedBy) {
+        String idempotencyKey = req.idempotencyKey();
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            Incident existing = incidentRepository
+                    .findByReportedByAndIdempotencyKey(reportedBy, idempotencyKey)
+                    .orElse(null);
+            if (existing != null) {
+                ensureSameRequest(existing, req);
+                return existing;
+            }
+        }
+
         Incident incident = new Incident(
                 req.type(), req.description(), req.location(),
                 req.latitude(), req.longitude(), reportedBy,
@@ -39,8 +54,24 @@ public class IncidentService {
         );
         incident.setZoneId(req.zoneId());
         incident.setImageUrls(req.imageUrls());
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            incident.setIdempotencyKey(idempotencyKey);
+            incident.setId(UUID.nameUUIDFromBytes(
+                    (reportedBy + "\u0000" + idempotencyKey).getBytes(StandardCharsets.UTF_8)).toString());
+        }
 
-        Incident saved = incidentRepository.save(incident);
+        Incident saved;
+        try {
+            saved = incidentRepository.insert(incident);
+        } catch (DuplicateKeyException duplicate) {
+            if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                throw duplicate;
+            }
+            Incident existing = incidentRepository.findByReportedByAndIdempotencyKey(reportedBy, idempotencyKey)
+                    .orElseThrow(() -> duplicate);
+            ensureSameRequest(existing, req);
+            return existing;
+        }
 
         // Actualizar stats de la zona
         if (req.zoneId() != null) zoneService.incrementIncidentCount(req.zoneId());
@@ -56,6 +87,22 @@ public class IncidentService {
                 "Incident", saved.getId());
 
         return saved;
+    }
+
+    private void ensureSameRequest(Incident existing, CreateIncidentRequest req) {
+        Incident.Priority priority = req.priority() == null
+                ? Incident.Priority.MEDIUM : req.priority();
+        if (!Objects.equals(existing.getType(), req.type())
+                || !Objects.equals(existing.getDescription(), req.description())
+                || !Objects.equals(existing.getLocation(), req.location())
+                || !Objects.equals(existing.getLatitude(), req.latitude())
+                || !Objects.equals(existing.getLongitude(), req.longitude())
+                || !Objects.equals(existing.getZoneId(), req.zoneId())
+                || !Objects.equals(existing.getPriority(), priority)
+                || !Objects.equals(existing.getImageUrls(), req.imageUrls())) {
+            throw new IllegalArgumentException(
+                    "Esta clave de envío ya se usó con datos distintos; crea un nuevo borrador.");
+        }
     }
 
     public Incident getById(String id) {

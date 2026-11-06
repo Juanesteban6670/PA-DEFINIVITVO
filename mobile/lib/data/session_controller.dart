@@ -92,6 +92,40 @@ class SessionController extends ChangeNotifier {
     });
   }
 
+  Future<void> updateProfile({
+    required String fullName,
+    required String email,
+    required String phone,
+  }) async {
+    final currentUser = user;
+    if (currentUser == null) {
+      throw const ApiException('Inicia sesión para actualizar tu perfil');
+    }
+    final data = await api.put('Auth/Profile', {
+      'fullName': fullName.trim(),
+      'email': email.trim(),
+      'phone': phone.trim(),
+    });
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException('La API devolvió un perfil no válido');
+    }
+    final updatedUser = AppUser.fromJson({...data, 'token': currentUser.token});
+    if (updatedUser.username != currentUser.username) {
+      throw const FormatException('La API devolvió un usuario inesperado');
+    }
+    await storage.write(
+      _userKey,
+      jsonEncode({
+        'username': updatedUser.username,
+        'fullName': updatedUser.fullName,
+        'email': updatedUser.email,
+        'phone': updatedUser.phone,
+      }),
+    );
+    user = updatedUser;
+    notifyListeners();
+  }
+
   Future<void> _saveUser(dynamic data) async {
     if (data is! Map<String, dynamic>) {
       throw const FormatException(

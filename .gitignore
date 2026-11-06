@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 !**/.env.example
+key.properties
+**/key.properties
+*.jks
+*.keystore
 
 # Dependencies and build output
 node_modules/

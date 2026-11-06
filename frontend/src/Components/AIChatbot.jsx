@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, Sparkles, Bot, User, AlertCircle, Trash2, ChevronDown } from 'lucide-react'
 import { aiService } from '@/Services/Services'
+import { clearChatHistory, loadChatHistory, saveChatHistory } from '@/Services/IncidentDraft'
 import useAuthStore from '@/Store/AuthStore'
+import toast from 'react-hot-toast'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 function getInitials(name) {
@@ -35,18 +37,62 @@ export default function AIChatbot() {
   const [msgs, setMsgs]       = useState([])
   const [input, setInput]     = useState('')
   const [loading, setLoading] = useState(false)
-  const [sessionId]           = useState(genId)
+  const [sessionId, setSessionId] = useState(genId)
+  const [historyReady, setHistoryReady] = useState(false)
+  const [historyOwner, setHistoryOwner] = useState(null)
+  const username = user?.username
   const bottomRef             = useRef(null)
   const inputRef              = useRef(null)
 
-  // Mensaje de bienvenida personalizado
   useEffect(() => {
-    const name = user?.fullName || user?.username || 'Ciudadano'
-    setMsgs([{
+    let active = true
+    setHistoryReady(false)
+    setHistoryOwner(null)
+    const welcome = {
       role: 'assistant',
-      content: `¡Hola, **${name}**! 👋 Soy el **Agente Inteligente de Cartagena Segura**. Mi misión es asistirte en la gestión de incidentes y seguridad ciudadana.\n\n¿En qué puedo apoyarte hoy?\n\n• Reportar un incidente\n• Consultar zonas de riesgo\n• Protocolos de emergencia`,
-    }])
-  }, [user])
+      content: `¡Hola, **${user?.fullName || user?.username || 'Ciudadano'}**! 👋 Soy el **Agente Inteligente de Cartagena Segura**. Mi misión es asistirte en la gestión de incidentes y seguridad ciudadana.\n\n¿En qué puedo apoyarte hoy?\n\n• Reportar un incidente\n• Consultar zonas de riesgo\n• Protocolos de emergencia`,
+    }
+
+    const restore = async () => {
+      try {
+        const history = username ? await loadChatHistory(username) : null
+        if (!active) return
+        if (history && typeof history.sessionId === 'string' && Array.isArray(history.messages)) {
+          setSessionId(history.sessionId)
+          setMsgs(history.messages
+            .filter(message =>
+              message && ['user', 'assistant'].includes(message.role) &&
+              typeof message.content === 'string')
+            .slice(-80))
+        } else {
+          setSessionId(genId())
+          setMsgs([welcome])
+        }
+      } catch (error) {
+        if (!active) return
+        setSessionId(genId())
+        setMsgs([welcome])
+        toast.error(`No se pudo restaurar el historial del chat: ${error.message}`)
+      } finally {
+        if (active) {
+          setHistoryOwner(username ?? null)
+          setHistoryReady(true)
+        }
+      }
+    }
+
+    restore()
+    return () => { active = false }
+  }, [username, user?.username, user?.fullName])
+
+  useEffect(() => {
+    if (!historyReady || !username || historyOwner !== username) return
+    saveChatHistory(username, {
+      sessionId,
+      messages: msgs.slice(-80),
+    }).catch(error =>
+      toast.error(`No se pudo guardar el historial del chat: ${error.message}`))
+  }, [historyReady, historyOwner, username, sessionId, msgs])
 
   useEffect(() => {
     if (open) {
@@ -57,10 +103,12 @@ export default function AIChatbot() {
 
   const send = async (retryText = null) => {
     const text = retryText ?? input.trim()
-    if (!text || loading) return
+    if (!text || loading || !historyReady) return
     if (retryText == null) {
       setMsgs(p => [...p, { role: 'user', content: text }])
       setInput('')
+    } else {
+      setMsgs(p => p.filter(msg => !(msg.error && msg.retryText === retryText)))
     }
     setLoading(true)
     try {
@@ -85,11 +133,17 @@ export default function AIChatbot() {
 
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
   const clear = () => {
+    if (loading || !historyReady) return
     const name = user?.fullName || user?.username || 'Ciudadano'
+    setSessionId(genId())
     setMsgs([{
       role: 'assistant',
       content: `¡Hola, **${name}**! 👋 Soy el **Agente Inteligente de Cartagena Segura**. Mi misión es asistirte en la gestión de incidentes y seguridad ciudadana.`,
     }])
+    if (username) {
+      clearChatHistory(username).catch(error =>
+        toast.error(`No se pudo borrar el historial local: ${error.message}`))
+    }
   }
 
   return (
@@ -126,9 +180,10 @@ export default function AIChatbot() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={clear}
+                <button onClick={clear} disabled={loading || !historyReady}
                   style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Limpiar chat">
+                  title="Limpiar chat"
+                  aria-label="Borrar historial del chat">
                   <Trash2 size={12} style={{ color: 'rgba(255,255,255,0.7)' }} />
                 </button>
                 <button onClick={() => setOpen(false)}

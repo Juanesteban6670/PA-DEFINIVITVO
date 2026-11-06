@@ -24,6 +24,10 @@ public class AuthDto {
             java.util.Set<String> roles
     ) {}
 
+    public record ProfileUpdateRequest(String fullName, String email, String phone) {}
+
+    public record ProfileResponse(String username, String fullName, String email, String phone) {}
+
     // ---- REQUEST: Olvidé mi contraseña ----
     public record ForgotPasswordRequest(String email) {}
 
@@ -31,4 +35,3 @@ public class AuthDto {
     public record ResetPasswordRequest(String token, String newPassword) {}
 
 } 
-

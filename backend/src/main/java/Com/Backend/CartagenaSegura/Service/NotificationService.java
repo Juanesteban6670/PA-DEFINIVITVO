@@ -3,6 +3,8 @@ package Com.Backend.CartagenaSegura.Service;
 import Com.Backend.CartagenaSegura.Model.Notification;
 import Com.Backend.CartagenaSegura.Repository.NotificationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,9 +39,9 @@ public class NotificationService {
         return notificationRepository.countByUserIdAndReadFalse(userId);
     }
 
-    public Notification markAsRead(String notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notificación no encontrada"));
+    public Notification markAsRead(String notificationId, String userId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificación no encontrada"));
         notification.setRead(true);
         notification.setReadAt(LocalDateTime.now());
         return notificationRepository.save(notification);
@@ -54,7 +56,9 @@ public class NotificationService {
         notificationRepository.saveAll(unread);
     }
 
-    public void delete(String notificationId) {
-        notificationRepository.deleteById(notificationId);
+    public void delete(String notificationId, String userId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificación no encontrada"));
+        notificationRepository.delete(notification);
     }
 }

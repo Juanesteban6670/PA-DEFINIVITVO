@@ -53,6 +53,10 @@
 	<string>LaunchScreen</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Cartagena Segura usa tu ubicación para añadirla a los reportes de incidentes.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cartagena Segura usa la cámara para adjuntar evidencia a un reporte ciudadano.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cartagena Segura necesita acceso a las fotos que elijas adjuntar a un reporte.</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>

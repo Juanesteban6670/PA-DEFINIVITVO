@@ -10,6 +10,12 @@ const useAuthStore = create((set) => ({
     set({ user, token })
   },
 
+  updateProfile: (updates) => {
+    const user = { ...JSON.parse(localStorage.getItem('user') || 'null'), ...updates }
+    localStorage.setItem('user', JSON.stringify(user))
+    set({ user })
+  },
+
   logout: () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')

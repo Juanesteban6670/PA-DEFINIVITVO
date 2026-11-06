@@ -4,6 +4,12 @@ import { useSearchParams } from 'react-router-dom'
 import { incidentService, aiService } from '@/Services/Services'
 import { getCurrentPosition } from '@/Services/Location'
 import {
+  clearIncidentDraft, enqueueIncident, loadIncidentDraft,
+  loadPendingIncidents, removePendingIncident, saveIncidentDraft,
+  updatePendingIncident,
+} from '@/Services/IncidentDraft'
+import useAuthStore from '@/Store/AuthStore'
+import {
   AlertTriangle, Plus, X, Loader2, MapPin, Navigation,
   Sparkles, Check, Image, Paperclip, Upload, Eye, Trash2,
   Clock, CheckCircle, XCircle, Filter, Search, ChevronDown,
@@ -28,6 +34,13 @@ const INCIDENT_TYPES = ['ROBO', 'ACCIDENTE', 'PELEA', 'INCENDIO', 'VANDALISMO', 
 const emptyForm = { type: 'ROBO', description: '', location: '', latitude: '', longitude: '', priority: 'MEDIUM' }
 const MAX_FILES = 5
 const MAX_SIZE_MB = 10
+const ALLOWED_FILE_TYPES = new Set([
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  'application/pdf', 'text/plain', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+])
+const newIdempotencyKey = () => globalThis.crypto?.randomUUID?.() ??
+  `web-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 /* ── FilePreview ──────────────────────────────────────────────────────── */
 function FilePreview({ file, onRemove }) {
@@ -61,7 +74,7 @@ function FilePreview({ file, onRemove }) {
           <p style={{ fontSize: 10, color: '#475569', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</p>
           <p style={{ fontSize: 9, color: '#94A3B8' }}>{sizeMB} MB</p>
         </div>
-        <button onClick={onRemove} style={{ width: 20, height: 20, borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <button onClick={onRemove} aria-label={`Eliminar ${file.name}`} style={{ width: 20, height: 20, borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <X size={10} style={{ color: '#EF4444' }} />
         </button>
       </div>
@@ -168,6 +181,7 @@ function IncidentDetailModal({ inc, onClose }) {
 
 /* ── Main Component ───────────────────────────────────────────────────── */
 export default function CitizenIncidents() {
+  const username = useAuthStore(s => s.user?.username)
   const [incidents, setIncidents]       = useState([])
   const [loading, setLoading]           = useState(true)
   const [showForm, setShowForm]         = useState(false)
@@ -176,6 +190,11 @@ export default function CitizenIncidents() {
   const [saving, setSaving]             = useState(false)
   const [gpsLoading, setGpsLoading]     = useState(false)
   const [files, setFiles]               = useState([])
+  const [uploadedImageUrls, setUploadedImageUrls] = useState([])
+  const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey)
+  const [draftReady, setDraftReady]     = useState(false)
+  const [savedDraft, setSavedDraft]     = useState(false)
+  const [pendingReports, setPendingReports] = useState([])
   const [dragOver, setDragOver]         = useState(false)
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [search, setSearch]             = useState('')
@@ -187,14 +206,101 @@ export default function CitizenIncidents() {
   const fileInputRef = useRef(null)
   const dropRef      = useRef(null)
 
-  const load = () => {
+  useEffect(() => {
+    if (!username) return
+    let active = true
+    Promise.all([loadIncidentDraft(username), loadPendingIncidents(username)])
+      .then(([draft, pending]) => {
+        if (!active) return
+        if (draft) {
+          setForm({ ...emptyForm, ...draft.form })
+          setFiles(draft.files ?? [])
+          setUploadedImageUrls(draft.uploadedImageUrls ?? [])
+          setIdempotencyKey(draft.idempotencyKey || newIdempotencyKey())
+          setSavedDraft(true)
+        }
+        setPendingReports(pending)
+      })
+      .catch(error => {
+        if (active) toast.error(`No se pudo restaurar el almacenamiento local: ${error.message}`)
+      })
+      .finally(() => { if (active) setDraftReady(true) })
+    return () => { active = false }
+  }, [username])
+
+  useEffect(() => {
+    if (!username || !draftReady || !showForm) return
+    const timer = setTimeout(() => {
+      saveIncidentDraft(username, { form, files, idempotencyKey, uploadedImageUrls })
+        .then(() => setSavedDraft(true))
+        .catch(error => toast.error(`No se pudo guardar el borrador: ${error.message}`))
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [username, draftReady, showForm, form, files, idempotencyKey, uploadedImageUrls])
+
+  const refreshPending = useCallback(async () => {
+    if (!username) return []
+    const pending = await loadPendingIncidents(username)
+    setPendingReports(pending)
+    return pending
+  }, [username])
+
+  const submitSavedReport = useCallback(async (report, onUploaded) => {
+    let imageUrls = report.uploadedImageUrls ?? []
+    if (report.files?.length && imageUrls.length !== report.files.length) {
+      const uploadRes = await incidentService.uploadFiles(report.files)
+      imageUrls = uploadRes.data?.data?.urls ?? uploadRes.data?.urls ?? []
+      if (imageUrls.length !== report.files.length) {
+        throw new Error('El servidor no confirmó todos los archivos adjuntos')
+      }
+      await onUploaded?.({ ...report, uploadedImageUrls: imageUrls })
+    }
+    await incidentService.create({ ...report.form, imageUrls, idempotencyKey: report.idempotencyKey })
+  }, [])
+
+  const retryPendingReports = useCallback(async ({ notifyFailure = true } = {}) => {
+    const pending = await refreshPending()
+    let sent = 0
+    let lastError = null
+    for (const report of pending) {
+      try {
+        await submitSavedReport(report, updated =>
+          updatePendingIncident(username, updated))
+        await removePendingIncident(username, report.idempotencyKey)
+        sent++
+      } catch (error) {
+        lastError = error
+        break
+      }
+    }
+    await refreshPending()
+    if (sent) {
+      toast.success(`${sent} reporte${sent === 1 ? '' : 's'} pendiente${sent === 1 ? '' : 's'} enviado${sent === 1 ? '' : 's'}`)
+      load()
+    } else if (notifyFailure && lastError) {
+      toast.error(`No se pudo reenviar el reporte pendiente: ${lastError.message}`)
+    }
+  }, [username, refreshPending, submitSavedReport, load])
+
+  useEffect(() => {
+    if (!username) return
+    const onOnline = () => {
+      retryPendingReports({ notifyFailure: false }).catch(error =>
+        toast.error(`No se pudieron revisar los envíos pendientes: ${error.message}`))
+    }
+    window.addEventListener('online', onOnline)
+    if (navigator.onLine) onOnline()
+    return () => window.removeEventListener('online', onOnline)
+  }, [username, retryPendingReports])
+
+  const load = useCallback(() => {
     setLoading(true)
     incidentService.getMine()
       .then(res => setIncidents(res.data?.data ?? res.data ?? []))
       .catch(() => setIncidents([]))
       .finally(() => setLoading(false))
-  }
-  useEffect(() => { load() }, [])
+  }, [])
+  useEffect(() => { load() }, [load])
 
   /* ── URL Params Handle ── */
   const [searchParams] = useSearchParams()
@@ -247,13 +353,15 @@ export default function CitizenIncidents() {
     const arr = Array.from(newFiles)
     const valid = arr.filter(f => {
       if (f.size > MAX_SIZE_MB * 1024 * 1024) { toast.error(`${f.name} supera ${MAX_SIZE_MB}MB`); return false }
+      if (!ALLOWED_FILE_TYPES.has(f.type)) { toast.error(`${f.name}: formato no permitido`); return false }
       return true
     })
     setFiles(prev => {
       const combined = [...prev, ...valid]
-      if (combined.length > MAX_FILES) { toast.error(`Máximo ${MAX_FILES} archivos`); return prev.slice(0, MAX_FILES) }
+      if (combined.length > MAX_FILES) { toast.error(`Máximo ${MAX_FILES} archivos`); return [...prev, ...valid.slice(0, MAX_FILES - prev.length)] }
       return combined.slice(0, MAX_FILES)
     })
+    setUploadedImageUrls([])
   }
 
   const handleDrop = (e) => {
@@ -285,10 +393,15 @@ export default function CitizenIncidents() {
     setSaving(true)
     try {
       // 1. Subir archivos primero si hay
-      let imageUrls = []
-      if (files.length > 0) {
+      let imageUrls = uploadedImageUrls
+      if (files.length > 0 && imageUrls.length !== files.length) {
         const uploadRes = await incidentService.uploadFiles(files)
         imageUrls = uploadRes.data?.data?.urls ?? uploadRes.data?.urls ?? []
+        if (imageUrls.length !== files.length) {
+          throw new Error('El servidor no confirmó todos los archivos adjuntos')
+        }
+        setUploadedImageUrls(imageUrls)
+        await saveIncidentDraft(username, { form, files, idempotencyKey, uploadedImageUrls: imageUrls })
       }
 
       // 2. Crear el incidente con las URLs ya resueltas
@@ -297,10 +410,17 @@ export default function CitizenIncidents() {
         latitude:  form.latitude  ? parseFloat(form.latitude)  : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         imageUrls,
+        idempotencyKey,
       })
 
+      try {
+        await clearIncidentDraft(username)
+      } catch (error) {
+        toast.error(`El servidor recibió el reporte, pero no se pudo borrar el borrador local: ${error.message}`)
+      }
       toast.success('✅ Incidente reportado correctamente')
-      setShowForm(false); setForm(emptyForm); setFiles([]); setSuggestion(null); setActiveTab('form')
+      setShowForm(false); setForm(emptyForm); setFiles([]); setUploadedImageUrls([]); setSuggestion(null); setActiveTab('form')
+      setSavedDraft(false); setIdempotencyKey(newIdempotencyKey())
       load()
     } catch {
       toast.error('Error al reportar el incidente')
@@ -309,7 +429,41 @@ export default function CitizenIncidents() {
     }
   }
 
-  const closeForm = () => { setShowForm(false); setSuggestion(null); setFiles([]); setActiveTab('form') }
+  const saveForLater = async () => {
+    const formElement = document.getElementById('incident-form')
+    if (!formElement?.reportValidity()) return
+    try {
+      await enqueueIncident(username, { form, files, idempotencyKey, uploadedImageUrls })
+      await clearIncidentDraft(username)
+      await refreshPending()
+      setShowForm(false)
+      setForm(emptyForm); setFiles([]); setUploadedImageUrls([]); setSuggestion(null); setActiveTab('form')
+      setSavedDraft(false); setIdempotencyKey(newIdempotencyKey())
+      toast.success('Reporte guardado en este dispositivo para enviarlo después')
+    } catch (error) {
+      toast.error(`No se pudo guardar el envío pendiente: ${error.message}`)
+    }
+  }
+
+  const discardDraft = async () => {
+    try {
+      await clearIncidentDraft(username)
+      setForm(emptyForm); setFiles([]); setUploadedImageUrls([]); setSavedDraft(false)
+      setIdempotencyKey(newIdempotencyKey())
+    } catch (error) {
+      toast.error(`No se pudo eliminar el borrador: ${error.message}`)
+    }
+  }
+
+  const closeForm = async () => {
+    try {
+      await saveIncidentDraft(username, { form, files, idempotencyKey, uploadedImageUrls })
+      setSavedDraft(true)
+    } catch (error) {
+      toast.error(`No se pudo guardar el borrador: ${error.message}`)
+    }
+    setShowForm(false); setSuggestion(null); setActiveTab('form')
+  }
 
   /* ── Filtered list ── */
   const filtered = incidents.filter(inc => {
@@ -370,6 +524,21 @@ export default function CitizenIncidents() {
       </div>
 
       <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {savedDraft && !showForm && (
+          <div role="status" style={{ padding: 14, borderRadius: 14, background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            <p style={{ flex: 1, minWidth: 160, fontSize: 13, color: '#1E3A8A', fontWeight: 600 }}>Hay un borrador guardado en este dispositivo.</p>
+            <button type="button" onClick={() => setShowForm(true)} className="btn-secondary">Continuar</button>
+            <button type="button" onClick={discardDraft} aria-label="Eliminar borrador" style={{ border: 0, background: 'transparent', color: '#B42318', cursor: 'pointer' }}><Trash2 size={18} /></button>
+          </div>
+        )}
+        {pendingReports.length > 0 && (
+          <div role="status" style={{ padding: 14, borderRadius: 14, background: '#FFFAEB', border: '1px solid #FEDF89', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            <p style={{ flex: 1, minWidth: 160, fontSize: 13, color: '#7A2E0E', fontWeight: 600 }}>
+              {pendingReports.length} envío{pendingReports.length === 1 ? '' : 's'} pendiente{pendingReports.length === 1 ? '' : 's'} guardado{pendingReports.length === 1 ? '' : 's'} en este dispositivo.
+            </p>
+            <button type="button" onClick={retryPendingReports} className="btn-secondary">Reintentar</button>
+          </div>
+        )}
 
         {/* ── Search & Filter ── */}
         <div className="inc-fade s1" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -612,7 +781,8 @@ export default function CitizenIncidents() {
                         <button key={label} type="button"
                           onClick={() => {
                             const inp = document.createElement('input')
-                            inp.type = 'file'; inp.accept = accept; inp.multiple = true
+                            inp.type = 'file'; inp.accept = accept; inp.multiple = label !== 'Tomar foto'
+                            if (label === 'Tomar foto') inp.capture = 'environment'
                             inp.onchange = e => addFiles(e.target.files)
                             inp.click()
                           }}
@@ -626,14 +796,14 @@ export default function CitizenIncidents() {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                           <p style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>{files.length} archivo{files.length !== 1 ? 's' : ''} seleccionado{files.length !== 1 ? 's' : ''}</p>
-                          <button type="button" onClick={() => setFiles([])}
+                          <button type="button" onClick={() => { setFiles([]); setUploadedImageUrls([]) }}
                             style={{ fontSize: 11, color: '#EF4444', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                             Eliminar todos
                           </button>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                           {files.map((f, i) => (
-                            <FilePreview key={i} file={f} onRemove={() => setFiles(prev => prev.filter((_, j) => j !== i))} />
+                            <FilePreview key={i} file={f} onRemove={() => { setFiles(prev => prev.filter((_, j) => j !== i)); setUploadedImageUrls([]) }} />
                           ))}
                         </div>
                       </div>
@@ -662,6 +832,10 @@ export default function CitizenIncidents() {
                   ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {files.length > 0 ? 'Subiendo archivos...' : 'Enviando...'}</>
                   : <><Zap size={14} /> Enviar Reporte {files.length > 0 ? `· ${files.length} archivo${files.length > 1 ? 's' : ''}` : ''}</>
                 }
+              </button>
+              <button type="button" onClick={saveForLater} disabled={saving}
+                style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, fontSize: 12, cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit' }}>
+                Guardar después
               </button>
             </div>
           </div>

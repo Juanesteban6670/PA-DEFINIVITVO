@@ -15,7 +15,8 @@ public class IncidentDto {
             Double longitude,
             String zoneId,
             Incident.Priority priority,
-            List<String> imageUrls
+            List<String> imageUrls,
+            String idempotencyKey
     ) {}
 
     // ---- REQUEST: Actualizar estado ----
@@ -54,4 +55,3 @@ public class IncidentDto {
             LocalDateTime createdAt
     ) {}
 }
-

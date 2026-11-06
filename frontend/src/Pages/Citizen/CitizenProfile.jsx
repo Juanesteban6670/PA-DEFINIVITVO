@@ -2,16 +2,32 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, Mail, Phone, Shield, LogOut, Edit2, Check, X, Lock, ChevronRight, Bell, Globe } from 'lucide-react'
 import useAuthStore from '@/Store/AuthStore'
+import { authService } from '@/Services/Services'
 import toast from 'react-hot-toast'
 
 export default function CitizenProfile() {
-  const { user, logout } = useAuthStore()
+  const { user, logout, updateProfile } = useAuthStore()
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ fullName: user?.fullName ?? '', phone: user?.phone ?? '' })
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({ fullName: user?.fullName ?? '', email: user?.email ?? '', phone: user?.phone ?? '' })
 
   const handleLogout = () => { logout(); navigate('/login') }
-  const handleSave = () => { toast.success('Perfil actualizado ✅'); setEditing(false) }
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const { data } = await authService.updateProfile(form)
+      const profile = data?.data ?? data
+      updateProfile(profile)
+      setForm({ fullName: profile.fullName ?? '', email: profile.email ?? '', phone: profile.phone ?? '' })
+      setEditing(false)
+      toast.success('Perfil actualizado')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar el perfil')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const initial = user?.username?.[0]?.toUpperCase() ?? 'U'
   const colors  = ['#1D4ED8', '#7C3AED', '#DC2626', '#059669', '#D97706']
@@ -58,9 +74,9 @@ export default function CitizenProfile() {
               </button>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={handleSave}
+                <button onClick={handleSave} disabled={saving}
                   style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: 'none', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  <Check size={11} /> Guardar
+                  <Check size={11} /> {saving ? 'Guardando…' : 'Guardar'}
                 </button>
                 <button onClick={() => setEditing(false)}
                   style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#94A3B8', background: '#F8FAFC', border: 'none', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -73,7 +89,7 @@ export default function CitizenProfile() {
           {[
             { icon: User,   label: 'Usuario',        value: user?.username,                    editable: false },
             { icon: Shield, label: 'Nombre completo', value: user?.fullName || 'No especificado', editable: true, key: 'fullName' },
-            { icon: Mail,   label: 'Correo',          value: user?.email || 'No especificado',   editable: false },
+            { icon: Mail,   label: 'Correo',          value: user?.email || 'No especificado',   editable: true, key: 'email' },
             { icon: Phone,  label: 'Teléfono',        value: user?.phone || 'No especificado',   editable: true, key: 'phone' },
           ].map(({ icon: Icon, label, value, editable, key }, i) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderBottom: i < 3 ? '1px solid #F8FAFC' : 'none' }}>

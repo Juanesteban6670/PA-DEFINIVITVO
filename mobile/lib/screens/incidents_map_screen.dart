@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/api_client.dart';
+import '../data/incident_filters.dart';
 import '../data/location_service.dart';
 import '../data/models.dart';
 
@@ -26,6 +28,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   late Future<List<Incident>> _incidents;
   Position? _position;
   bool _locating = false;
+  String? _typeFilter;
+  String? _statusFilter;
+  String? _priorityFilter;
 
   @override
   void initState() {
@@ -135,10 +140,22 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         }
 
         final incidents = snapshot.data ?? const <Incident>[];
-        final withLocation = incidents
+        final filtered = filterIncidents(
+          incidents,
+          type: _typeFilter,
+          status: _statusFilter,
+          priority: _priorityFilter,
+        );
+        final withLocation = filtered
             .where(
               (incident) =>
                   incident.latitude != null && incident.longitude != null,
+            )
+            .toList();
+        final withoutLocation = filtered
+            .where(
+              (incident) =>
+                  incident.latitude == null || incident.longitude == null,
             )
             .toList();
 
@@ -151,10 +168,26 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Incidentes en Cartagena',
+                      'Incidentes (${filtered.length})',
                       style: Theme.of(context).textTheme.titleLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
+                  ),
+                  IconButton(
+                    tooltip: 'Filtrar incidentes',
+                    onPressed: () => _showFilters(context),
+                    icon: Badge(
+                      isLabelVisible:
+                          _typeFilter != null ||
+                          _statusFilter != null ||
+                          _priorityFilter != null,
+                      child: const Icon(Icons.filter_list),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Ver lista accesible de incidentes',
+                    onPressed: () => _showIncidentList(filtered),
+                    icon: const Icon(Icons.list_alt),
                   ),
                   IconButton(
                     tooltip: 'Actualizar',
@@ -244,17 +277,214 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                '${incidents.length} reportes · ${withLocation.length} con ubicación',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Column(
+                children: [
+                  Text(
+                    '${filtered.length} reportes · ${withLocation.length} en el mapa',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (withoutLocation.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () => _showIncidentList(withoutLocation),
+                      icon: const Icon(Icons.location_off_outlined, size: 18),
+                      label: Text(
+                        '${withoutLocation.length} sin coordenadas: ver lista',
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _showFilters(BuildContext context) async {
+    var type = _typeFilter;
+    var status = _statusFilter;
+    var priority = _priorityFilter;
+    final applied = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Filtrar incidentes',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                _filterDropdown(
+                  label: 'Tipo',
+                  value: type,
+                  values: const [
+                    'ROBO',
+                    'ACCIDENTE',
+                    'PELEA',
+                    'INCENDIO',
+                    'EMERGENCIA',
+                    'OTRO',
+                  ],
+                  onChanged: (value) => update(() => type = value),
+                ),
+                _filterDropdown(
+                  label: 'Estado',
+                  value: status,
+                  values: const [
+                    'PENDING',
+                    'IN_PROGRESS',
+                    'RESOLVED',
+                    'REJECTED',
+                  ],
+                  onChanged: (value) => update(() => status = value),
+                ),
+                _filterDropdown(
+                  label: 'Prioridad',
+                  value: priority,
+                  values: const ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+                  onChanged: (value) => update(() => priority = value),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        update(() {
+                          type = null;
+                          status = null;
+                          priority = null;
+                        });
+                      },
+                      child: const Text('Limpiar'),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Aplicar'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (applied == true && mounted) {
+      setState(() {
+        _typeFilter = type;
+        _statusFilter = status;
+        _priorityFilter = priority;
+      });
+    }
+  }
+
+  Widget _filterDropdown({
+    required String label,
+    required String? value,
+    required List<String> values,
+    required ValueChanged<String?> onChanged,
+  }) => DropdownButtonFormField<String>(
+    initialValue: value,
+    decoration: InputDecoration(labelText: label),
+    items: [
+      DropdownMenuItem<String>(value: null, child: Text('Todos')),
+      ...values.map(
+        (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
+      ),
+    ],
+    onChanged: onChanged,
+  );
+
+  String _label(String value) => switch (value) {
+    'ROBO' => 'Robo',
+    'ACCIDENTE' => 'Accidente',
+    'PELEA' => 'Pelea',
+    'INCENDIO' => 'Incendio',
+    'EMERGENCIA' => 'Emergencia',
+    'OTRO' => 'Otro',
+    'PENDING' => 'Pendiente',
+    'IN_PROGRESS' => 'En progreso',
+    'RESOLVED' => 'Resuelto',
+    'REJECTED' => 'Rechazado',
+    'LOW' => 'Baja',
+    'MEDIUM' => 'Media',
+    'HIGH' => 'Alta',
+    'CRITICAL' => 'Crítica',
+    _ => value,
+  };
+
+  void _showIncidentList(List<Incident> incidents) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.75,
+          child: incidents.isEmpty
+              ? const Center(
+                  child: Text('No hay incidentes con estos filtros.'),
+                )
+              : ListView.builder(
+                  itemCount: incidents.length,
+                  itemBuilder: (context, index) {
+                    final incident = incidents[index];
+                    return ListTile(
+                      leading: Icon(
+                        incident.latitude == null
+                            ? Icons.location_off_outlined
+                            : Icons.location_on_outlined,
+                      ),
+                      title: Text(incident.type),
+                      subtitle: Text(
+                        '${incident.location.isEmpty ? incident.description : incident.location}\n${_label(incident.status)} · ${_label(incident.priority)}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      isThreeLine: true,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showIncident(incident);
+                      },
+                    );
+                  },
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openExternalMap(Incident incident) async {
+    final latitude = incident.latitude;
+    final longitude = incident.longitude;
+    if (latitude == null || longitude == null) return;
+    final nativeUri = Uri.parse(
+      'geo:$latitude,$longitude?q=$latitude,$longitude',
+    );
+    final browserUri = Uri.https('www.openstreetmap.org', '/', {
+      'mlat': '$latitude',
+      'mlon': '$longitude',
+    });
+    try {
+      if (await launchUrl(nativeUri, mode: LaunchMode.externalApplication)) {
+        return;
+      }
+      if (await launchUrl(browserUri, mode: LaunchMode.externalApplication)) {
+        return;
+      }
+      throw Exception('No hay una aplicación de mapas disponible');
+    } on Exception catch (error) {
+      if (mounted) _showMessage('No se pudo abrir la ubicación: $error');
+    }
   }
 
   void _showIncident(Incident incident) {
@@ -278,6 +508,15 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             Text(
               'Estado: ${incident.status} · Prioridad: ${incident.priority}',
             ),
+            if (incident.latitude != null && incident.longitude != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _openExternalMap(incident),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Abrir en mapas'),
+                ),
+              ),
           ],
         ),
       ),

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/api_client.dart';
 import '../data/session_controller.dart';
@@ -17,18 +20,22 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
   final _input = TextEditingController();
   final _scrollController = ScrollController();
   final _messages = <_ChatMessage>[];
-  late final String _sessionId;
+  String _sessionId = 'mobile-${const Uuid().v4()}';
   bool _sending = false;
+  bool _restoring = true;
+
+  String get _historyKey =>
+      'citizen.chat.${widget.session.user?.username ?? 'unknown'}';
 
   @override
   void initState() {
     super.initState();
-    _sessionId = 'mobile-${DateTime.now().microsecondsSinceEpoch}';
     _messages.add(
       const _ChatMessage(
         text: 'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
       ),
     );
+    _restoreHistory();
   }
 
   @override
@@ -40,7 +47,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
 
   Future<void> _send([String? retryText]) async {
     final text = (retryText ?? _input.text).trim();
-    if (text.isEmpty || _sending) return;
+    if (text.isEmpty || _sending || _restoring) return;
 
     if (retryText == null) {
       _messages.add(_ChatMessage(text: text, fromUser: true));
@@ -63,16 +70,19 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
       }
       if (!mounted) return;
       _messages.add(_ChatMessage(text: response['reply'] as String));
+      await _saveHistory();
     } on ApiException catch (error) {
       if (!mounted) return;
       _messages.add(
         _ChatMessage(text: error.message, error: true, retry: text),
       );
+      await _saveHistory();
     } on FormatException catch (error) {
       if (!mounted) return;
       _messages.add(
         _ChatMessage(text: error.message, error: true, retry: text),
       );
+      await _saveHistory();
     } finally {
       if (mounted) {
         setState(() => _sending = false);
@@ -91,8 +101,9 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
   }
 
   void _clearConversation() {
-    if (_sending) return;
+    if (_sending || _restoring) return;
     setState(() {
+      _sessionId = 'mobile-${const Uuid().v4()}';
       _messages
         ..clear()
         ..add(
@@ -101,6 +112,90 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
           ),
         );
     });
+    widget.session.storage.delete(_historyKey).catchError((Object error) {
+      if (mounted) _showMessage('No se pudo borrar el historial local: $error');
+    });
+  }
+
+  Future<void> _restoreHistory() async {
+    try {
+      final saved = await widget.session.storage.read(_historyKey);
+      if (saved != null) {
+        final decoded = jsonDecode(saved);
+        final List<dynamic> savedMessages;
+        if (decoded is List) {
+          savedMessages = decoded;
+        } else if (decoded is Map<String, dynamic> &&
+            decoded['messages'] is List) {
+          savedMessages = decoded['messages'] as List;
+          final savedSessionId = decoded['sessionId'];
+          if (savedSessionId is String && savedSessionId.isNotEmpty) {
+            _sessionId = savedSessionId;
+          }
+        } else {
+          throw const FormatException('El historial guardado no es válido');
+        }
+        final restored = savedMessages
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => _ChatMessage(
+                text: item['text']?.toString() ?? '',
+                fromUser: item['fromUser'] == true,
+                error: item['error'] == true,
+                retry: item['retry']?.toString(),
+              ),
+            )
+            .where((message) => message.text.isNotEmpty)
+            .toList();
+        if (mounted && restored.isNotEmpty) {
+          setState(() {
+            _messages
+              ..clear()
+              ..addAll(restored);
+          });
+        }
+      }
+    } on Exception catch (error) {
+      if (mounted) {
+        _showMessage('No se pudo restaurar el historial local: $error');
+      }
+    } finally {
+      if (mounted) setState(() => _restoring = false);
+    }
+  }
+
+  Future<void> _saveHistory() async {
+    try {
+      final recent = _messages.length > 80
+          ? _messages.sublist(_messages.length - 80)
+          : _messages;
+      await widget.session.storage.write(
+        _historyKey,
+        jsonEncode({
+          'sessionId': _sessionId,
+          'messages': recent
+              .map(
+                (message) => {
+                  'text': message.text,
+                  'fromUser': message.fromUser,
+                  'error': message.error,
+                  'retry': message.retry,
+                },
+              )
+              .toList(),
+        }),
+      );
+    } on Exception catch (error) {
+      if (mounted) {
+        _showMessage('No se pudo guardar el historial local: $error');
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _scrollToEnd() {
@@ -132,7 +227,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         actions: [
           IconButton(
             tooltip: 'Nueva conversación',
-            onPressed: _clearConversation,
+            onPressed: _sending || _restoring ? null : _clearConversation,
             icon: const Icon(Icons.delete_outline),
           ),
         ],
@@ -148,8 +243,12 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                    itemCount: _messages.length + (_sending ? 1 : 0),
+                    itemCount:
+                        _messages.length + (_sending || _restoring ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (index == _messages.length && _restoring) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
                       if (index == _messages.length) {
                         return const _TypingIndicator();
                       }
@@ -184,7 +283,9 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                       const SizedBox(width: 8),
                       IconButton.filled(
                         tooltip: 'Enviar mensaje',
-                        onPressed: _sending ? null : () => _send(),
+                        onPressed: _sending || _restoring
+                            ? null
+                            : () => _send(),
                         icon: _sending
                             ? const SizedBox(
                                 width: 18,

@@ -6,6 +6,7 @@ export const authService = {
   register: (data) => api.post('/Auth/Register', data),
   forgotPassword: (data) => api.post('/Auth/ForgotPassword', data),
   resetPassword:  (data) => api.post('/Auth/ResetPassword', data),
+  updateProfile: (data) => api.put('/Auth/Profile', data),
 }
 
 // ── INCIDENTS ─────────────────────────────────────────────────────────────

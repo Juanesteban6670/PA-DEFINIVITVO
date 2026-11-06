@@ -8,13 +8,15 @@
 - Sesión persistida mediante almacenamiento seguro del dispositivo.
 - Inicio con resumen de reportes propios y accesos rápidos.
 - Lista de reportes propios con estado, prioridad y detalle.
-- Creación de reportes con ubicación escrita y GPS opcional.
-- Mapa de incidentes públicos con OpenStreetMap, marcadores por prioridad y centrado en tu ubicación cuando otorgas permiso.
+- Creación de reportes con ubicación escrita/GPS opcional, evidencia desde cámara o galería, borrador local y cola de reintento.
+- Mapa de incidentes públicos con filtros por tipo/estado/prioridad, lista accesible para incidentes sin coordenadas y apertura de ubicaciones en mapas externos.
 - Contactos de emergencia desde la API y llamada al 123 o a contactos disponibles.
 - Asistente ciudadano conectado al endpoint autenticado existente del backend.
-- Perfil de solo lectura y cierre de sesión. El backend actual no ofrece una operación ciudadana para editar el perfil.
+- Historial reciente del chatbot guardado localmente en almacenamiento seguro del dispositivo, con opción para borrarlo.
+- Centro de notificaciones de cambios de reportes, sincronizado al abrirlo; requiere conexión y no ofrece notificaciones push.
+- Edición autenticada del perfil y cierre de sesión.
 
-El mapa, las teselas, la autenticación y las operaciones de datos requieren conexión. La app no guarda borradores de reportes sin conexión. El formulario no adjunta fotografías todavía.
+El mapa, las teselas, la autenticación y las operaciones de datos requieren conexión. Los borradores de texto y la cola de reportes se guardan en almacenamiento seguro; las fotografías se conservan en el directorio privado de la app hasta confirmar el envío o borrar el pendiente. La cola se reintenta manualmente desde “Mis reportes” cuando vuelve la conexión. La API aplica una clave idempotente para impedir reportes duplicados si se pierde la respuesta de un envío.
 
 La ubicación es opcional: puedes escribir una dirección sin dar permiso. Si los servicios del teléfono están apagados, se deniega el permiso o este quedó bloqueado, la app informa cómo continuar y ofrece abrir los ajustes del sistema. El chatbot utiliza la sesión iniciada y el endpoint `/api/Ai/Chat`; la clave del proveedor de IA permanece configurada en el backend.
 
@@ -55,31 +57,29 @@ flutter build apk --release \
   --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
 ```
 
-Para Google Play:
+La firma release se configura fuera de GitHub, usando estas variables de entorno:
 
 ```sh
+export ANDROID_KEYSTORE_PATH=/ruta/privada/cartagena-release.jks
+export ANDROID_STORE_PASSWORD='...'
+export ANDROID_KEY_ALIAS='...'
+export ANDROID_KEY_PASSWORD='...'
 flutter build appbundle --release \
   --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
 ```
 
-La configuración actual de Gradle usa la firma debug para la variante release y solo sirve para pruebas/sideload; **no publiques ese APK/AAB en Google Play**. Antes, el propietario debe cambiarla a una clave de release privada y configurar el registro de Google Play. Los certificados/perfiles de Apple y las cuentas de publicación también los aporta el propietario; no guardes credenciales en el repositorio. iOS se compila desde macOS/Xcode:
+También se puede crear `mobile/android/key.properties` con `storeFile`, `storePassword`, `keyAlias` y `keyPassword`. Ese archivo, los keystores y sus contraseñas están excluidos de Git. Una compilación release falla expresamente cuando falta la configuración de firma. La publicación Android todavía requiere que el propietario cree/configure la cuenta de Google Play y revise el artefacto.
+
+La distribución iOS requiere macOS/Xcode, cuenta Apple Developer, certificados de distribución y perfiles de aprovisionamiento configurados localmente. No se guardan credenciales ni certificados en el repositorio:
 
 ```sh
 flutter build ipa --release \
   --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
 ```
 
-No uses una URL local en los artefactos distribuidos. Mantén secretos de servicios externos fuera de `--dart-define` y del paquete cliente.
+No uses una URL local en los artefactos distribuidos. Mantén secretos de servicios externos fuera de `--dart-define` y del paquete cliente. La solicitud de eliminación de cuenta no está disponible porque aún no existe un flujo backend seguro que preserve la trazabilidad de los reportes.
 
-## Previsualización web de Flutter
-
-Se puede revisar la disposición con Flutter Web, pero esto no reemplaza pruebas nativas de Android/iOS:
-
-```sh
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080/api
-```
-
-Con Docker Compose usa `http://localhost:3000/api`; `localhost:8080` aplica únicamente si se inicia el backend fuera de Compose.
+La interfaz web sigue siendo la aplicación React/PWA en `frontend/`; Flutter está destinado a las apps nativas Android/iOS.
 
 ## Integración continua
 

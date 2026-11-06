@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.Set;
@@ -89,6 +90,35 @@ public class AuthService {
         String token = jwtUtil.generateToken(user);
         Set<String> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
         return new AuthResponse(token, user.getUsername(), user.getFullName(), user.getEmail(), user.getPhone(), roles);
+    }
+
+    @Transactional
+    public ProfileResponse updateProfile(String username, ProfileUpdateRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        String fullName = request.fullName() == null ? "" : request.fullName().trim();
+        String email = request.email() == null ? "" : request.email().trim();
+        String phone = request.phone() == null ? "" : request.phone().trim();
+        if (!StringUtils.hasText(fullName)) {
+            throw new IllegalArgumentException("El nombre completo es obligatorio");
+        }
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException("Ingresa un correo válido");
+        }
+        if (userRepository.existsByEmailAndUsernameNot(email, username)) {
+            throw new IllegalArgumentException("El correo ya está en uso");
+        }
+        if (StringUtils.hasText(phone) && userRepository.existsByPhoneAndUsernameNot(phone, username)) {
+            throw new IllegalArgumentException("El teléfono ya está en uso");
+        }
+
+        user.setFullName(fullName);
+        user.setEmail(email);
+        user.setPhone(phone.isEmpty() ? null : phone);
+        User updated = userRepository.save(user);
+        logService.log("UPDATE_PROFILE", username, "Perfil ciudadano actualizado", "User", null);
+        return new ProfileResponse(updated.getUsername(), updated.getFullName(),
+                updated.getEmail(), updated.getPhone());
     }
 
     @Transactional

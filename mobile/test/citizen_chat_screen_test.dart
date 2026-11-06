@@ -72,6 +72,65 @@ void main() {
     session.dispose();
   });
 
+  testWidgets(
+    'restores the same server conversation and can clear local history',
+    (tester) async {
+      _setViewport(tester);
+      final storage = _TestSessionStorage({
+        'session.token': 'citizen-token',
+        'session.user': jsonEncode({
+          'username': 'citizen',
+          'fullName': 'Persona Ciudadana',
+          'email': 'citizen@example.test',
+        }),
+      });
+      final firstSession = await _createSession(
+        MockClient(
+          (_) async => http.Response('{"reply":"Primera respuesta"}', 200),
+        ),
+        storage: storage,
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: CitizenChatScreen(session: firstSession)),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Primera pregunta');
+      await tester.tap(find.byTooltip('Enviar mensaje'));
+      await tester.pumpAndSettle();
+
+      final savedHistory = jsonDecode(storage.values['citizen.chat.citizen']!);
+      final savedSessionId = savedHistory['sessionId'];
+      expect(savedHistory['messages'], isNotEmpty);
+      firstSession.dispose();
+
+      String? retrySessionId;
+      final secondSession = await _createSession(
+        MockClient((request) async {
+          retrySessionId =
+              (jsonDecode(request.body) as Map<String, dynamic>)['sessionId']
+                  as String;
+          return http.Response('{"reply":"Continuación"}', 200);
+        }),
+        storage: storage,
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: CitizenChatScreen(session: secondSession)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Primera pregunta'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'Segunda pregunta');
+      await tester.tap(find.byTooltip('Enviar mensaje'));
+      await tester.pumpAndSettle();
+      expect(retrySessionId, savedSessionId);
+
+      await tester.tap(find.byTooltip('Nueva conversación'));
+      await tester.pumpAndSettle();
+      expect(storage.values.containsKey('citizen.chat.citizen'), isFalse);
+      secondSession.dispose();
+    },
+  );
+
   testWidgets('fits a narrow phone viewport without layout exceptions', (
     tester,
   ) async {
@@ -90,10 +149,13 @@ void main() {
   });
 }
 
-Future<SessionController> _createSession(http.Client client) async {
+Future<SessionController> _createSession(
+  http.Client client, {
+  _TestSessionStorage? storage,
+}) async {
   final session = SessionController(
     api: ApiClient(baseUrl: 'https://api.example.com/api', client: client),
-    storage: _TestSessionStorage(),
+    storage: storage ?? _TestSessionStorage(),
   );
   await session.initialize();
   session.api.token = 'citizen-token';
@@ -112,18 +174,20 @@ void _setViewport(
 }
 
 class _TestSessionStorage implements SessionStorage {
-  final Map<String, String> _values = {};
+  _TestSessionStorage([Map<String, String>? values]) : values = values ?? {};
+
+  final Map<String, String> values;
 
   @override
   Future<void> delete(String key) async {
-    _values.remove(key);
+    values.remove(key);
   }
 
   @override
-  Future<String?> read(String key) async => _values[key];
+  Future<String?> read(String key) async => values[key];
 
   @override
   Future<void> write(String key, String value) async {
-    _values[key] = value;
+    values[key] = value;
   }
 }
