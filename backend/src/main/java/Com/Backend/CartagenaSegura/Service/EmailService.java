@@ -27,7 +27,7 @@ public class EmailService {
     @Value("${app.base-url:http://localhost:8080}")
     private String apiBaseUrl;
 
-    @Value("${app.frontend-url:https://cartagena-segura.vercel.app}")
+    @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
     public EmailService(TemplateEngine templateEngine, ObjectMapper objectMapper) {

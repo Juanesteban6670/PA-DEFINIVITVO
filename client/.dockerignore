@@ -1,0 +1,9 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.git/
+android/
+build/
+coverage/
+ios/
+test/

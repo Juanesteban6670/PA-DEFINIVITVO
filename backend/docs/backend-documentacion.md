@@ -948,8 +948,7 @@ Esto evita que el cliente reciba trazas tecnicas de Java.
 - `http://localhost:3000`
 - `http://localhost:5173`
 - `http://localhost:8080`
-- `https://cartagena-segura.vercel.app`
-- `https://cartagena-segura-mobile.vercel.app`
+- `FRONTEND_URL`, configurada con el origen público de la aplicación Flutter.
 - `https://cartagena-segura.up.railway.app`
 
 Si se despliega un nuevo frontend en otro dominio, debe agregarse en `corsConfigurationSource()`.

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "frontend/**"
+      - "client/**"
       - "backend/**"
       - "compose.yaml"
       - "Caddyfile"
@@ -13,7 +13,7 @@ on:
       - ".github/workflows/web-backend.yml"
   pull_request:
     paths:
-      - "frontend/**"
+      - "client/**"
       - "backend/**"
       - "compose.yaml"
       - "Caddyfile"
@@ -25,32 +25,6 @@ permissions:
   contents: read
 
 jobs:
-  frontend:
-    name: Lint PWA entry and build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint:pwa
-
-      - name: Build PWA
-        run: npm run build
-
   backend:
     name: Test and build API
     runs-on: ubuntu-latest
@@ -124,4 +98,4 @@ jobs:
         run: docker compose --profile production config --quiet
 
       - name: Build application images
-        run: docker compose build backend frontend
+        run: docker compose build backend flutter-web

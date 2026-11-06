@@ -1,6 +1,6 @@
 # Cartagena Segura — API
 
-API REST Spring Boot 3.4.3 / Java 21 usada por la web React/PWA. Para iniciar API, frontend y bases de datos juntos, sigue [la guía de Docker Compose](../docs/deployment.md); desde la raíz, ejecuta `docker compose up --build -d`.
+API REST Spring Boot 3.4.3 / Java 21 usada por la aplicación Flutter Web. Para iniciar aplicación, API y bases de datos juntos, sigue [la guía de Docker Compose](../docs/deployment.md); desde la raíz, ejecuta `docker compose up --build -d`.
 
 ## Ejecución independiente
 

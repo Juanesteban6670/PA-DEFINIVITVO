@@ -8,9 +8,20 @@ key.properties
 *.jks
 *.keystore
 
-# Dependencies and build output
-node_modules/
-dist/
+# Dart and Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+build/
+coverage/
+android/.gradle/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+
+# Backend build output
 backend/target/
 
 # Logs and local tooling

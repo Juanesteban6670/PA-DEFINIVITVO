@@ -26,7 +26,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final LogService logService;
     private final EmailService emailService;
-    @Value("${app.frontend-url:https://cartagena-segura.vercel.app}")
+    @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
     public AuthService(UserRepository userRepository,

@@ -1,56 +1,50 @@
 # Cartagena Segura
 
-Cartagena Segura es una plataforma ciudadana con una API REST Spring Boot, una web React/PWA y un cliente móvil nativo Flutter. La web y la app móvil comparten identidad visual y backend: React permanece como experiencia web y Flutter cubre los flujos ciudadanos en Android/iOS.
+Cartagena Segura es una plataforma de seguridad ciudadana con una aplicación Flutter multiplataforma y una API REST Spring Boot. Flutter Web es la interfaz web principal y puede instalarse desde Chrome en Android y Safari en iOS. Los directorios fuente Android e iOS se conservan; la publicación de paquetes nativos no forma parte del alcance actual.
 
 ## Componentes
 
-- `frontend/`: web React/Vite adaptable a móviles y PWA.
+- `client/`: aplicación Flutter Web, configuración PWA y proyectos fuente Android/iOS.
 - `backend/`: API REST con Spring Boot, Java 21 y Maven Wrapper.
-- `compose.yaml`: web, API, PostgreSQL y MongoDB con persistencia.
-- `mobile/`: app Flutter nativa ciudadana para Android/iOS.
-- `docs/deployment.md`: ejecución local, despliegue HTTPS y uso en teléfonos.
+- `compose.yaml`: aplicación web, API, PostgreSQL y MongoDB con persistencia.
+- `Caddyfile`: HTTPS y enrutamiento del sitio y la API para producción.
+- `docs/deployment.md`: ejecución local, despliegue y verificación.
 
-## Estado actual
+## Funcionalidades
 
-El repositorio incluye el frontend PWA, una app Flutter para móvil, Docker Compose para web/API/PostgreSQL/MongoDB y una configuración opcional de Caddy para HTTPS en un servidor con dominio. Ambas interfaces usan la misma API. Las operaciones de mapa, autenticación, GPS, directorio y reportes requieren conexión; la PWA no guarda información personal ni reportes sin conexión.
+La aplicación reúne el landing público, autenticación y recuperación de cuenta, reportes ciudadanos, mapa, contactos de emergencia, notificaciones, perfil, panel administrativo, auditoría, zonas e integración con IA. Las interfaces usan la API existente; no se modifican sus contratos ni los datos persistidos.
 
-El frontend web y el cliente Flutter son productos complementarios, no una sustitución del código React. La app móvil requiere una URL de API accesible desde cada dispositivo; consulta [mobile/README.md](mobile/README.md) para probarla, compilar Android/iOS y revisar qué credenciales de firma debe aportar el propietario. Los cambios de Flutter se validan con el workflow de GitHub Actions y también deben probarse en dispositivos reales antes de publicar.
+En Flutter Web, las fotos seleccionadas para un reporte permanecen en memoria mientras la pestaña está abierta. No se guardan fotos ni datos sensibles en caché offline. GPS requiere HTTPS y permiso del usuario; la ubicación es opcional.
 
 ## Ejecutar localmente
 
 Requisito: Docker Desktop o Docker Engine con Docker Compose v2.
 
-1. Copia `.env.example` a `.env`.
-2. Desde la raíz del repositorio ejecuta:
+1. Copia `.env.example` a `.env` y sustituye los secretos de ejemplo.
+2. Desde la raíz ejecuta:
 
-   ```powershell
+   ```sh
    docker compose up --build -d
    docker compose ps
    ```
 
 3. Abre `http://localhost:3000`.
 
-La primera construcción puede tardar. Los datos se conservan en volúmenes de Docker. `docker compose down` detiene los servicios sin borrar esos volúmenes; evita `docker compose down -v` si necesitas conservar los datos. Los valores de ejemplo son solo locales, no los uses como secretos de producción.
+Compose construye Flutter Web y la API. Nginx sirve Flutter en `/` y reenvía `/api/` al backend; Caddy se reserva para el perfil de producción. Los datos se conservan en volúmenes. `docker compose down` no los elimina; evita `docker compose down -v` si necesitas conservarlos.
 
-Para desarrollar solo la web se requieren Node.js y npm; instrucciones en [frontend/README.md](frontend/README.md). Para ejecutar y verificar el backend fuera de Docker se requiere Java 21; consulta [backend/README.md](backend/README.md).
+Para desarrollar Flutter en Chrome, consulta [client/README.md](client/README.md). Para ejecutar y verificar la API fuera de Docker se requiere Java 21; consulta [backend/README.md](backend/README.md).
 
-## Usar en Android e iOS
+## Android e iOS
 
-La app nativa Flutter es la experiencia móvil recomendada; también se puede abrir la web/PWA desde el navegador. Despliega primero la API con HTTPS y configura la URL pública al compilar Flutter. La PWA se puede instalar con Chrome en Android y Safari en iOS; los artefactos nativos necesitan compilación y firma mediante los SDK/cuentas oficiales de cada plataforma.
+Abre el sitio HTTPS desde Chrome en Android o Safari en iOS y usa la opción del navegador para instalarlo o añadirlo a la pantalla de inicio. No se generan APK ni IPA en esta etapa. Los directorios fuente Flutter de Android/iOS se conservan para una posible compilación futura.
 
-La app Flutter guarda el token con almacenamiento seguro, pero las consultas y los envíos requieren conectividad; no guarda reportes offline. GPS y llamadas dependen de permisos y del sistema operativo, por lo que deben comprobarse en dispositivos reales.
+## Despliegue
 
-El despliegue público aún requiere la infraestructura y los secretos del propietario. Consulta la [guía de despliegue](docs/deployment.md) para activar HTTPS automático con Caddy, configurar dominio y secretos, y preparar respaldos.
-
-## Cliente Flutter móvil
-
-Flutter cubre los flujos ciudadanos móviles de autenticación, inicio, reportes, mapa, emergencias y perfil de solo lectura. El panel administrativo permanece en la web. Consulta [mobile/README.md](mobile/README.md) para ejecutar y compilar la app.
-
-El alcance Flutter está descrito en [docs/documentacion-entrega-movil.md](docs/documentacion-entrega-movil.md).
+El despliegue público requiere un dominio, DNS y secretos controlados por el propietario. Caddy termina TLS y sirve Flutter en `/`, mientras `/api/` llega al backend. Actuator no se publica. Sigue la [guía de despliegue](docs/deployment.md) y valida los flujos en un entorno HTTPS antes de usar datos reales.
 
 ## Integración continua
 
-GitHub Actions está configurado para validar lint/build de la web, ejecutar `mvn verify` con Java 21, comprobar los contenedores y ejecutar `flutter analyze`, `flutter test` y una compilación debug de Android. Revisa la pestaña **Actions** para confirmar los resultados; la existencia de los workflows no implica que todas las comprobaciones ya hayan pasado.
+GitHub Actions valida formato, análisis, pruebas y build web de Flutter, además del backend y la configuración de los contenedores. La existencia de los workflows no implica que se haya publicado el servicio.
 
 ## Desarrolladores y creadores
 
