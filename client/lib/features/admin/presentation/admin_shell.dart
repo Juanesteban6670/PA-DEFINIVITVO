@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
+import 'package:cartagena_segura/shared/pill_badge.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class AdminShell extends StatelessWidget {
@@ -540,9 +541,28 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                     child: Icon(Icons.report_gmailerrorred_outlined),
                   ),
                   onTap: () => _showIncident(context, incident),
-                  title: Text(_string(incident['type'], 'Incidente')),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _string(incident['type'], 'Incidente'),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      PillBadge(
+                        value: _string(incident['status'], 'PENDING'),
+                        compact: true,
+                      ),
+                      const SizedBox(width: 6),
+                      PillBadge(
+                        value: _string(incident['priority'], 'MEDIUM'),
+                        isPriority: true,
+                        compact: true,
+                      ),
+                    ],
+                  ),
                   subtitle: Text(
-                    '${_string(incident['description'])}\n${_string(incident['location'])} · ${_statusLabel(_string(incident['status'], 'PENDING'))} · ${_string(incident['priority'], 'MEDIUM')}',
+                    '${_string(incident['description'])}\n${_string(incident['location'])}',
                   ),
                   isThreeLine: true,
                   trailing: PopupMenuButton<String>(

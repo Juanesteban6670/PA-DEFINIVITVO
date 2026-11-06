@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,6 +15,7 @@ import 'package:cartagena_segura/core/data/safe_route_service.dart';
 import 'package:cartagena_segura/features/citizen/presentation/destination_search_dialog.dart';
 import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.dart';
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
+import 'package:cartagena_segura/shared/pill_badge.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 enum MapTileTheme { auto, light, dark, satellite }
@@ -49,11 +52,28 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   bool _isRouting = false;
   bool _isSelectingDestinationOnMap = false;
 
+  List<_MapZone> _zones = const [];
+  bool _showRiskZones = true;
+
   @override
   void initState() {
     super.initState();
     widget.incidentRefresh.addListener(_onIncidentRefresh);
     _incidents = _loadIncidents();
+    _loadZones();
+  }
+
+  Future<void> _loadZones() async {
+    try {
+      final res = await widget.api.get('Zones');
+      if (res is Map<String, dynamic> && res['data'] is List) {
+        final list = (res['data'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map(_MapZone.fromJson)
+            .toList();
+        if (mounted) setState(() => _zones = list);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -403,6 +423,24 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         'com.cartagenasegura.cartagena_segura',
                   ),
 
+                // Capa de Zonas de Riesgo Distrital
+                if (_showRiskZones && _zones.isNotEmpty)
+                  CircleLayer(
+                    circles: [
+                      for (final zone in _zones)
+                        CircleMarker(
+                          point: zone.center,
+                          radius: 650,
+                          useRadiusInMeter: true,
+                          color: _zoneColor(zone.riskLevel)
+                              .withValues(alpha: isDark ? 0.16 : 0.12),
+                          borderColor: _zoneColor(zone.riskLevel)
+                              .withValues(alpha: isDark ? 0.55 : 0.45),
+                          borderStrokeWidth: 1.5,
+                        ),
+                    ],
+                  ),
+
                 // Capa de Rutas Seguras (PolylineLayer)
                 if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
                   PolylineLayer(
@@ -517,25 +555,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   ),
                 ],
 
-                // Marcadores de incidentes reportados
+                // Marcadores de incidentes reportados (con clustering en zooms lejanos)
                 MarkerLayer(
                   markers: [
-                    ...withLocation.map((incident) {
-                      final color = _priorityColor(incident.priority);
-                      return Marker(
-                        point: LatLng(incident.latitude!, incident.longitude!),
-                        width: 42,
-                        height: 42,
-                        child: GestureDetector(
-                          onTap: () => _showIncident(incident),
-                          child: _ModernIncidentMarker(
-                            incident: incident,
-                            color: color,
-                            isDark: isDark,
-                          ),
-                        ),
-                      );
-                    }),
+                    ..._buildIncidentMarkers(withLocation, isDark),
                     // Marcador GPS de ubicación actual del usuario
                     if (_position case final position?)
                       Marker(
@@ -828,13 +851,26 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 ),
               ),
 
-            // Barra lateral flotante de controles (Zoom + Mi Ubicación)
+            // Barra lateral flotante de controles (Zoom + Zonas + Mi Ubicación)
             Positioned(
               right: 14,
               bottom: _safeRoutes != null ? 240 : 20,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  _FloatingMapButton(
+                    tooltip: _showRiskZones
+                        ? 'Ocultar sectores distritales'
+                        : 'Ver sectores de seguridad',
+                    icon: _showRiskZones
+                        ? Icons.security_rounded
+                        : Icons.security_outlined,
+                    isDark: isDark,
+                    isActive: _showRiskZones,
+                    onPressed: () =>
+                        setState(() => _showRiskZones = !_showRiskZones),
+                  ),
+                  const SizedBox(height: 8),
                   _FloatingMapButton(
                     tooltip: 'Acercar',
                     icon: Icons.add_rounded,
@@ -1236,23 +1272,59 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(incident.type, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            if (incident.description.isNotEmpty) Text(incident.description),
-            if (incident.location.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('Ubicación: ${incident.location}'),
-            ],
-            const SizedBox(height: 8),
-            Text(
-              'Estado: ${incident.status} · Prioridad: ${incident.priority}',
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    incident.type,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                PillBadge(value: incident.status, compact: true),
+                const SizedBox(width: 6),
+                PillBadge(
+                  value: incident.priority,
+                  isPriority: true,
+                  compact: true,
+                ),
+              ],
             ),
+            const SizedBox(height: 12),
+            if (incident.description.isNotEmpty)
+              Text(
+                incident.description,
+                style: const TextStyle(fontSize: 14, height: 1.45),
+              ),
+            if (incident.location.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.place_outlined,
+                    size: 16,
+                    color: AppColors.muted,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      incident.location,
+                      style: const TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
             if (incident.latitude != null && incident.longitude != null)
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton.icon(
+                child: FilledButton.tonalIcon(
                   onPressed: () => _openExternalMap(incident),
-                  icon: const Icon(Icons.open_in_new),
+                  icon: const Icon(Icons.open_in_new, size: 16),
                   label: const Text('Abrir en mapas'),
                 ),
               ),
@@ -1262,12 +1334,153 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     );
   }
 
+  List<Marker> _buildIncidentMarkers(List<Incident> withLocation, bool isDark) {
+    double currentZoom = 13.0;
+    try {
+      currentZoom = _mapController.camera.zoom;
+    } catch (_) {
+      currentZoom = 13.0;
+    }
+
+    if (currentZoom >= 12.0) {
+      return withLocation.map((incident) {
+        final color = _priorityColor(incident.priority);
+        return Marker(
+          point: LatLng(incident.latitude!, incident.longitude!),
+          width: 42,
+          height: 42,
+          child: GestureDetector(
+            onTap: () => _showIncident(incident),
+            child: _ModernIncidentMarker(
+              incident: incident,
+              color: color,
+              isDark: isDark,
+            ),
+          ),
+        );
+      }).toList();
+    }
+
+    // Agrupamiento espacial para vista panorámica
+    final clusters = <List<Incident>>[];
+    const threshold = 0.018;
+
+    for (final inc in withLocation) {
+      bool added = false;
+      for (final cluster in clusters) {
+        final ref = cluster.first;
+        final dLat = (inc.latitude! - ref.latitude!).abs();
+        final dLng = (inc.longitude! - ref.longitude!).abs();
+        if (dLat < threshold && dLng < threshold) {
+          cluster.add(inc);
+          added = true;
+          break;
+        }
+      }
+      if (!added) {
+        clusters.add([inc]);
+      }
+    }
+
+    return clusters.map((group) {
+      if (group.length == 1) {
+        final incident = group.first;
+        final color = _priorityColor(incident.priority);
+        return Marker(
+          point: LatLng(incident.latitude!, incident.longitude!),
+          width: 42,
+          height: 42,
+          child: GestureDetector(
+            onTap: () => _showIncident(incident),
+            child: _ModernIncidentMarker(
+              incident: incident,
+              color: color,
+              isDark: isDark,
+            ),
+          ),
+        );
+      }
+
+      final avgLat =
+          group.map((e) => e.latitude!).reduce((a, b) => a + b) / group.length;
+      final avgLng =
+          group.map((e) => e.longitude!).reduce((a, b) => a + b) / group.length;
+      final centerPt = LatLng(avgLat, avgLng);
+
+      return Marker(
+        point: centerPt,
+        width: 44,
+        height: 44,
+        child: _ClusterMarker(
+          count: group.length,
+          color: AppColors.brightBlue,
+          isDark: isDark,
+          onTap: () => _mapController.move(centerPt, 13.8),
+        ),
+      );
+    }).toList();
+  }
+
   Color _priorityColor(String priority) => switch (priority) {
     'CRITICAL' => const Color(0xFFEF4444),
     'HIGH' => const Color(0xFFF97316),
     'LOW' => const Color(0xFF10B981),
     _ => const Color(0xFF3B82F6),
   };
+}
+
+/// Marcador de cluster agrupado para vistas panorámicas del mapa
+class _ClusterMarker extends StatelessWidget {
+  const _ClusterMarker({
+    required this.count,
+    required this.color,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final int count;
+  final Color color;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Center(
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDark ? AppColors.darkCanvas : Colors.white,
+              width: 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.45),
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              '+$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Marcador moderno circular y minimalista para incidentes reportados
@@ -1328,98 +1541,193 @@ class _ModernIncidentMarker extends StatelessWidget {
   }
 }
 
-/// Marcador moderno de ubicación GPS del usuario con pulso radar
-class _ModernUserLocationMarker extends StatelessWidget {
+/// Marcador moderno de ubicación GPS del usuario con pulso radar continuo
+class _ModernUserLocationMarker extends StatefulWidget {
   const _ModernUserLocationMarker();
 
   @override
+  State<_ModernUserLocationMarker> createState() =>
+      _ModernUserLocationMarkerState();
+}
+
+class _ModernUserLocationMarkerState extends State<_ModernUserLocationMarker>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Halo exterior traslúcido
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.brightBlue.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Núcleo blanco y azul
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.brightBlue.withValues(alpha: 0.4),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: const BoxDecoration(
-                  color: AppColors.brightBlue,
-                  shape: BoxShape.circle,
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        final scale = 0.85 + (_anim.value * 1.15);
+        final opacity = (1.0 - _anim.value).clamp(0.0, 1.0);
+        return Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Onda radar expansiva
+              Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.brightBlue.withValues(
+                      alpha: 0.28 * opacity,
+                    ),
+                    border: Border.all(
+                      color: AppColors.brightBlue.withValues(
+                        alpha: 0.5 * opacity,
+                      ),
+                      width: 1.5,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              // Núcleo blanco y azul con sombra
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.brightBlue.withValues(alpha: 0.45),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Container(
+                    width: 13,
+                    height: 13,
+                    decoration: const BoxDecoration(
+                      color: AppColors.brightBlue,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
-/// Botón circular flotante para controles del mapa
+/// Botón circular flotante estilo Glassmorphism para controles del mapa
 class _FloatingMapButton extends StatelessWidget {
   const _FloatingMapButton({
     required this.icon,
     required this.tooltip,
     required this.isDark,
     required this.onPressed,
+    this.isActive = false,
   });
 
   final IconData icon;
   final String tooltip;
   final bool isDark;
   final VoidCallback onPressed;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    final bgColor = isActive
+        ? (isDark
+              ? AppColors.brightBlue.withValues(alpha: 0.35)
+              : AppColors.blue.withValues(alpha: 0.15))
+        : (isDark
+              ? AppColors.darkCard.withValues(alpha: 0.82)
+              : Colors.white.withValues(alpha: 0.9));
+    final borderColor = isActive
+        ? (isDark ? AppColors.brightBlue : AppColors.blue)
+        : (isDark ? AppColors.darkBorder : AppColors.border);
+    final iconColor = isActive
+        ? (isDark ? AppColors.brightBlue : AppColors.blue)
+        : (isDark ? AppColors.darkText : AppColors.navy);
+
+    return ClipOval(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: borderColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: IconButton(
-        tooltip: tooltip,
-        iconSize: 20,
-        visualDensity: VisualDensity.compact,
-        color: isDark ? AppColors.darkText : AppColors.navy,
-        icon: Icon(icon),
-        onPressed: onPressed,
+          child: IconButton(
+            tooltip: tooltip,
+            iconSize: 20,
+            visualDensity: VisualDensity.compact,
+            color: iconColor,
+            icon: Icon(icon),
+            onPressed: onPressed,
+          ),
+        ),
       ),
     );
   }
 }
+
+/// Modelo de datos para zonas distritales de Cartagena
+class _MapZone {
+  const _MapZone({
+    required this.id,
+    required this.name,
+    required this.riskLevel,
+    required this.center,
+  });
+
+  final String id;
+  final String name;
+  final String riskLevel;
+  final LatLng center;
+
+  factory _MapZone.fromJson(Map<String, dynamic> json) {
+    return _MapZone(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      riskLevel: json['riskLevel'] as String? ?? 'MODERATE',
+      center: LatLng(
+        (json['centerLatitude'] as num?)?.toDouble() ?? 10.391,
+        (json['centerLongitude'] as num?)?.toDouble() ?? -75.4794,
+      ),
+    );
+  }
+}
+
+Color _zoneColor(String risk) => switch (risk.toUpperCase()) {
+  'LOW' => const Color(0xFF10B981),
+  'HIGH' || 'CRITICAL' => const Color(0xFFEF4444),
+  _ => const Color(0xFFF59E0B),
+};
 
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.message, required this.onRetry});

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
@@ -328,6 +330,23 @@ class _MessageBubble extends StatelessWidget {
   final _ChatMessage message;
   final VoidCallback? onRetry;
 
+  void _callNumber(String number) async {
+    final uri = Uri.parse('tel:$number');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  void _copyToClipboard(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: message.text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Mensaje copiado al portapapeles'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final alignment = message.fromUser
@@ -345,6 +364,15 @@ class _MessageBubble extends StatelessWidget {
         ? Colors.white
         : (isDark ? AppColors.darkText : AppColors.navy);
 
+    final show123Chip =
+        !message.fromUser &&
+        !message.error &&
+        (message.text.contains('123') || message.text.contains('Policía'));
+    final show119Chip =
+        !message.fromUser &&
+        !message.error &&
+        (message.text.contains('119') || message.text.contains('Bomberos'));
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -352,13 +380,18 @@ class _MessageBubble extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.sizeOf(context).width * 0.84,
+              maxWidth: MediaQuery.sizeOf(context).width * 0.88,
             ),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(message.fromUser ? 18 : 4),
+                  bottomRight: Radius.circular(message.fromUser ? 4 : 18),
+                ),
                 border: Border.all(
                   color: message.error
                       ? (isDark
@@ -368,13 +401,88 @@ class _MessageBubble extends StatelessWidget {
                       ? AppColors.brightBlue
                       : (isDark ? AppColors.darkBorder : AppColors.border),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: SelectableText(
-                message.text,
-                style: TextStyle(color: textColor, height: 1.4),
-              ),
+              child: message.fromUser
+                  ? SelectableText(
+                      message.text,
+                      style: TextStyle(
+                        color: textColor,
+                        height: 1.4,
+                        fontSize: 14,
+                      ),
+                    )
+                  : _RichMarkdownView(
+                      text: message.text,
+                      baseColor: textColor,
+                      isDark: isDark,
+                    ),
             ),
           ),
+          if (!message.fromUser && !message.error) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Copiar texto',
+                  icon: const Icon(Icons.copy_rounded, size: 14),
+                  color: AppColors.muted,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () => _copyToClipboard(context),
+                ),
+                if (show123Chip) ...[
+                  const SizedBox(width: 6),
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.phone_in_talk,
+                      size: 13,
+                      color: AppColors.red,
+                    ),
+                    label: const Text(
+                      'Llamar al 123',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.red,
+                      ),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _callNumber('123'),
+                  ),
+                ],
+                if (show119Chip) ...[
+                  const SizedBox(width: 6),
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.fire_truck_outlined,
+                      size: 13,
+                      color: Color(0xFFF97316),
+                    ),
+                    label: const Text(
+                      'Llamar al 119',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFF97316),
+                      ),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _callNumber('119'),
+                  ),
+                ],
+              ],
+            ),
+          ],
           if (onRetry != null)
             TextButton.icon(
               onPressed: onRetry,
@@ -387,31 +495,221 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class _TypingIndicator extends StatelessWidget {
+/// Renderizador visual para texto enriquecido y Markdown del Asistente
+class _RichMarkdownView extends StatelessWidget {
+  const _RichMarkdownView({
+    required this.text,
+    required this.baseColor,
+    required this.isDark,
+  });
+
+  final String text;
+  final Color baseColor;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = text.split('\n');
+    final widgets = <Widget>[];
+
+    for (final rawLine in lines) {
+      final line = rawLine.trimRight();
+      if (line.trim().isEmpty) {
+        widgets.add(const SizedBox(height: 6));
+        continue;
+      }
+
+      // Viñeta de lista (* o -)
+      if (line.trimLeft().startsWith('* ') ||
+          line.trimLeft().startsWith('- ')) {
+        final content = line.trimLeft().substring(2);
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 6, bottom: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '• ',
+                  style: TextStyle(
+                    color: isDark ? AppColors.brightBlue : AppColors.blue,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+                Expanded(child: _buildFormattedText(content)),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      // Título con hashtag (## o ###)
+      if (line.startsWith('#')) {
+        final title = line.replaceFirst(RegExp(r'^#+\s*'), '');
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navy,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+
+      // Párrafo estándar con formato
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: _buildFormattedText(line),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  Widget _buildFormattedText(String text) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'\*\*(.*?)\*\*');
+    int lastMatchEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(
+          TextSpan(
+            text: text.substring(lastMatchEnd, match.start),
+            style: TextStyle(color: baseColor, fontSize: 13.5, height: 1.45),
+          ),
+        );
+      }
+      final boldContent = match.group(1) ?? '';
+      spans.add(
+        TextSpan(
+          text: boldContent,
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.navy,
+            fontWeight: FontWeight.w800,
+            fontSize: 13.5,
+            height: 1.45,
+          ),
+        ),
+      );
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(lastMatchEnd),
+          style: TextStyle(color: baseColor, fontSize: 13.5, height: 1.45),
+        ),
+      );
+    }
+
+    return SelectableText.rich(TextSpan(children: spans));
+  }
+}
+
+/// Indicador animado de respuesta escribiendo (3 puntos pulsantes)
+class _TypingIndicator extends StatefulWidget {
   const _TypingIndicator();
 
   @override
-  Widget build(BuildContext context) => const Align(
-    alignment: Alignment.centerLeft,
-    child: Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+            ),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              Text(
+                'Cartagena Segura IA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                ),
               ),
-              SizedBox(width: 10),
-              Text('El asistente está respondiendo…'),
+              const SizedBox(width: 8),
+              AnimatedBuilder(
+                animation: _anim,
+                builder: (context, _) {
+                  return Row(
+                    children: List.generate(3, (i) {
+                      final delay = i * 0.25;
+                      final progress = (_anim.value - delay) % 1.0;
+                      final bounce = progress < 0.5
+                          ? (progress * 2)
+                          : (2 - progress * 2);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Transform.translate(
+                          offset: Offset(0, -4 * bounce),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: AppColors.brightBlue.withValues(
+                                alpha: 0.4 + (0.6 * bounce),
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  );
+                },
+              ),
             ],
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

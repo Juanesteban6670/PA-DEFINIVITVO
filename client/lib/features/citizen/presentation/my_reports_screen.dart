@@ -4,6 +4,8 @@ import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
+import 'package:cartagena_segura/shared/pill_badge.dart';
+import 'package:cartagena_segura/shared/skeleton_loader.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 import 'report_screen.dart';
@@ -164,9 +166,14 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             ),
             const SizedBox(height: 18),
             if (snapshot.connectionState == ConnectionState.waiting)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 52),
-                child: Center(child: CircularProgressIndicator()),
+              const Column(
+                children: [
+                  SkeletonIncidentCard(),
+                  SizedBox(height: 10),
+                  SkeletonIncidentCard(),
+                  SizedBox(height: 10),
+                  SkeletonIncidentCard(),
+                ],
               )
             else if (snapshot.hasError)
               _ReportsError(
@@ -430,32 +437,7 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch ((priority, value)) {
-      (false, 'PENDING') => ('Pendiente', AppColors.amber),
-      (false, 'IN_PROGRESS') => ('En progreso', AppColors.blue),
-      (false, 'RESOLVED') => ('Resuelto', AppColors.green),
-      (false, 'REJECTED') => ('Rechazado', AppColors.red),
-      (true, 'LOW') => ('Baja', AppColors.green),
-      (true, 'MEDIUM') => ('Media', AppColors.amber),
-      (true, 'HIGH') => ('Alta', const Color(0xFFF97316)),
-      (true, 'CRITICAL') => ('Crítica', AppColors.red),
-      _ => (value, AppColors.muted),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
+    return PillBadge(value: value, isPriority: priority, compact: true);
   }
 }
 
@@ -465,37 +447,55 @@ class _EmptyReports extends StatelessWidget {
   final VoidCallback onCreate;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.assignment_outlined,
-            size: 42,
-            color: AppColors.muted,
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Todavía no tienes reportes',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Si observas una situación, compártela con Cartagena Segura.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.muted),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: onCreate,
-            icon: const Icon(Icons.add),
-            label: const Text('Crear reporte'),
-          ),
-        ],
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        child: Column(
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.brightBlue.withValues(alpha: 0.12)
+                    : AppColors.blue.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.brightBlue.withValues(alpha: 0.25)
+                      : AppColors.blue.withValues(alpha: 0.18),
+                ),
+              ),
+              child: const Icon(
+                Icons.assignment_outlined,
+                size: 36,
+                color: AppColors.brightBlue,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Todavía no tienes reportes',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Si observas una situación en la ciudad, compártela para alertar y proteger a tu comunidad.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.muted, fontSize: 13),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              onPressed: onCreate,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Crear primer reporte'),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _ReportsError extends StatelessWidget {

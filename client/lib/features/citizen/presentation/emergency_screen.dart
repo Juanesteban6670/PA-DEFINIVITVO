@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/shared/skeleton_loader.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class EmergencyScreen extends StatefulWidget {
@@ -331,11 +332,14 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             const SizedBox(height: 10),
 
             if (snapshot.connectionState == ConnectionState.waiting)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(),
-                ),
+              const Column(
+                children: [
+                  SkeletonIncidentCard(),
+                  SizedBox(height: 10),
+                  SkeletonIncidentCard(),
+                  SizedBox(height: 10),
+                  SkeletonIncidentCard(),
+                ],
               )
             else if (snapshot.hasError)
               _ContactsError(

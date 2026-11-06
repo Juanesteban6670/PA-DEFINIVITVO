@@ -130,6 +130,20 @@ ThemeData buildAppTheme() {
       thickness: 1,
       space: 1,
     ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      backgroundColor: AppColors.navy,
+      contentTextStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+      elevation: 4,
+    ),
   );
 }
 
@@ -230,6 +244,20 @@ ThemeData buildDarkAppTheme() {
       color: AppColors.darkBorder,
       thickness: 1,
       space: 1,
+    ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.darkBorder),
+      ),
+      backgroundColor: AppColors.darkCard,
+      contentTextStyle: const TextStyle(
+        color: AppColors.darkText,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+      elevation: 6,
     ),
   );
 }

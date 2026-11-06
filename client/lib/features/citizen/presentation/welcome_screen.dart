@@ -169,19 +169,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF5F5),
-                border: Border.all(color: const Color(0xFFFEE2E2)),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF2A1111)
+                    : const Color(0xFFFFF5F5),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF5C1D1D)
+                      : const Color(0xFFFEE2E2),
+                ),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Row(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.red),
-                  SizedBox(width: 10),
+                  const Icon(Icons.info_outline, color: AppColors.red),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Si existe un peligro inmediato, comunícate directamente con la línea de emergencias 123.',
-                      style: TextStyle(color: Color(0xFF991B1B)),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFFFCA5A5)
+                            : const Color(0xFF991B1B),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
