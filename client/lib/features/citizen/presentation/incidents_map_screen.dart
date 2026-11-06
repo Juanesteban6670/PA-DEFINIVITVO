@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +9,7 @@ import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_filters.dart';
 import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/shared/location_guide_dialog.dart';
 
 class IncidentsMapScreen extends StatefulWidget {
   const IncidentsMapScreen({
@@ -76,6 +78,16 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Future<void> _locateMe() async {
+    if (kIsWeb) {
+      final hasPerm = await LocationService.hasPermission();
+      final isBlocked = await LocationService.isPermissionBlocked();
+      if (!hasPerm && !isBlocked) {
+        if (!mounted) return;
+        final accepted = await showLocationPrimingDialog(context);
+        if (!accepted) return;
+      }
+    }
+
     setState(() => _locating = true);
     try {
       final position = await LocationService.currentPosition();
@@ -83,7 +95,12 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       setState(() => _position = position);
       _mapController.move(LatLng(position.latitude, position.longitude), 15);
     } on LocationAccessException catch (error) {
-      _showLocationError(error);
+      if (error.isPermissionBlocked || (kIsWeb && error.settingsTarget != null)) {
+        if (!mounted) return;
+        await showLocationBlockedDialog(context);
+      } else {
+        _showLocationError(error);
+      }
     } on Exception catch (error) {
       _showMessage(
         'No se pudo determinar tu ubicación. Revisa la señal GPS e inténtalo de nuevo: $error',
@@ -102,15 +119,19 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         action: error.settingsTarget == null
             ? null
             : SnackBarAction(
-                label: 'Abrir ajustes',
+                label: kIsWeb ? 'Ver ayuda' : 'Abrir ajustes',
                 onPressed: () async {
-                  final opened = await LocationService.openSettings(
-                    error.settingsTarget!,
-                  );
-                  if (!opened && mounted) {
-                    _showMessage(
-                      'No fue posible abrir los ajustes del sistema.',
+                  if (kIsWeb) {
+                    await showLocationBlockedDialog(context);
+                  } else {
+                    final opened = await LocationService.openSettings(
+                      error.settingsTarget!,
                     );
+                    if (!opened && mounted) {
+                      _showMessage(
+                        'No fue posible abrir los ajustes del sistema.',
+                      );
+                    }
                   }
                 },
               ),

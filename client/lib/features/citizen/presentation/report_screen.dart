@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
+import 'package:cartagena_segura/shared/location_guide_dialog.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -59,6 +60,16 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    if (kIsWeb) {
+      final hasPerm = await LocationService.hasPermission();
+      final isBlocked = await LocationService.isPermissionBlocked();
+      if (!hasPerm && !isBlocked) {
+        if (!mounted) return;
+        final accepted = await showLocationPrimingDialog(context);
+        if (!accepted) return;
+      }
+    }
+
     setState(() => _locating = true);
     try {
       final position = await LocationService.currentPosition();
@@ -71,9 +82,14 @@ class _ReportScreenState extends State<ReportScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Ubicación actualizada')));
+      ).showSnackBar(const SnackBar(content: Text('Ubicación GPS actualizada')));
     } on LocationAccessException catch (error) {
-      _showLocationError(error);
+      if (error.isPermissionBlocked || (kIsWeb && error.settingsTarget != null)) {
+        if (!mounted) return;
+        await showLocationBlockedDialog(context);
+      } else {
+        _showLocationError(error);
+      }
     } on Exception catch (error) {
       _showMessage(
         'No se pudo obtener la ubicación. Revisa la señal GPS e inténtalo de nuevo: $error',
@@ -92,15 +108,19 @@ class _ReportScreenState extends State<ReportScreen> {
         action: error.settingsTarget == null
             ? null
             : SnackBarAction(
-                label: 'Abrir ajustes',
+                label: kIsWeb ? 'Ver ayuda' : 'Abrir ajustes',
                 onPressed: () async {
-                  final opened = await LocationService.openSettings(
-                    error.settingsTarget!,
-                  );
-                  if (!opened && mounted) {
-                    _showMessage(
-                      'No fue posible abrir los ajustes del sistema.',
+                  if (kIsWeb) {
+                    await showLocationBlockedDialog(context);
+                  } else {
+                    final opened = await LocationService.openSettings(
+                      error.settingsTarget!,
                     );
+                    if (!opened && mounted) {
+                      _showMessage(
+                        'No fue posible abrir los ajustes del sistema.',
+                      );
+                    }
                   }
                 },
               ),
@@ -602,23 +622,43 @@ class _ReportScreenState extends State<ReportScreen> {
                               : null,
                         ),
                         const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: _locating ? null : _getCurrentLocation,
-                          icon: _locating
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.my_location),
-                          label: Text(
-                            _latitude == null || _longitude == null
-                                ? 'Añadir ubicación GPS'
-                                : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
-                                      '${_longitude!.toStringAsFixed(5)}',
-                          ),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _locating ? null : _getCurrentLocation,
+                              icon: _locating
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.my_location),
+                              label: Text(
+                                _locating
+                                    ? 'Obteniendo GPS…'
+                                    : (_latitude == null || _longitude == null
+                                        ? 'Añadir ubicación GPS'
+                                        : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
+                                              '${_longitude!.toStringAsFixed(5)}'),
+                              ),
+                            ),
+                            if (_latitude != null && _longitude != null)
+                              IconButton(
+                                tooltip: 'Quitar coordenadas GPS',
+                                icon: const Icon(Icons.cancel_outlined, size: 20),
+                                onPressed: () {
+                                  setState(() {
+                                    _latitude = null;
+                                    _longitude = null;
+                                  });
+                                  _saveDraft();
+                                },
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 14),
                         DropdownButtonFormField<String>(

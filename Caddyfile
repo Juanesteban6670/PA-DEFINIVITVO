@@ -1,6 +1,10 @@
 {$DOMAIN} {
 	encode zstd gzip
 
+	header {
+		Permissions-Policy "geolocation=(self)"
+	}
+
 	@api path /api /api/*
 	handle @api {
 		reverse_proxy backend:8080
