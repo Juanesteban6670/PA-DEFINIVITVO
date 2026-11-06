@@ -1,12 +1,12 @@
 {
     "name": "Cartagena Segura",
-    "short_name": "Cartagena Segura",
+    "short_name": "Cartagena",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F5F7FB",
-    "theme_color": "#155EEF",
+    "background_color": "#F8FAFC",
+    "theme_color": "#0F172A",
     "description": "Aplicación ciudadana Cartagena Segura.",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

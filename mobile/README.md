@@ -33,10 +33,19 @@ Desde esta carpeta:
 
 ```sh
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000/api
 ```
 
 `10.0.2.2` permite que el emulador Android alcance la publicación local del frontend de Docker Compose, que hace proxy a `/api`; el backend no publica directamente el puerto 8080. En un teléfono físico utiliza `http://<IP-LAN-del-host>:3000/api`, cambia `WEB_BIND_ADDRESS=0.0.0.0` solo durante una prueba en red confiable y agrega ese origen a `CORS_ALLOWED_ORIGINS` si pruebas Flutter Web. En producción usa HTTPS. `localhost` dentro del teléfono apunta al propio dispositivo, no al servidor.
+
+Para probar la versión web en un teléfono conectado a la misma red, ejecuta desde `mobile/`:
+
+```sh
+flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 \
+  --dart-define=API_BASE_URL=http://<IP-LAN-del-host>:3000/api
+```
+
+Abre `http://<IP-LAN-del-host>:8080` en el teléfono y permite ese origen en `CORS_ALLOWED_ORIGINS`. Para autenticación persistente y GPS en el dispositivo, usa HTTPS; los navegadores restringen el almacenamiento seguro y la ubicación en orígenes HTTP de red local. En Android se instala desde el menú del navegador; en iPhone/iPad, desde **Compartir > Añadir a pantalla de inicio** en Safari.
 
 Para validar la app:
 
