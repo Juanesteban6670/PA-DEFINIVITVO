@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
@@ -144,6 +147,29 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
+          // Botón SOS de Pánico
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                visualDensity: VisualDensity.compact,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: () => _showSosDialog(context),
+              icon: const Icon(Icons.emergency_rounded, size: 16),
+              label: const Text(
+                'SOS 123',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
           const ThemeToggleButton(),
           NotificationsBell(
             api: api,
@@ -272,4 +298,133 @@ class _HomeShellState extends State<HomeShell> {
       label: Text('Perfil'),
     ),
   ];
+
+  void _showSosDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          actionsPadding: const EdgeInsets.all(16),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.emergency_rounded,
+                  color: AppColors.red,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Modo de Pánico SOS',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Si te encuentras ante peligro inminente o requieres intervención urgente de la Policía Nacional:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () async {
+                  final uri = Uri(scheme: 'tel', path: '123');
+                  await launchUrl(uri);
+                },
+                icon: const Icon(Icons.phone_in_talk_rounded),
+                label: const Text(
+                  'Llamar al 123 (Policía Nacional)',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () async {
+                  try {
+                    final pos = await LocationService.currentPosition();
+                    final link =
+                        'https://maps.google.com/?q=${pos.latitude},${pos.longitude}';
+                    await Clipboard.setData(
+                      ClipboardData(
+                        text:
+                            '¡ALERTA SOS en Cartagena! Necesito ayuda urgente en mi ubicación: $link',
+                      ),
+                    );
+                    if (context.mounted) {
+                      Navigator.of(dialogCtx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Ubicación GPS copiada al portapapeles. Pégala en WhatsApp o SMS.',
+                          ),
+                          duration: Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'No fue posible obtener la ubicación GPS: $e',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.share_location_rounded),
+                label: const Text(
+                  'Copiar mi ubicación GPS para WhatsApp',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

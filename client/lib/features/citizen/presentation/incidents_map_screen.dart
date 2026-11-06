@@ -39,6 +39,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   String? _typeFilter;
   String? _statusFilter;
   String? _priorityFilter;
+  double? _distanceFilterKm;
+  String? _timeFilter;
   MapTileTheme _tileTheme = MapTileTheme.auto;
 
   List<SafeRoute>? _safeRoutes;
@@ -329,12 +331,38 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         }
 
         final incidents = snapshot.data ?? const <Incident>[];
-        final filtered = filterIncidents(
+        var filtered = filterIncidents(
           incidents,
           type: _typeFilter,
           status: _statusFilter,
           priority: _priorityFilter,
         );
+
+        if (_timeFilter != null) {
+          final now = DateTime.now();
+          final maxHours = switch (_timeFilter) {
+            '24H' => 24,
+            '72H' => 72,
+            'WEEK' => 24 * 7,
+            'MONTH' => 24 * 30,
+            _ => 24 * 365,
+          };
+          filtered = filtered.where((inc) {
+            if (inc.createdAt == null) return true;
+            return now.difference(inc.createdAt!).inHours <= maxHours;
+          }).toList();
+        }
+
+        if (_distanceFilterKm != null && _position != null) {
+          const distCalc = Distance();
+          final userPt = LatLng(_position!.latitude, _position!.longitude);
+          filtered = filtered.where((inc) {
+            if (inc.latitude == null || inc.longitude == null) return false;
+            final incPt = LatLng(inc.latitude!, inc.longitude!);
+            final km = distCalc.as(LengthUnit.Kilometer, userPt, incPt);
+            return km <= _distanceFilterKm!;
+          }).toList();
+        }
         final withLocation = filtered
             .where(
               (incident) =>
@@ -592,7 +620,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           isLabelVisible:
                               _typeFilter != null ||
                               _statusFilter != null ||
-                              _priorityFilter != null,
+                              _priorityFilter != null ||
+                              _distanceFilterKm != null ||
+                              _timeFilter != null,
                           child: Icon(
                             Icons.filter_list_rounded,
                             size: 20,
@@ -935,73 +965,148 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     var type = _typeFilter;
     var status = _statusFilter;
     var priority = _priorityFilter;
+    var distance = _distanceFilterKm;
+    var time = _timeFilter;
+
     final applied = await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, update) => SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Filtrar incidentes',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 12),
-                _filterDropdown(
-                  label: 'Tipo',
-                  value: type,
-                  values: const [
-                    'ROBO',
-                    'ACCIDENTE',
-                    'PELEA',
-                    'INCENDIO',
-                    'EMERGENCIA',
-                    'OTRO',
-                  ],
-                  onChanged: (value) => update(() => type = value),
-                ),
-                _filterDropdown(
-                  label: 'Estado',
-                  value: status,
-                  values: const [
-                    'PENDING',
-                    'IN_PROGRESS',
-                    'RESOLVED',
-                    'REJECTED',
-                  ],
-                  onChanged: (value) => update(() => status = value),
-                ),
-                _filterDropdown(
-                  label: 'Prioridad',
-                  value: priority,
-                  values: const ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
-                  onChanged: (value) => update(() => priority = value),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        update(() {
-                          type = null;
-                          status = null;
-                          priority = null;
-                        });
-                      },
-                      child: const Text('Limpiar'),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Filtros Avanzados del Mapa',
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 14),
+                  _filterDropdown(
+                    label: 'Tipo de Incidente',
+                    value: type,
+                    values: const [
+                      'ROBO',
+                      'ACCIDENTE',
+                      'PELEA',
+                      'INCENDIO',
+                      'EMERGENCIA',
+                      'ACTIVIDAD_SOSPECHOSA',
+                      'LUMINARIA_DANADA',
+                      'OBSTACULO_VIAL',
+                      'OTRO',
+                    ],
+                    onChanged: (value) => update(() => type = value),
+                  ),
+                  const SizedBox(height: 10),
+                  _filterDropdown(
+                    label: 'Estado Operativo',
+                    value: status,
+                    values: const [
+                      'PENDING',
+                      'IN_PROGRESS',
+                      'RESOLVED',
+                      'REJECTED',
+                    ],
+                    onChanged: (value) => update(() => status = value),
+                  ),
+                  const SizedBox(height: 10),
+                  _filterDropdown(
+                    label: 'Prioridad',
+                    value: priority,
+                    values: const ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+                    onChanged: (value) => update(() => priority = value),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<double>(
+                    initialValue: distance,
+                    decoration: const InputDecoration(
+                      labelText: 'Radio de Proximidad GPS',
                     ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Aplicar'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('Cualquier distancia'),
+                      ),
+                      DropdownMenuItem(
+                        value: 1.0,
+                        child: Text('A menos de 1 km'),
+                      ),
+                      DropdownMenuItem(
+                        value: 3.0,
+                        child: Text('A menos de 3 km'),
+                      ),
+                      DropdownMenuItem(
+                        value: 5.0,
+                        child: Text('A menos de 5 km'),
+                      ),
+                      DropdownMenuItem(
+                        value: 10.0,
+                        child: Text('A menos de 10 km'),
+                      ),
+                    ],
+                    onChanged: (val) => update(() => distance = val),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    initialValue: time,
+                    decoration: const InputDecoration(
+                      labelText: 'Antigüedad / Período',
                     ),
-                  ],
-                ),
-              ],
+                    items: const [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('Todo el histórico'),
+                      ),
+                      DropdownMenuItem(
+                        value: '24H',
+                        child: Text('Últimas 24 horas'),
+                      ),
+                      DropdownMenuItem(
+                        value: '72H',
+                        child: Text('Últimos 3 días'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'WEEK',
+                        child: Text('Última semana'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'MONTH',
+                        child: Text('Último mes'),
+                      ),
+                    ],
+                    onChanged: (val) => update(() => time = val),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        icon: const Icon(Icons.clear_all_rounded, size: 18),
+                        onPressed: () {
+                          update(() {
+                            type = null;
+                            status = null;
+                            priority = null;
+                            distance = null;
+                            time = null;
+                          });
+                        },
+                        label: const Text('Limpiar todos'),
+                      ),
+                      const Spacer(),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Aplicar filtros'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -1012,6 +1117,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         _typeFilter = type;
         _statusFilter = status;
         _priorityFilter = priority;
+        _distanceFilterKm = distance;
+        _timeFilter = time;
       });
     }
   }
@@ -1039,6 +1146,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     'PELEA' => 'Pelea',
     'INCENDIO' => 'Incendio',
     'EMERGENCIA' => 'Emergencia',
+    'ACTIVIDAD_SOSPECHOSA' => 'Actividad Sospechosa',
+    'LUMINARIA_DANADA' => 'Alumbrado Público',
+    'OBSTACULO_VIAL' => 'Obstáculo Vial',
     'OTRO' => 'Otro',
     'PENDING' => 'Pendiente',
     'IN_PROGRESS' => 'En progreso',

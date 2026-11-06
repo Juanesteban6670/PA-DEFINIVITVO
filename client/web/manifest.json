@@ -1,14 +1,15 @@
 {
-    "name": "Cartagena Segura",
-    "short_name": "Cartagena",
+    "name": "Cartagena Segura - Plataforma Ciudadana",
+    "short_name": "CtgSegura",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
-    "background_color": "#F8FAFC",
-    "theme_color": "#0F172A",
-    "description": "Aplicación ciudadana Cartagena Segura.",
-    "orientation": "any",
+    "background_color": "#0A2540",
+    "theme_color": "#0A2540",
+    "description": "Plataforma de seguridad ciudadana, rutas seguras tipo Waze y directorio de emergencias de Cartagena de Indias.",
+    "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["navigation", "social", "utilities"],
     "icons": [
         {
             "src": "icons/Icon-192.png",

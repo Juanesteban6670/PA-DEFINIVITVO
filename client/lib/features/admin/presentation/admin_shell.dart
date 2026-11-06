@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -419,6 +421,57 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     ),
   );
 
+  void _exportIncidentsToCsv(
+    BuildContext context,
+    List<Map<String, dynamic>> items,
+  ) {
+    if (items.isEmpty) {
+      _notify(context, 'No hay incidentes para exportar.');
+      return;
+    }
+
+    final buffer = StringBuffer();
+    buffer.writeln(
+      'ID,Tipo,Descripcion,Ubicacion,Latitud,Longitud,Prioridad,Estado,FechaCreacion,ReportadoPor',
+    );
+
+    for (final inc in items) {
+      final id = _escapeCsv(inc['id']?.toString() ?? '');
+      final type = _escapeCsv(inc['type']?.toString() ?? '');
+      final desc = _escapeCsv(inc['description']?.toString() ?? '');
+      final loc = _escapeCsv(inc['location']?.toString() ?? '');
+      final lat = inc['latitude']?.toString() ?? '';
+      final lon = inc['longitude']?.toString() ?? '';
+      final prio = _escapeCsv(inc['priority']?.toString() ?? '');
+      final status = _escapeCsv(inc['status']?.toString() ?? '');
+      final date = _escapeCsv(inc['createdAt']?.toString() ?? '');
+      final rep = _escapeCsv(inc['reportedBy']?.toString() ?? '');
+
+      buffer.writeln('$id,$type,$desc,$loc,$lat,$lon,$prio,$status,$date,$rep');
+    }
+
+    final csvContent = buffer.toString();
+    final bytes = utf8.encode(csvContent);
+    final base64Csv = base64Encode(bytes);
+    final dataUri = 'data:text/csv;charset=utf-8;base64,$base64Csv';
+    launchUrl(Uri.parse(dataUri));
+
+    _notify(
+      context,
+      'Archivo CSV exportado exitosamente (${items.length} registros)',
+    );
+  }
+
+  String _escapeCsv(String val) {
+    if (val.contains(',') ||
+        val.contains('"') ||
+        val.contains('\n') ||
+        val.contains('\r')) {
+      return '"${val.replaceAll('"', '""')}"';
+    }
+    return val;
+  }
+
   Widget _incidents(
     BuildContext context,
     List<Map<String, dynamic>> incidents,
@@ -439,6 +492,16 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
       context,
       title: 'Incidentes',
       subtitle: '${visible.length} registros',
+      action: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.green,
+          foregroundColor: Colors.white,
+          visualDensity: VisualDensity.compact,
+        ),
+        onPressed: () => _exportIncidentsToCsv(context, visible),
+        icon: const Icon(Icons.file_download_outlined, size: 18),
+        label: const Text('Exportar CSV'),
+      ),
       child: Column(
         children: [
           _searchField(),
