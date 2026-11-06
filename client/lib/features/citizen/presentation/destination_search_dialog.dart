@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:cartagena_segura/core/data/safe_route_service.dart';
+import 'package:cartagena_segura/shared/theme.dart';
 
 /// Modal para seleccionar o buscar un destino hacia el cual calcular la Ruta Segura.
 class DestinationSearchDialog extends StatefulWidget {
@@ -52,9 +53,12 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      backgroundColor: isDark ? AppColors.darkCard : Colors.white,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 520, maxHeight: 600),
         child: Column(
@@ -69,27 +73,31 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: AppColors.brightBlue.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.navigation_outlined,
-                      color: Color(0xFF1D4ED8),
+                      color: AppColors.brightBlue,
                       size: 22,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Trazar Ruta Segura',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkText : AppColors.navy,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(
+                      Icons.close,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -103,9 +111,19 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                 controller: _searchController,
                 autofocus: true,
                 onChanged: _onSearchChanged,
+                style: TextStyle(
+                  color: isDark ? AppColors.darkText : AppColors.navy,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Buscar calle, barrio o destino en Cartagena…',
-                  prefixIcon: const Icon(Icons.search),
+                  hintStyle: TextStyle(
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                    fontSize: 13,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                  ),
                   suffixIcon: _isSearching
                       ? const Padding(
                           padding: EdgeInsets.all(12),
@@ -125,10 +143,20 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                               )
                             : null),
                   filled: true,
-                  fillColor: const Color(0xFFF1F5F9),
+                  fillColor: isDark
+                      ? AppColors.darkSurface
+                      : const Color(0xFFF1F5F9),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -145,15 +173,18 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                 icon: const Icon(Icons.touch_app_outlined, size: 20),
                 label: const Text('Elegir destino tocando el mapa'),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
             ),
 
-            const Divider(height: 16),
+            Divider(
+              height: 16,
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+            ),
 
             // Lista de resultados o Destinos Frecuentes
             Expanded(
@@ -161,27 +192,37 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                   ? ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       itemCount: _searchResults.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
+                      separatorBuilder: (context, index) => Divider(
+                        height: 1,
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                      ),
                       itemBuilder: (context, index) {
                         final item = _searchResults[index];
                         return ListTile(
                           leading: const Icon(
                             Icons.place,
-                            color: Color(0xFF1D4ED8),
+                            color: AppColors.brightBlue,
                           ),
                           title: Text(
                             item.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.navy,
                             ),
                           ),
                           subtitle: Text(
                             item.description,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : const Color(0xFF64748B),
+                            ),
                           ),
                           onTap: () => Navigator.of(context).pop(item),
                         );
@@ -190,14 +231,16 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                   : ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(12, 4, 12, 8),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                           child: Text(
                             'Destinos frecuentes en Cartagena',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF64748B),
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ),
@@ -206,32 +249,37 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
+                                color: isDark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
                                 _categoryIcon(preset.category),
-                                color: const Color(0xFF334155),
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : const Color(0xFF334155),
                                 size: 18,
                               ),
                             ),
                             title: Text(
                               preset.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : AppColors.navy,
                               ),
                             ),
                             subtitle: Text(
                               preset.description,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : const Color(0xFF64748B),
                               ),
-                            ),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 12,
                             ),
                             onTap: () => Navigator.of(context).pop(preset),
                           ),
@@ -244,12 +292,14 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
     );
   }
 
-  IconData _categoryIcon(String category) => switch (category) {
-    'Turismo' => Icons.beach_access_outlined,
-    'Cultural' => Icons.museum_outlined,
-    'Monumento' => Icons.fort_outlined,
-    'Residencial' => Icons.location_city_outlined,
-    'Transporte' => Icons.flight_takeoff_outlined,
-    _ => Icons.place_outlined,
-  };
+  IconData _categoryIcon(String category) {
+    return switch (category) {
+      'Salud' => Icons.local_hospital_outlined,
+      'Educación' => Icons.school_outlined,
+      'Transporte' => Icons.directions_bus_outlined,
+      'Turismo' => Icons.beach_access_outlined,
+      'Comercio' => Icons.shopping_bag_outlined,
+      _ => Icons.place_outlined,
+    };
+  }
 }

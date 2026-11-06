@@ -35,6 +35,7 @@ class LandingScreen extends StatelessWidget {
                   child: const Text('Nuestra misión'),
                 ),
               ],
+              const ThemeToggleButton(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: FilledButton(

@@ -13,6 +13,9 @@ import 'package:cartagena_segura/core/data/safe_route_service.dart';
 import 'package:cartagena_segura/features/citizen/presentation/destination_search_dialog.dart';
 import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.dart';
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
+import 'package:cartagena_segura/shared/theme.dart';
+
+enum MapTileTheme { auto, lightVoyager, darkMatter, standardOsm }
 
 class IncidentsMapScreen extends StatefulWidget {
   const IncidentsMapScreen({
@@ -36,6 +39,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   String? _typeFilter;
   String? _statusFilter;
   String? _priorityFilter;
+  MapTileTheme _tileTheme = MapTileTheme.auto;
 
   List<SafeRoute>? _safeRoutes;
   int _selectedRouteIndex = 0;
@@ -246,7 +250,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     _mapController.fitCamera(
       CameraFit.bounds(
         bounds: bounds,
-        padding: const EdgeInsets.fromLTRB(40, 80, 40, 200),
+        padding: const EdgeInsets.fromLTRB(40, 90, 40, 220),
       ),
     );
   }
@@ -266,8 +270,66 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     SafetyLevel.risky => const Color(0xFFEF4444),
   };
 
+  void _zoomIn() {
+    final currentZoom = _mapController.camera.zoom;
+    _mapController.move(_mapController.camera.center, currentZoom + 1);
+  }
+
+  void _zoomOut() {
+    final currentZoom = _mapController.camera.zoom;
+    _mapController.move(_mapController.camera.center, currentZoom - 1);
+  }
+
+  void _cycleTileTheme() {
+    setState(() {
+      _tileTheme = switch (_tileTheme) {
+        MapTileTheme.auto => MapTileTheme.lightVoyager,
+        MapTileTheme.lightVoyager => MapTileTheme.darkMatter,
+        MapTileTheme.darkMatter => MapTileTheme.standardOsm,
+        MapTileTheme.standardOsm => MapTileTheme.auto,
+      };
+    });
+    final label = switch (_tileTheme) {
+      MapTileTheme.auto => 'Estilo de mapa: Automático (sigue el tema)',
+      MapTileTheme.lightVoyager => 'Estilo de mapa: Moderno Claro (Voyager)',
+      MapTileTheme.darkMatter => 'Estilo de mapa: Cyber Oscuro (Dark Matter)',
+      MapTileTheme.standardOsm => 'Estilo de mapa: Estándar (OpenStreetMap)',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(label), duration: const Duration(seconds: 2)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Determinar la plantilla de tiles adecuada
+    final (urlTemplate, subdomains) = switch (_tileTheme) {
+      MapTileTheme.auto =>
+        isDark
+            ? (
+                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                const ['a', 'b', 'c', 'd'],
+              )
+            : (
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                const ['a', 'b', 'c', 'd'],
+              ),
+      MapTileTheme.lightVoyager => (
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        const ['a', 'b', 'c', 'd'],
+      ),
+      MapTileTheme.darkMatter => (
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        const ['a', 'b', 'c', 'd'],
+      ),
+      MapTileTheme.standardOsm => (
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        const <String>[],
+      ),
+    };
+
     return FutureBuilder<List<Incident>>(
       future: _incidents,
       builder: (context, snapshot) {
@@ -301,402 +363,565 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             )
             .toList();
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        return Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Incidentes (${filtered.length})',
-                      style: Theme.of(context).textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Filtrar incidentes',
-                    onPressed: () => _showFilters(context),
-                    icon: Badge(
-                      isLabelVisible:
-                          _typeFilter != null ||
-                          _statusFilter != null ||
-                          _priorityFilter != null,
-                      child: const Icon(Icons.filter_list),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Ver lista accesible de incidentes',
-                    onPressed: () => _showIncidentList(filtered),
-                    icon: const Icon(Icons.list_alt),
-                  ),
-                  IconButton(
-                    tooltip: 'Actualizar',
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh),
-                  ),
-                ],
+            // Mapa a pantalla completa
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: const LatLng(10.391, -75.4794),
+                initialZoom: 12.5,
+                onTap: (tapPosition, point) => _onMapTap(point),
               ),
-            ),
-            Expanded(
-              child: Stack(
-                children: [
-                  FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: const LatLng(10.391, -75.4794),
-                      initialZoom: 12,
-                      onTap: (tapPosition, point) => _onMapTap(point),
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName:
-                            'com.cartagenasegura.cartagena_segura',
-                      ),
-                      if (_safeRoutes case final routes?
-                          when routes.isNotEmpty) ...[
-                        PolylineLayer(
-                          polylines: [
-                            for (var i = 0; i < routes.length; i++)
-                              if (i != _selectedRouteIndex)
-                                Polyline(
-                                  points: routes[i].points,
-                                  strokeWidth: 4.0,
-                                  color: const Color(0xFF94A3B8),
-                                  borderColor: Colors.white,
-                                  borderStrokeWidth: 1.0,
-                                ),
-                            Polyline(
-                              points: routes[_selectedRouteIndex].points,
-                              strokeWidth: 6.0,
-                              color: _routeColor(
-                                routes[_selectedRouteIndex].safetyLevel,
-                              ),
-                              borderColor: Colors.white,
-                              borderStrokeWidth: 2.0,
-                            ),
-                          ],
+              children: [
+                TileLayer(
+                  urlTemplate: urlTemplate,
+                  subdomains: subdomains,
+                  userAgentPackageName: 'com.cartagenasegura.cartagena_segura',
+                ),
+
+                // Capa de Rutas Seguras (PolylineLayer)
+                if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
+                  PolylineLayer(
+                    polylines: [
+                      for (var i = 0; i < routes.length; i++)
+                        if (i != _selectedRouteIndex)
+                          Polyline(
+                            points: routes[i].points,
+                            strokeWidth: 4.0,
+                            color: isDark
+                                ? const Color(0xFF475569)
+                                : const Color(0xFF94A3B8),
+                            borderColor: isDark
+                                ? Colors.black54
+                                : Colors.white70,
+                            borderStrokeWidth: 1.0,
+                          ),
+                      Polyline(
+                        points: routes[_selectedRouteIndex].points,
+                        strokeWidth: 6.0,
+                        color: _routeColor(
+                          routes[_selectedRouteIndex].safetyLevel,
                         ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: routes[_selectedRouteIndex].points.first,
-                              width: 36,
-                              height: 36,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1D4ED8),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.navigation,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                            Marker(
-                              point: routes[_selectedRouteIndex].points.last,
-                              width: 36,
-                              height: 36,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFDC2626),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.flag,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                            for (final hazard
-                                in routes[_selectedRouteIndex].hazardsOnRoute)
-                              Marker(
-                                point: LatLng(
-                                  hazard.latitude!,
-                                  hazard.longitude!,
-                                ),
-                                width: 32,
-                                height: 32,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF2F2),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: const Color(0xFFDC2626),
-                                      width: 1.5,
-                                    ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: Color(0xFFDC2626),
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                      MarkerLayer(
-                        markers: [
-                          ...withLocation.map((incident) {
-                            final color = _priorityColor(incident.priority);
-                            return Marker(
-                              point: LatLng(
-                                incident.latitude!,
-                                incident.longitude!,
-                              ),
-                              width: 44,
-                              height: 44,
-                              child: IconButton(
-                                tooltip: incident.type,
-                                onPressed: () => _showIncident(incident),
-                                icon: Icon(
-                                  Icons.location_on,
-                                  color: color,
-                                  size: 38,
-                                ),
-                              ),
-                            );
-                          }),
-                          if (_position case final position?)
-                            Marker(
-                              point: LatLng(
-                                position.latitude,
-                                position.longitude,
-                              ),
-                              width: 44,
-                              height: 44,
-                              child: const Icon(
-                                Icons.my_location,
-                                color: Color(0xFF1D4ED8),
-                                size: 30,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const RichAttributionWidget(
-                        attributions: [
-                          TextSourceAttribution('OpenStreetMap contributors'),
-                        ],
+                        borderColor: isDark ? Colors.black : Colors.white,
+                        borderStrokeWidth: 2.5,
                       ),
                     ],
                   ),
-
-                  // Botón flotante para Trazar Ruta
-                  if (!_isSelectingDestinationOnMap && _safeRoutes == null)
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF1D4ED8),
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: _openDestinationSearch,
-                        icon: const Icon(Icons.alt_route, size: 18),
-                        label: const Text(
-                          'Trazar Ruta Segura',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Banner informativo para elegir destino en el mapa
-                  if (_isSelectingDestinationOnMap)
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      right: 12,
-                      child: Material(
-                        elevation: 6,
-                        borderRadius: BorderRadius.circular(14),
-                        color: const Color(0xFF0F172A),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.touch_app,
-                                color: Colors.amberAccent,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 10),
-                              const Expanded(
-                                child: Text(
-                                  'Toca en el mapa el punto de destino',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                  MarkerLayer(
+                    markers: [
+                      // Marcador de inicio (Origen)
+                      Marker(
+                        point: routes[_selectedRouteIndex].points.first,
+                        width: 40,
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.brightBlue,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.brightBlue.withValues(
+                                  alpha: 0.4,
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: Colors.white70,
-                                  size: 18,
-                                ),
-                                onPressed: () => setState(
-                                  () => _isSelectingDestinationOnMap = false,
-                                ),
+                                blurRadius: 10,
+                                spreadRadius: 1,
                               ),
                             ],
                           ),
+                          child: const Icon(
+                            Icons.near_me_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
-                    ),
-
-                  // Indicador de cálculo de rutas
-                  if (_isRouting)
-                    Positioned(
-                      top: 70,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Card(
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                      // Marcador de destino
+                      Marker(
+                        point: routes[_selectedRouteIndex].points.last,
+                        width: 40,
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.red.withValues(alpha: 0.4),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
                           ),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'Calculando rutas e índices de seguridad…',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      // Peligros detectados en la ruta
+                      for (final hazard
+                          in routes[_selectedRouteIndex].hazardsOnRoute)
+                        Marker(
+                          point: LatLng(hazard.latitude!, hazard.longitude!),
+                          width: 32,
+                          height: 32,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF450A0A)
+                                  : const Color(0xFFFEF2F2),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.red,
+                                width: 2,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, blurRadius: 6),
                               ],
                             ),
+                            child: const Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.red,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+
+                // Marcadores de incidentes reportados
+                MarkerLayer(
+                  markers: [
+                    ...withLocation.map((incident) {
+                      final color = _priorityColor(incident.priority);
+                      return Marker(
+                        point: LatLng(incident.latitude!, incident.longitude!),
+                        width: 42,
+                        height: 42,
+                        child: GestureDetector(
+                          onTap: () => _showIncident(incident),
+                          child: _ModernIncidentMarker(
+                            incident: incident,
+                            color: color,
+                            isDark: isDark,
+                          ),
+                        ),
+                      );
+                    }),
+                    // Marcador GPS de ubicación actual del usuario
+                    if (_position case final position?)
+                      Marker(
+                        point: LatLng(position.latitude, position.longitude),
+                        width: 48,
+                        height: 48,
+                        child: const _ModernUserLocationMarker(),
+                      ),
+                  ],
+                ),
+
+                const RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution('OpenStreetMap · CartoDB'),
+                  ],
+                ),
+              ],
+            ),
+
+            // Barra flotante superior estilo Glassmorphism
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: SafeArea(
+                bottom: false,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkCard.withValues(alpha: 0.92)
+                        : Colors.white.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.35 : 0.08,
+                        ),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Badge indicador con pulso
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${withLocation.length} en mapa',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
                           ),
                         ),
                       ),
-                    ),
-
-                  // Botón Mi ubicación
-                  Positioned(
-                    right: 12,
-                    bottom: _safeRoutes != null ? 220 : 12,
-                    child: FilledButton.tonalIcon(
-                      onPressed: _locating ? null : _locateMe,
-                      icon: _locating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.my_location),
-                      label: Text(_locating ? 'Buscando…' : 'Mi ubicación'),
-                    ),
+                      // Botón Filtros
+                      IconButton(
+                        tooltip: 'Filtrar incidentes',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showFilters(context),
+                        icon: Badge(
+                          isLabelVisible:
+                              _typeFilter != null ||
+                              _statusFilter != null ||
+                              _priorityFilter != null,
+                          child: Icon(
+                            Icons.filter_list_rounded,
+                            size: 20,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
+                          ),
+                        ),
+                      ),
+                      // Botón Estilo de Mapa
+                      IconButton(
+                        tooltip: 'Cambiar estilo de mapa',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _cycleTileTheme,
+                        icon: Icon(
+                          _tileTheme == MapTileTheme.darkMatter
+                              ? Icons.nightlight_round
+                              : Icons.layers_outlined,
+                          size: 20,
+                          color: isDark ? AppColors.sky : AppColors.brightBlue,
+                        ),
+                      ),
+                      // Botón Lista accesible
+                      IconButton(
+                        tooltip: 'Ver lista accesible de incidentes',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showIncidentList(filtered),
+                        icon: Icon(
+                          Icons.format_list_bulleted_rounded,
+                          size: 20,
+                          color: isDark ? AppColors.darkText : AppColors.navy,
+                        ),
+                      ),
+                      // Botón Actualizar
+                      IconButton(
+                        tooltip: 'Actualizar incidentes',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _reload,
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          size: 20,
+                          color: isDark ? AppColors.darkText : AppColors.navy,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+              ),
+            ),
 
-                  // Tarjeta HUD de la Ruta Segura activa
-                  if (_safeRoutes case final routes? when routes.isNotEmpty)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: SafeRouteSheet(
-                          routes: routes,
-                          selectedRouteIndex: _selectedRouteIndex,
-                          destinationName:
-                              _selectedDestination?.name ??
-                              'Destino seleccionado',
-                          onSelectRoute: (idx) {
-                            setState(() => _selectedRouteIndex = idx);
-                            _centerRoute();
-                          },
-                          onCloseRoute: _closeRoute,
-                          onCenterRoute: _centerRoute,
+            // Botón flotante para Trazar Ruta Segura estilo Waze
+            if (!_isSelectingDestinationOnMap && _safeRoutes == null)
+              Positioned(
+                top: 76,
+                left: 14,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(30),
+                      onTap: _openDestinationSearch,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.alt_route_rounded,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Trazar Ruta Segura',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Column(
-                children: [
-                  Text(
-                    '${filtered.length} reportes · ${withLocation.length} en el mapa',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  if (withoutLocation.isNotEmpty)
-                    TextButton.icon(
-                      onPressed: () => _showIncidentList(withoutLocation),
-                      icon: const Icon(Icons.location_off_outlined, size: 18),
-                      label: Text(
-                        '${withoutLocation.length} sin coordenadas: ver lista',
-                      ),
+                ),
+              ),
+
+            // Banner informativo para elegir destino en el mapa
+            if (_isSelectingDestinationOnMap)
+              Positioned(
+                top: 76,
+                left: 14,
+                right: 14,
+                child: Material(
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(16),
+                  color: isDark ? AppColors.darkCard : AppColors.navy,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.touch_app_rounded,
+                          color: Color(0xFFFBBF24),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Toca en el mapa el punto de destino',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white70,
+                            size: 18,
+                          ),
+                          onPressed: () => setState(
+                            () => _isSelectingDestinationOnMap = false,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Indicador de cálculo de rutas
+            if (_isRouting)
+              Positioned(
+                top: 130,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkCard : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Calculando rutas seguras en Cartagena…',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Barra lateral flotante de controles (Zoom + Mi Ubicación)
+            Positioned(
+              right: 14,
+              bottom: _safeRoutes != null ? 240 : 20,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _FloatingMapButton(
+                    tooltip: 'Acercar',
+                    icon: Icons.add_rounded,
+                    isDark: isDark,
+                    onPressed: _zoomIn,
+                  ),
+                  const SizedBox(height: 8),
+                  _FloatingMapButton(
+                    tooltip: 'Alejar',
+                    icon: Icons.remove_rounded,
+                    isDark: isDark,
+                    onPressed: _zoomOut,
+                  ),
+                  const SizedBox(height: 12),
+                  // Botón Mi Ubicación
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.brightBlue.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: FloatingActionButton.small(
+                      heroTag: 'locate_me_fab',
+                      tooltip: 'Mi ubicación GPS',
+                      backgroundColor: AppColors.brightBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      onPressed: _locating ? null : _locateMe,
+                      child: _locating
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.my_location_rounded, size: 20),
+                    ),
+                  ),
                 ],
               ),
             ),
+
+            // Alerta discreta en esquina inferior si hay reportes sin coordenadas
+            if (withoutLocation.isNotEmpty && _safeRoutes == null)
+              Positioned(
+                left: 14,
+                bottom: 20,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _showIncidentList(withoutLocation),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkCard.withValues(alpha: 0.9)
+                          : Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 8),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_off_outlined,
+                          size: 14,
+                          color: AppColors.muted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${withoutLocation.length} sin GPS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Tarjeta HUD de la Ruta Segura activa (Estilo Waze)
+            if (_safeRoutes case final routes? when routes.isNotEmpty)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SafeRouteSheet(
+                    routes: routes,
+                    selectedRouteIndex: _selectedRouteIndex,
+                    destinationName:
+                        _selectedDestination?.name ?? 'Destino seleccionado',
+                    onSelectRoute: (idx) {
+                      setState(() => _selectedRouteIndex = idx);
+                      _centerRoute();
+                    },
+                    onCloseRoute: _closeRoute,
+                    onCenterRoute: _centerRoute,
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -797,7 +1022,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     initialValue: value,
     decoration: InputDecoration(labelText: label),
     items: [
-      DropdownMenuItem<String>(value: null, child: Text('Todos')),
+      const DropdownMenuItem<String>(value: null, child: Text('Todos')),
       ...values.map(
         (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
       ),
@@ -925,11 +1150,162 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Color _priorityColor(String priority) => switch (priority) {
-    'CRITICAL' => const Color(0xFFB42318),
-    'HIGH' => const Color(0xFFDC6803),
-    'LOW' => const Color(0xFF039855),
-    _ => const Color(0xFF155EEF),
+    'CRITICAL' => const Color(0xFFEF4444),
+    'HIGH' => const Color(0xFFF97316),
+    'LOW' => const Color(0xFF10B981),
+    _ => const Color(0xFF3B82F6),
   };
+}
+
+/// Marcador moderno circular y minimalista para incidentes reportados
+class _ModernIncidentMarker extends StatelessWidget {
+  const _ModernIncidentMarker({
+    required this.incident,
+    required this.color,
+    required this.isDark,
+  });
+
+  final Incident incident;
+  final Color color;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = _categoryIcon(incident.type);
+
+    return Center(
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: color, width: 2.2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.38),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(child: Icon(icon, size: 18, color: color)),
+      ),
+    );
+  }
+
+  IconData _categoryIcon(String type) {
+    final upper = type.toUpperCase();
+    if (upper.contains('ROBO') || upper.contains('HURTO')) {
+      return Icons.shield_outlined;
+    }
+    if (upper.contains('ACCIDENTE') || upper.contains('TRANSITO')) {
+      return Icons.directions_car_rounded;
+    }
+    if (upper.contains('INCENDIO') || upper.contains('FUEGO')) {
+      return Icons.local_fire_department_rounded;
+    }
+    if (upper.contains('EMERGENCIA') || upper.contains('MEDIC')) {
+      return Icons.medical_services_outlined;
+    }
+    if (upper.contains('PELEA') || upper.contains('ORDEN')) {
+      return Icons.campaign_rounded;
+    }
+    return Icons.warning_amber_rounded;
+  }
+}
+
+/// Marcador moderno de ubicación GPS del usuario con pulso radar
+class _ModernUserLocationMarker extends StatelessWidget {
+  const _ModernUserLocationMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Halo exterior traslúcido
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.brightBlue.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+          ),
+          // Núcleo blanco y azul
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.brightBlue.withValues(alpha: 0.4),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: const BoxDecoration(
+                  color: AppColors.brightBlue,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Botón circular flotante para controles del mapa
+class _FloatingMapButton extends StatelessWidget {
+  const _FloatingMapButton({
+    required this.icon,
+    required this.tooltip,
+    required this.isDark,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool isDark;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        tooltip: tooltip,
+        iconSize: 20,
+        visualDensity: VisualDensity.compact,
+        color: isDark ? AppColors.darkText : AppColors.navy,
+        icon: Icon(icon),
+        onPressed: onPressed,
+      ),
+    );
+  }
 }
 
 class _LoadError extends StatelessWidget {

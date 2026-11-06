@@ -333,16 +333,17 @@ class _MessageBubble extends StatelessWidget {
     final alignment = message.fromUser
         ? CrossAxisAlignment.end
         : CrossAxisAlignment.start;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = message.error
-        ? const Color(0xFFFEF2F2)
+        ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
         : message.fromUser
-        ? AppColors.blue
-        : Colors.white;
+        ? AppColors.brightBlue
+        : (isDark ? AppColors.darkCard : Colors.white);
     final textColor = message.error
-        ? const Color(0xFF991B1B)
+        ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B))
         : message.fromUser
         ? Colors.white
-        : AppColors.navy;
+        : (isDark ? AppColors.darkText : AppColors.navy);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -360,10 +361,12 @@ class _MessageBubble extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: message.error
-                      ? const Color(0xFFFECACA)
+                      ? (isDark
+                            ? const Color(0xFF7F1D1D)
+                            : const Color(0xFFFECACA))
                       : message.fromUser
-                      ? AppColors.blue
-                      : AppColors.border,
+                      ? AppColors.brightBlue
+                      : (isDark ? AppColors.darkBorder : AppColors.border),
                 ),
               ),
               child: SelectableText(

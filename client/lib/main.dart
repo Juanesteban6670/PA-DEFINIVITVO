@@ -16,11 +16,16 @@ class CartagenaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
+    final themeController = ref.watch(themeModeProvider);
+    final themeMode = themeController.mode;
+
     if (!session.initialized) {
       return MaterialApp(
         title: 'Cartagena Segura',
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        darkTheme: buildDarkAppTheme(),
+        themeMode: themeMode,
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
@@ -29,6 +34,8 @@ class CartagenaApp extends ConsumerWidget {
       title: 'Cartagena Segura',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      darkTheme: buildDarkAppTheme(),
+      themeMode: themeMode,
       routerConfig: ref.watch(routerProvider),
     );
   }

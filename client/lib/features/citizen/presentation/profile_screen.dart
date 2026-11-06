@@ -202,10 +202,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: const Icon(Icons.edit_outlined),
             label: const Text('Editar perfil'),
           ),
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.palette_outlined,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Apariencia y Tema',
+                      style: Theme.of(context).textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Center(child: ThemeModeSelector()),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.red,
-            side: const BorderSide(color: Color(0xFFFEE2E2)),
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF7F1D1D)
+                  : const Color(0xFFFEE2E2),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () async {
@@ -264,8 +297,12 @@ class _ProfileRow extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: const Color(0xFFF1F5F9),
-          foregroundColor: const Color(0xFF64748B),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : const Color(0xFFF1F5F9),
+          foregroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkTextMuted
+              : const Color(0xFF64748B),
           child: Icon(icon, size: 17),
         ),
         const SizedBox(width: 12),
@@ -297,7 +334,9 @@ class _ProfileRow extends StatelessWidget {
                 Text(
                   value.isEmpty ? 'No especificado' : value,
                   style: TextStyle(
-                    color: value.isEmpty ? AppColors.muted : AppColors.navy,
+                    color: value.isEmpty
+                        ? AppColors.muted
+                        : Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),

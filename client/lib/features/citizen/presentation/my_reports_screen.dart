@@ -130,14 +130,14 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Mis reportes',
                         style: TextStyle(
-                          color: AppColors.navy,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                         ),
@@ -373,8 +373,8 @@ class _IncidentCard extends StatelessWidget {
                       incident.type,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.navy,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -551,8 +551,10 @@ class _PendingReports extends StatelessWidget {
       const SizedBox(height: 16),
       Text(
         'Pendientes de enviar (${drafts.length})',
-        style: Theme.of(context).textTheme.titleMedium
-            ?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w800),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontWeight: FontWeight.w800,
+        ),
       ),
       const SizedBox(height: 8),
       for (final draft in drafts)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/safe_route_service.dart';
+import 'package:cartagena_segura/shared/theme.dart';
 
 /// Tarjeta flotante interactiva estilo Waze que se muestra en la parte inferior del mapa
 /// con la información de la ruta activa, tiempo, distancia y evaluación de seguridad ciudadana.
@@ -38,6 +39,7 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
   @override
   Widget build(BuildContext context) {
     final route = _currentRoute;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final (
       badgeBg,
@@ -46,21 +48,21 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
       badgeIcon,
     ) = switch (route.safetyLevel) {
       SafetyLevel.safe => (
-        const Color(0xFFECFDF5),
-        const Color(0xFF047857),
-        const Color(0xFFA7F3D0),
+        isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
+        isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+        isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0),
         Icons.verified_user_outlined,
       ),
       SafetyLevel.moderate => (
-        const Color(0xFFFFFBEB),
-        const Color(0xFFB45309),
-        const Color(0xFFFDE68A),
+        isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB),
+        isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309),
+        isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A),
         Icons.shield_outlined,
       ),
       SafetyLevel.risky => (
-        const Color(0xFFFEF2F2),
-        const Color(0xFFB91C1C),
-        const Color(0xFFFECACA),
+        isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
+        isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+        isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA),
         Icons.warning_amber_rounded,
       ),
     };
@@ -69,13 +71,16 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
       constraints: const BoxConstraints(maxWidth: 600),
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+            color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -85,36 +90,46 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
         children: [
           // Barra de título con Destino y Botón de cierre
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
             child: Row(
               children: [
-                const Icon(
-                  Icons.navigation,
-                  color: Color(0xFF1D4ED8),
-                  size: 18,
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: AppColors.brightBlue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.navigation,
+                    color: AppColors.brightBlue,
+                    size: 16,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'DESTINO',
+                      Text(
+                        'DESTINO SELECCIONADO',
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                          letterSpacing: 0.5,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF64748B),
+                          letterSpacing: 0.6,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         widget.destinationName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
+                          color: isDark ? AppColors.darkText : AppColors.navy,
                         ),
                       ),
                     ],
@@ -122,22 +137,30 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                 ),
                 IconButton(
                   tooltip: 'Centrar en el mapa',
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.center_focus_strong_outlined,
                     size: 20,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                   ),
                   onPressed: widget.onCenterRoute,
                 ),
                 IconButton(
                   tooltip: 'Cancelar ruta',
-                  icon: const Icon(Icons.close, size: 20),
+                  icon: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                  ),
                   onPressed: widget.onCloseRoute,
                 ),
               ],
             ),
           ),
 
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: isDark ? AppColors.darkBorder : AppColors.border,
+          ),
 
           // Resumen: Tiempo, Distancia e Índice de Seguridad
           Padding(
@@ -153,18 +176,22 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                       children: [
                         Text(
                           route.formattedDuration,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           route.formattedDistance,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -181,10 +208,11 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                   ],
                 ),
                 const Spacer(),
+                // Badge de Seguridad Waze
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                    horizontal: 12,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
                     color: badgeBg,
@@ -197,11 +225,16 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                       Icon(badgeIcon, color: badgeFg, size: 16),
                       const SizedBox(width: 6),
                       Text(
-                        route.safetyBadgeText,
+                        switch (route.safetyLevel) {
+                          SafetyLevel.safe => 'SEGURA',
+                          SafetyLevel.moderate => 'MODERADA',
+                          SafetyLevel.risky => 'RIESGOSA',
+                        },
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
                           color: badgeFg,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -211,10 +244,10 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
             ),
           ),
 
-          // Selector de alternativas (si hay más de 1 ruta)
+          // Selector de Alternativas de Ruta
           if (widget.routes.length > 1) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -231,20 +264,27 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                                 widget.routes[i].safetyLevel == SafetyLevel.safe
                                     ? Icons.security
                                     : Icons.directions_car,
-                                size: 14,
+                                size: 13,
                                 color: widget.selectedRouteIndex == i
                                     ? Colors.white
-                                    : const Color(0xFF475569),
+                                    : (isDark
+                                          ? AppColors.darkTextMuted
+                                          : const Color(0xFF475569)),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Text(widget.routes[i].label),
                             ],
                           ),
-                          selectedColor: const Color(0xFF1D4ED8),
+                          selectedColor: AppColors.brightBlue,
+                          backgroundColor: isDark
+                              ? AppColors.darkSurface
+                              : const Color(0xFFF1F5F9),
                           labelStyle: TextStyle(
                             color: widget.selectedRouteIndex == i
                                 ? Colors.white
-                                : const Color(0xFF1E293B),
+                                : (isDark
+                                      ? AppColors.darkText
+                                      : const Color(0xFF1E293B)),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -270,31 +310,43 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
+                    color: isDark
+                        ? const Color(0xFF332005)
+                        : const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF78350F)
+                          : const Color(0xFFFDE68A),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.notification_important_outlined,
-                        color: Color(0xFFB45309),
+                        color: isDark
+                            ? const Color(0xFFFBBF24)
+                            : const Color(0xFFB45309),
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           '${route.hazardsOnRoute.length} reporte(s) de seguridad en esta ruta',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFB45309),
+                            color: isDark
+                                ? const Color(0xFFFDE68A)
+                                : const Color(0xFFB45309),
                           ),
                         ),
                       ),
                       Icon(
                         _expandedAlerts ? Icons.expand_less : Icons.expand_more,
-                        color: const Color(0xFFB45309),
+                        color: isDark
+                            ? const Color(0xFFFDE68A)
+                            : const Color(0xFFB45309),
                         size: 20,
                       ),
                     ],
@@ -329,9 +381,11 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                               '${h.type}: ${h.description.isNotEmpty ? h.description : h.location}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF334155),
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : const Color(0xFF334155),
                               ),
                             ),
                           ),
@@ -354,16 +408,23 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
-                children: const [
+                children: [
                   Icon(
                     Icons.check_circle_outline,
-                    color: Color(0xFF059669),
+                    color: isDark
+                        ? const Color(0xFF34D399)
+                        : const Color(0xFF059669),
                     size: 15,
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Text(
                     'No hay reportes de peligro activos sobre este trayecto.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF059669)),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark
+                          ? const Color(0xFF34D399)
+                          : const Color(0xFF059669),
+                    ),
                   ),
                 ],
               ),

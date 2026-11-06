@@ -39,6 +39,7 @@ class AdminShell extends StatelessWidget {
       appBar: AppBar(
         title: Text(_sections[selectedIndex].$2),
         actions: [
+          const ThemeToggleButton(),
           NotificationsBell(
             api: session.api,
             onPressed: () => context.push('/App/Notifications'),

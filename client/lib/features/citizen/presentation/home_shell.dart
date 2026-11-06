@@ -113,7 +113,7 @@ class _HomeShellState extends State<HomeShell> {
               child: Image.asset('assets/brand/app-icon.png'),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -124,7 +124,7 @@ class _HomeShellState extends State<HomeShell> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.navy,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
@@ -133,7 +133,8 @@ class _HomeShellState extends State<HomeShell> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 10,
-                      color: AppColors.muted,
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.55),
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -143,6 +144,7 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
+          const ThemeToggleButton(),
           NotificationsBell(
             api: api,
             onPressed: () {
