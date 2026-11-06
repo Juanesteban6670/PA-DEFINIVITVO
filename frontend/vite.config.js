@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.js',
         registerType: 'autoUpdate',
         includeAssets: [
           'app-icon.svg',
@@ -52,17 +55,8 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
-        workbox: {
-          importScripts: ['push-sw.js'],
+        injectManifest: {
           globPatterns: ['**/*.{css,html,ico,js,svg,webmanifest,woff2}'],
-          navigateFallback: '/offline.html',
-          navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/actuator(?:\/|$)/],
-          runtimeCaching: [
-            {
-              urlPattern: /\/api(?:\/|$)/,
-              handler: 'NetworkOnly',
-            },
-          ],
         },
       }),
     ],
