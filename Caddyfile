@@ -1,4 +1,12 @@
 {$DOMAIN} {
 	encode zstd gzip
+
+	@flutterNoSlash path /ciudadano
+	redir @flutterNoSlash /ciudadano/ 308
+
+	handle_path /ciudadano/* {
+		reverse_proxy flutter-web:80
+	}
+
 	reverse_proxy frontend:80
 }

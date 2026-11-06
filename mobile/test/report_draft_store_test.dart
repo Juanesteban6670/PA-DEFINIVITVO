@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cartagena_segura/data/api_client.dart';
 import 'package:cartagena_segura/data/report_draft_store.dart';
@@ -133,6 +134,112 @@ void main() {
       await temporaryDirectory.delete(recursive: true);
     }
   });
+
+  test('uploads browser photo bytes without a filesystem path', () async {
+    final uploadedBodies = <List<int>>[];
+    final api = ApiClient(
+      baseUrl: 'https://api.example.test/api',
+      client: MockClient((request) async {
+        if (request.url.path.endsWith('/Files/Upload')) {
+          uploadedBodies.add(request.bodyBytes);
+          return http.Response(
+            '{"success":true,"data":{"urls":["https://files.test/web.jpg"]}}',
+            200,
+          );
+        }
+        return http.Response(
+          '{"success":true,"data":{"id":"incident-1"}}',
+          200,
+        );
+      }),
+    );
+    const photoPath = 'web/evidence.jpg';
+    const draft = ReportDraft(
+      type: 'ROBO',
+      description: 'Reporte',
+      location: 'Centro',
+      priority: 'HIGH',
+      idempotencyKey: 'web-key',
+      photoPaths: [photoPath],
+    );
+    final photoBytes = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xD9]);
+    var persistedDraft = draft;
+
+    try {
+      await submitReportDraft(
+        api,
+        draft,
+        webPhotoBytes: {photoPath: photoBytes},
+        onImagesUploaded: (updated) async => persistedDraft = updated,
+      );
+
+      expect(uploadedBodies, hasLength(1));
+      expect(uploadedBodies.single, containsAll(photoBytes));
+      expect(persistedDraft.uploadedImageUrls, ['https://files.test/web.jpg']);
+    } finally {
+      api.close();
+    }
+  });
+
+  test(
+    'uploads only new photos and preserves existing evidence URLs',
+    () async {
+      final uploadedBodies = <List<int>>[];
+      Map<String, dynamic>? submitted;
+      final api = ApiClient(
+        baseUrl: 'https://api.example.test/api',
+        client: MockClient((request) async {
+          if (request.url.path.endsWith('/Files/Upload')) {
+            uploadedBodies.add(request.bodyBytes);
+            return http.Response(
+              '{"success":true,"data":{"urls":["https://files.test/new.jpg"]}}',
+              200,
+            );
+          }
+          submitted = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response(
+            '{"success":true,"data":{"id":"incident-1"}}',
+            200,
+          );
+        }),
+      );
+      const oldPhotoPath = 'web/old.jpg';
+      const newPhotoPath = 'web/new.jpg';
+      const draft = ReportDraft(
+        type: 'ROBO',
+        description: 'Reporte',
+        location: 'Centro',
+        priority: 'HIGH',
+        idempotencyKey: 'web-key',
+        photoPaths: [oldPhotoPath, newPhotoPath],
+        uploadedImageUrls: ['https://files.test/old.jpg'],
+      );
+      final newPhotoBytes = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xD9]);
+      var persistedDraft = draft;
+
+      try {
+        await submitReportDraft(
+          api,
+          draft,
+          webPhotoBytes: {newPhotoPath: newPhotoBytes},
+          onImagesUploaded: (updated) async => persistedDraft = updated,
+        );
+
+        expect(uploadedBodies, hasLength(1));
+        expect(uploadedBodies.single, containsAll(newPhotoBytes));
+        expect(persistedDraft.uploadedImageUrls, [
+          'https://files.test/old.jpg',
+          'https://files.test/new.jpg',
+        ]);
+        expect(submitted?['imageUrls'], [
+          'https://files.test/old.jpg',
+          'https://files.test/new.jpg',
+        ]);
+      } finally {
+        api.close();
+      }
+    },
+  );
 }
 
 class _MemorySessionStorage implements SessionStorage {

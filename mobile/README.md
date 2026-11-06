@@ -1,6 +1,6 @@
-# Cartagena Segura — Flutter para Android/iOS
+# Cartagena Segura — Flutter Web para Android/iOS
 
-`mobile/` es el cliente móvil nativo de Cartagena Segura para Android e iOS. Comparte identidad visual y API con la web React/PWA, que se mantiene como cliente web independiente. La app móvil no contiene la consola administrativa ni un backend propio.
+`mobile/` es la experiencia ciudadana Flutter Web, instalable desde el navegador en Android (Chrome) y iOS (Safari). En producción se sirve bajo `/ciudadano/`; React/PWA conserva la ruta raíz `/`. Los proyectos fuente Android/iOS se mantienen en el repositorio, pero no forman parte del despliegue web.
 
 ## Funcionalidades ciudadanas
 
@@ -16,16 +16,15 @@
 - Centro de notificaciones de cambios de reportes, sincronizado al abrirlo; requiere conexión y no ofrece notificaciones push.
 - Edición autenticada del perfil y cierre de sesión.
 
-El mapa, las teselas, la autenticación y las operaciones de datos requieren conexión. Los borradores de texto y la cola de reportes se guardan en almacenamiento seguro; las fotografías se conservan en el directorio privado de la app hasta confirmar el envío o borrar el pendiente. La cola se reintenta manualmente desde “Mis reportes” cuando vuelve la conexión. La API aplica una clave idempotente para impedir reportes duplicados si se pierde la respuesta de un envío.
+El mapa, las teselas, la autenticación y las operaciones de datos requieren conexión. Los borradores de texto y metadatos se guardan en el almacenamiento seguro del navegador. Las fotos seleccionadas en Flutter Web solo permanecen en memoria mientras la pestaña está abierta; no se guardan en el almacenamiento persistente del navegador. Si una foto aún no se ha subido, la app no permite guardarla para envío offline. La cola de reportes sin fotos se reintenta manualmente desde “Mis reportes” cuando vuelve la conexión. La API aplica una clave idempotente para impedir reportes duplicados si se pierde la respuesta de un envío.
 
 La ubicación es opcional: puedes escribir una dirección sin dar permiso. Si los servicios del teléfono están apagados, se deniega el permiso o este quedó bloqueado, la app informa cómo continuar y ofrece abrir los ajustes del sistema. El chatbot utiliza la sesión iniciada y el endpoint `/api/Ai/Chat`; la clave del proveedor de IA permanece configurada en el backend.
 
 ## Requisitos
 
-- Flutter estable y Dart incluidos con Flutter (el `pubspec.yaml` especifica Dart `^3.13.3`).
-- Para Android: Android Studio, Android SDK y un emulador o dispositivo.
-- Para iOS: macOS, Xcode y simulador o dispositivo.
-- API REST accesible desde el dispositivo. Para funciones con GPS, concede el permiso de ubicación.
+- Flutter 3.47.9 o posterior compatible con Dart `^3.13.3`.
+- Chrome para el desarrollo local; Chrome en Android y Safari en iOS para la validación en dispositivos.
+- API REST accesible. La sesión persistente y el GPS en dispositivos requieren HTTPS.
 
 ## Ejecutar y probar
 
@@ -33,19 +32,11 @@ Desde esta carpeta:
 
 ```sh
 flutter pub get
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000/api
+flutter run -d chrome --web-hostname 0.0.0.0 --web-port 8080 \
+  --dart-define=API_BASE_URL=http://localhost:3000/api
 ```
 
-`10.0.2.2` permite que el emulador Android alcance la publicación local del frontend de Docker Compose, que hace proxy a `/api`; el backend no publica directamente el puerto 8080. En un teléfono físico utiliza `http://<IP-LAN-del-host>:3000/api`, cambia `WEB_BIND_ADDRESS=0.0.0.0` solo durante una prueba en red confiable y agrega ese origen a `CORS_ALLOWED_ORIGINS` si pruebas Flutter Web. En producción usa HTTPS. `localhost` dentro del teléfono apunta al propio dispositivo, no al servidor.
-
-Para probar la versión web en un teléfono conectado a la misma red, ejecuta desde `mobile/`:
-
-```sh
-flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 \
-  --dart-define=API_BASE_URL=http://<IP-LAN-del-host>:3000/api
-```
-
-Abre `http://<IP-LAN-del-host>:8080` en el teléfono y permite ese origen en `CORS_ALLOWED_ORIGINS`. Para autenticación persistente y GPS en el dispositivo, usa HTTPS; los navegadores restringen el almacenamiento seguro y la ubicación en orígenes HTTP de red local. En Android se instala desde el menú del navegador; en iPhone/iPad, desde **Compartir > Añadir a pantalla de inicio** en Safari.
+La URL anterior es para un navegador en el mismo computador con Docker Compose en marcha. Para probar en un teléfono conectado a la misma red, usa la IP LAN del computador tanto para abrir Flutter como para llamar al API; permite el origen del servidor Flutter en `CORS_ALLOWED_ORIGINS` y expón temporalmente el puerto solo en una red confiable. No uses `localhost` ni `10.0.2.2` desde un navegador de teléfono. La ubicación y el almacenamiento seguro pueden estar restringidos sobre HTTP local; valida esos flujos bajo HTTPS.
 
 Para validar la app:
 
@@ -57,39 +48,25 @@ flutter test
 
 Las pruebas usan `MockClient` y verifican autenticación, restauración de sesión, contratos de solicitud, navegación y actualización del mapa/lista después de reportar. También revisa los flujos reales en Android/iOS y tamaños de pantalla compactos y tabletas, en especial permisos GPS, llamadas, teclado y almacenamiento seguro.
 
-## Compilar
+## Compilar y desplegar en producción
 
-Para una instalación local Android:
-
-```sh
-flutter build apk --release \
-  --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
-```
-
-La firma release se configura fuera de GitHub, usando estas variables de entorno:
+Primero configura el dominio DNS en `.env` y apunta `API_BASE_URL` a la API HTTPS del mismo origen. Reemplaza el dominio de ejemplo en el comando:
 
 ```sh
-export ANDROID_KEYSTORE_PATH=/ruta/privada/cartagena-release.jks
-export ANDROID_STORE_PASSWORD='...'
-export ANDROID_KEY_ALIAS='...'
-export ANDROID_KEY_PASSWORD='...'
-flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
+flutter build web --release --base-href=/ciudadano/ \
+  --dart-define=API_BASE_URL=https://segura.example.com/api
 ```
 
-También se puede crear `mobile/android/key.properties` con `storeFile`, `storePassword`, `keyAlias` y `keyPassword`. Ese archivo, los keystores y sus contraseñas están excluidos de Git. Una compilación release falla expresamente cuando falta la configuración de firma. La publicación Android todavía requiere que el propietario cree/configure la cuenta de Google Play y revise el artefacto.
-
-La distribución iOS requiere macOS/Xcode, cuenta Apple Developer, certificados de distribución y perfiles de aprovisionamiento configurados localmente. No se guardan credenciales ni certificados en el repositorio:
+Desde la raíz del proyecto, construye y levanta el perfil de producción:
 
 ```sh
-flutter build ipa --release \
-  --dart-define=API_BASE_URL=https://tu-dominio.example.com/api
+docker compose --profile production up --build -d
 ```
 
-No uses una URL local en los artefactos distribuidos. Mantén secretos de servicios externos fuera de `--dart-define` y del paquete cliente. La solicitud de eliminación de cuenta no está disponible porque aún no existe un flujo backend seguro que preserve la trazabilidad de los reportes.
+La web queda en `https://<dominio>/ciudadano/`; React permanece en `https://<dominio>/`. La URL de API es pública y se incorpora al bundle; no incluyas claves ni otros secretos en `--dart-define`. Mantén Caddy y el backend en el mismo origen para no ampliar CORS.
 
-La interfaz web sigue siendo la aplicación React/PWA en `frontend/`; Flutter está destinado a las apps nativas Android/iOS.
+En Android instala desde el menú de Chrome. En iPhone/iPad abre la página en Safari y usa **Compartir > Añadir a pantalla de inicio**. Confirma la instalación, orientación vertical/horizontal, sesión, GPS, selección y envío de fotos, reportes y navegación en ambos dispositivos.
 
 ## Integración continua
 
-`.github/workflows/flutter.yml` ejecuta `flutter analyze`, `flutter test` y construye un APK debug para cambios de `mobile/`. La publicación de artefactos release firmados requiere los SDK y credenciales correspondientes y no forma parte de ese workflow.
+`.github/workflows/flutter.yml` usa Flutter 3.47.9 para ejecutar `flutter analyze`, `flutter test`, validar el manifest, compilar Flutter Web con base `/ciudadano/` y comprobar la imagen estática, Compose y Caddy. El build de CI usa un dominio reservado de prueba y no es un artefacto publicable.

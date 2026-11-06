@@ -156,6 +156,42 @@ void main() {
     session.dispose();
   });
 
+  testWidgets('adapts navigation to mobile and wide web layouts', (
+    tester,
+  ) async {
+    _setMobileViewport(tester);
+    final session = SessionController(
+      api: ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient(
+          (_) async =>
+              http.Response('{"success":true,"message":"OK","data":[]}', 200),
+        ),
+      ),
+      storage: _MemorySessionStorage({
+        'session.token': 'valid-token',
+        'session.user': jsonEncode({
+          'username': 'citizen',
+          'fullName': 'Persona Ciudadana',
+          'email': 'citizen@example.com',
+        }),
+      }),
+    );
+    await session.initialize();
+    await tester.pumpWidget(MaterialApp(home: HomeShell(session: session)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    tester.view.physicalSize = const Size(1024, 768);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    session.dispose();
+  });
+
   testWidgets(
     'refreshes incidents after a successful report and navigates tabs',
     (tester) async {

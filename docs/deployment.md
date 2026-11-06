@@ -5,17 +5,18 @@
 El proyecto se ejecuta con Docker Compose:
 
 - **Frontend:** React/Vite compilado y servido por Nginx.
-- **App móvil:** Flutter nativo para Android/iOS, con la misma identidad visual y API; no sustituye ni modifica la web.
+- **Flutter Web:** experiencia ciudadana instalable bajo `/ciudadano/`; React/PWA conserva la ruta `/`. Los proyectos Android/iOS fuente no forman parte del despliegue web.
 - **API:** backend Spring Boot.
 - **Datos:** PostgreSQL y MongoDB con volúmenes persistentes y sin puertos expuestos a Internet.
 - **HTTPS opcional/producción:** Caddy termina TLS automáticamente y publica web/API bajo un mismo dominio.
 
-En teléfono se puede usar la PWA desde el navegador o instalar el cliente Flutter nativo. Ambos consumen el mismo backend. La PWA ofrece una página informativa offline; no almacena respuestas del API, datos personales, sesiones ni reportes.
+En Android se puede instalar Flutter Web desde Chrome y en iOS desde Safari. React/PWA sigue disponible en la raíz y Flutter Web se sirve en `/ciudadano/`; ambos consumen el mismo backend HTTPS. Los clientes no deben guardar respuestas autenticadas, sesiones ni reportes en la caché offline.
 
 ## Requisitos
 
 - Docker Desktop o Docker Engine con Docker Compose v2.
 - Para producción: un VPS con puertos 80 y 443 disponibles y un dominio cuyo DNS apunte al VPS.
+- Flutter 3.47.9 o posterior compatible con Dart `^3.13.3` en el equipo que compile Flutter Web.
 
 ## Ejecución local
 
@@ -39,7 +40,7 @@ La publicación local queda ligada a `127.0.0.1` por seguridad. Para una prueba 
 
 Safari no permite geolocalización desde una dirección HTTP de red local como `http://192.168.x.x:3000`, aunque el iPhone y el servidor estén en la misma Wi‑Fi. La aplicación mostrará un aviso para abrir una dirección HTTPS; no es un fallo del permiso GPS ni se debe intentar eludir la política del navegador. Para probar en un iPhone usa el dominio HTTPS de staging/producción con certificado válido. En pruebas HTTPS locales, el certificado debe ser confiable también para iOS y CORS debe permitir el origen exacto. Los reportes permiten escribir la dirección aunque no se comparta la ubicación.
 
-En Flutter nativo, habilita Servicios de Localización y concede permiso “Mientras se usa la app” a Cartagena Segura. Si el permiso quedó bloqueado, usa **Abrir ajustes** desde el aviso de la app; la ubicación es opcional y puede usarse una referencia escrita.
+En Flutter Web, permite la ubicación en Safari/Chrome y usa una página HTTPS con certificado válido. La ubicación es opcional y se puede escribir una referencia manual.
 
 ## Despliegue en un VPS con HTTPS
 
@@ -47,17 +48,25 @@ En Flutter nativo, habilita Servicios de Localización y concede permiso “Mien
 2. Copia `.env.example` a `.env`; cambia todas las contraseñas y `JWT_SECRET` por valores aleatorios privados. Usa una contraseña Mongo compatible con URI (por ejemplo, caracteres alfanuméricos y `-._~`) o codifica sus caracteres reservados.
 3. Configura `DOMAIN` con el nombre DNS real y cambia `BASE_URL`, `FRONTEND_URL` y `CORS_ALLOWED_ORIGINS` al origen HTTPS exacto, por ejemplo `https://segura.example.com`. No agregues comodines.
 4. Asegúrate de que el DNS apunte al VPS y que los puertos TCP 80/443 (y opcionalmente UDP 443) estén permitidos.
-5. Inicia todos los servicios, incluyendo el perfil HTTPS:
+5. En un equipo con Flutter 3.47.9+, compila el sitio con el mismo origen HTTPS para el API:
+
+   ```sh
+   cd mobile
+   flutter pub get
+   flutter build web --release --base-href=/ciudadano/ \
+     --dart-define=API_BASE_URL=https://segura.example.com/api
+   ```
+
+   Reemplaza `segura.example.com` por el dominio configurado. Copia el directorio ignorado `mobile/build/web/` al mismo directorio del repositorio en el VPS; el servicio Docker lo necesita para construir la imagen estática. También puedes ejecutar el build directamente en el VPS si allí está instalado Flutter.
+6. Inicia todos los servicios, incluyendo el perfil HTTPS:
 
    ```sh
    docker compose --profile production up --build -d
    docker compose ps
    ```
 
-6. Visita `https://<tu-dominio>`. Caddy solicitará y renovará los certificados TLS automáticamente. La API se sirve en el mismo origen bajo `/api`; el navegador no necesita una URL de API diferente.
-7. Elige la experiencia móvil:
-   - **PWA:** en Android abre la URL con Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS abre la URL con Safari y usa **Compartir > Añadir a pantalla de inicio**.
-   - **Flutter nativo:** compila la app usando `https://<tu-dominio>/api` como `API_BASE_URL`, firma los artefactos con credenciales propias y distribúyelos por los canales oficiales de Android/iOS. Consulta [mobile/README.md](../mobile/README.md).
+7. Visita `https://<tu-dominio>` para React o `https://<tu-dominio>/ciudadano/` para Flutter Web. Caddy solicita y renueva TLS; la API está disponible en el mismo origen bajo `/api`.
+8. Instala Flutter Web: en Android abre `/ciudadano/` con Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS ábrelo con Safari y usa **Compartir > Añadir a pantalla de inicio**.
 
 PostgreSQL, MongoDB y la API no publican puertos al host. El frontend solo se publica en loopback y Caddy es el punto de entrada en producción. No habilites puertos de bases de datos en el firewall.
 
@@ -70,7 +79,7 @@ Compose mantiene datos en volúmenes `postgres_data`, `mongo_data`, `uploaded_fi
 - `POSTGRES_*`, `MONGO_*`: bases locales del stack. No publiques los servicios de datos externamente.
 - `JWT_SECRET`: secreto privado aleatorio; nunca reutilices el valor de ejemplo.
 - `GROQ_API_KEY` y `APPS_SCRIPT_URL`: opcionales según las funciones de IA/correo habilitadas.
-- `CORS_ALLOWED_ORIGINS`: orígenes web permitidos, separados por comas. En producción indica únicamente la URL web HTTPS; el cliente Flutter nativo no depende de CORS del navegador.
+- `CORS_ALLOWED_ORIGINS`: orígenes web permitidos, separados por comas. En producción basta el origen HTTPS compartido de React y Flutter Web; durante desarrollo web local agrega el origen exacto de Flutter.
 - `BASE_URL` y `FRONTEND_URL`: enlaces públicos usados por la API, por ejemplo para archivos y correos.
 - `WEB_PORT`: puerto local de loopback para abrir la aplicación en el propio servidor/desarrollador.
 
@@ -79,10 +88,10 @@ El Docker Compose incluido usa bases de datos autocontenidas y persistentes en e
 ## Verificación y límites
 
 - Backend: se sirve bajo el mismo origen en `/api`; Actuator se usa para la comprobación interna del contenedor.
-- Frontend/PWA: comprueba la instalación desde Chrome Android y Safari iOS reales, acceso a las rutas, mapas, GPS y reportes.
-- Sin Internet, la PWA solo muestra la página de ayuda; no permite consultar incidentes/contactos ni enviar reportes.
+- Flutter Web: comprueba `/ciudadano/`, rutas profundas, manifest, instalación en Chrome Android y Safari iOS, sesión, fotos, mapas, GPS y reportes.
+- Sin Internet no se deben cachear datos privados; los reportes con fotos seleccionadas en Flutter Web requieren que la pestaña siga abierta para poder enviar la evidencia.
 - El proyecto no crea dominio, cuentas de hosting ni credenciales. El propietario debe configurarlos y validar datos de prueba antes de usarlo con información real.
 
-## Flutter nativo
+## Flutter Web
 
-`mobile/` proporciona los flujos ciudadanos nativos de acceso/registro, inicio, reportes, mapa, emergencias y perfil de solo lectura. En desarrollo con Compose, el backend no publica el puerto 8080 al host; configura Flutter con `http://10.0.2.2:3000/api` en Android Emulator, `http://localhost:3000/api` en Flutter Web sobre el host, o una URL HTTPS pública para producción. La compilación de iOS requiere macOS/Xcode; las cuentas de publicación, certificados Apple y firma Android deben ser aportados por el propietario.
+`mobile/` proporciona acceso/registro, inicio, reportes, mapa, emergencias y perfil como aplicación Flutter Web instalable en Android/iOS. El workflow de Flutter verifica el build web y la configuración Docker/Caddy. Para compilar localmente y desplegar, consulta [mobile/README.md](../mobile/README.md). La publicación real requiere definir el dominio y compilar con su URL HTTPS de API.

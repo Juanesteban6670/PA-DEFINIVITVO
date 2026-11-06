@@ -22,6 +22,16 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _selectedIndex = 0;
   final _incidentRefresh = ValueNotifier<int>(0);
+  late final ReportDraftStore _drafts;
+
+  @override
+  void initState() {
+    super.initState();
+    _drafts = ReportDraftStore(
+      storage: widget.session.storage,
+      owner: widget.session.user!.username,
+    );
+  }
 
   @override
   void dispose() {
@@ -34,10 +44,6 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final api = widget.session.api;
-    final drafts = ReportDraftStore(
-      storage: widget.session.storage,
-      owner: widget.session.user!.username,
-    );
     final wideLayout = MediaQuery.sizeOf(context).width >= 700;
     final pages = [
       WelcomeScreen(
@@ -47,7 +53,7 @@ class _HomeShellState extends State<HomeShell> {
       ),
       MyReportsScreen(
         api: api,
-        drafts: drafts,
+        drafts: _drafts,
         incidentRefresh: _incidentRefresh,
         onReportSubmitted: () => _incidentRefresh.value++,
       ),

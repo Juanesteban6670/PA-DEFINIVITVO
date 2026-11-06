@@ -1,4 +1,4 @@
-name: Flutter mobile checks
+name: Flutter Web checks
 
 on:
   push:
@@ -6,10 +6,14 @@ on:
       - main
     paths:
       - "mobile/**"
+      - "compose.yaml"
+      - "Caddyfile"
       - ".github/workflows/flutter.yml"
   pull_request:
     paths:
       - "mobile/**"
+      - "compose.yaml"
+      - "Caddyfile"
       - ".github/workflows/flutter.yml"
   workflow_dispatch:
 
@@ -18,7 +22,7 @@ permissions:
 
 jobs:
   analyze-and-test:
-    name: Analyze and test Flutter app
+    name: Analyze, test, and build Flutter Web
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,7 +34,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: "3.47.9"
           cache: true
           cache-dependency-path: mobile/pubspec.lock
 
@@ -43,5 +47,28 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Build Android debug APK
-        run: flutter build apk --debug --dart-define=API_BASE_URL=https://example.invalid/api
+      - name: Build Flutter Web
+        run: >-
+          flutter build web --release
+          --base-href=/ciudadano/
+          --dart-define=API_BASE_URL=https://example.invalid/api
+
+      - name: Validate web manifest and entrypoint
+        run: |
+          python3 -m json.tool build/web/manifest.json > /dev/null
+          test -s build/web/index.html
+          test -s build/web/main.dart.js
+          test -s build/web/apple-touch-icon.png
+
+      - name: Build static web image
+        run: docker build --file Dockerfile.web --tag cartagena-flutter-web:ci .
+
+      - name: Validate Compose and Caddy configuration
+        working-directory: .
+        run: |
+          docker compose --env-file .env.example --profile production config --quiet
+          docker run --rm \
+            --env DOMAIN=segura.example.com \
+            --volume "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            caddy:2-alpine \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile

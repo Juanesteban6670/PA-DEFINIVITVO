@@ -76,14 +76,31 @@ class ApiClient {
       request.headers['Authorization'] = 'Bearer $token';
     }
     for (final file in files) {
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'files',
-          file.path,
-          filename: file.name,
-          contentType: MediaType.parse(file.contentType),
-        ),
-      );
+      final contentType = MediaType.parse(file.contentType);
+      final bytes = file.bytes;
+      if (bytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'files',
+            bytes,
+            filename: file.name,
+            contentType: contentType,
+          ),
+        );
+      } else {
+        final path = file.path;
+        if (path == null) {
+          throw ArgumentError.value(file, 'file', 'Falta ruta o bytes');
+        }
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'files',
+            path,
+            filename: file.name,
+            contentType: contentType,
+          ),
+        );
+      }
     }
 
     late final http.Response response;
@@ -180,12 +197,14 @@ class ApiClient {
 
 class UploadFile {
   const UploadFile({
-    required this.path,
+    this.path,
+    this.bytes,
     required this.name,
     required this.contentType,
   });
 
-  final String path;
+  final String? path;
+  final List<int>? bytes;
   final String name;
   final String contentType;
 }

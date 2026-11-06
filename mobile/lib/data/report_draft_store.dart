@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'api_client.dart';
 import 'session_controller.dart';
 
@@ -27,7 +29,10 @@ class ReportDraft {
   final List<String> photoPaths;
   final List<String> uploadedImageUrls;
 
-  ReportDraft copyWith({List<String>? uploadedImageUrls}) => ReportDraft(
+  ReportDraft copyWith({
+    List<String>? photoPaths,
+    List<String>? uploadedImageUrls,
+  }) => ReportDraft(
     type: type,
     description: description,
     location: location,
@@ -35,7 +40,7 @@ class ReportDraft {
     idempotencyKey: idempotencyKey,
     latitude: latitude,
     longitude: longitude,
-    photoPaths: photoPaths,
+    photoPaths: photoPaths ?? this.photoPaths,
     uploadedImageUrls: uploadedImageUrls ?? this.uploadedImageUrls,
   );
 
@@ -79,10 +84,11 @@ class ReportDraft {
 }
 
 class ReportDraftStore {
-  const ReportDraftStore({required this.storage, required this.owner});
+  ReportDraftStore({required this.storage, required this.owner});
 
   final SessionStorage storage;
   final String owner;
+  final Map<String, Uint8List> webPhotoBytes = {};
 
   String get _draftKey => 'report.draft.$owner';
   String get _queueKey => 'report.outbox.$owner';
@@ -165,20 +171,23 @@ class ReportDraftStore {
 Future<void> submitReportDraft(
   ApiClient api,
   ReportDraft draft, {
+  Map<String, Uint8List> webPhotoBytes = const {},
   required Future<void> Function(ReportDraft updated) onImagesUploaded,
 }) async {
-  var imageUrls = draft.uploadedImageUrls;
-  if (draft.photoPaths.isNotEmpty &&
-      imageUrls.length != draft.photoPaths.length) {
+  final imageUrls = List<String?>.generate(draft.photoPaths.length, (index) {
+    if (index < draft.uploadedImageUrls.length) {
+      final url = draft.uploadedImageUrls[index];
+      return url.isEmpty ? null : url;
+    }
+    return null;
+  });
+  final uploadIndexes = <int>[];
+  if (imageUrls.any((url) => url == null)) {
     final files = <UploadFile>[];
-    for (final path in draft.photoPaths) {
-      final file = File(path);
-      if (!await file.exists()) {
-        throw const ApiException(
-          'Falta una fotografía adjunta del borrador. Elimina el envío pendiente o vuelve a crear el reporte.',
-        );
-      }
-      final name = path.split(Platform.pathSeparator).last;
+    for (var index = 0; index < draft.photoPaths.length; index++) {
+      if (imageUrls[index] != null) continue;
+      final path = draft.photoPaths[index];
+      final name = path.split('/').last;
       final extension = name.split('.').last.toLowerCase();
       final contentType = switch (extension) {
         'jpg' || 'jpeg' => 'image/jpeg',
@@ -186,24 +195,55 @@ Future<void> submitReportDraft(
         'webp' => 'image/webp',
         _ => throw ApiException('Formato de imagen no permitido: .$extension'),
       };
-      files.add(UploadFile(path: path, name: name, contentType: contentType));
+      final bytes = webPhotoBytes[path];
+      if (bytes != null) {
+        files.add(
+          UploadFile(bytes: bytes, name: name, contentType: contentType),
+        );
+        uploadIndexes.add(index);
+        continue;
+      }
+      if (kIsWeb) {
+        throw const ApiException(
+          'La fotografía ya no está disponible en esta pestaña. Selecciónala de nuevo antes de enviar.',
+        );
+      }
+      final file = File(path);
+      if (!await file.exists()) {
+        throw const ApiException(
+          'Falta una fotografía adjunta del borrador. Elimina el envío pendiente o vuelve a crear el reporte.',
+        );
+      }
+      final nativeName = path.split(Platform.pathSeparator).last;
+      files.add(
+        UploadFile(path: path, name: nativeName, contentType: contentType),
+      );
+      uploadIndexes.add(index);
     }
     final response = await api.uploadFiles(files);
     if (response is! Map<String, dynamic> || response['urls'] is! List) {
       throw const FormatException('La API devolvió URLs de archivos inválidas');
     }
-    imageUrls = (response['urls'] as List).whereType<String>().toList();
-    if (imageUrls.length != files.length) {
+    final uploadedUrls = (response['urls'] as List)
+        .whereType<String>()
+        .toList();
+    if (uploadedUrls.length != files.length) {
       throw const FormatException(
         'La API no confirmó la carga de todas las fotografías',
       );
     }
-    await onImagesUploaded(draft.copyWith(uploadedImageUrls: imageUrls));
+    for (var index = 0; index < uploadIndexes.length; index++) {
+      imageUrls[uploadIndexes[index]] = uploadedUrls[index];
+    }
+    await onImagesUploaded(
+      draft.copyWith(uploadedImageUrls: imageUrls.cast<String>()),
+    );
   }
-  await api.post('Incidents', draft.toRequest(imageUrls));
+  await api.post('Incidents', draft.toRequest(imageUrls.cast<String>()));
 }
 
 Future<void> deleteReportPhotos(Iterable<String> paths) async {
+  if (kIsWeb) return;
   for (final path in paths) {
     final file = File(path);
     if (await file.exists()) await file.delete();

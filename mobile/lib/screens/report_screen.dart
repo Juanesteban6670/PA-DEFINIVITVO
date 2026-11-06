@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,6 +37,7 @@ class _ReportScreenState extends State<ReportScreen> {
   String _priority = 'MEDIUM';
   String _idempotencyKey = const Uuid().v4();
   final List<String> _photoPaths = [];
+  Map<String, Uint8List> get _webPhotoBytes => widget.drafts.webPhotoBytes;
   List<String> _uploadedImageUrls = const [];
   double? _latitude;
   double? _longitude;
@@ -67,8 +69,9 @@ class _ReportScreenState extends State<ReportScreen> {
       });
       await _saveDraft();
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Ubicación actualizada')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Ubicación actualizada')));
     } on LocationAccessException catch (error) {
       _showLocationError(error);
     } on Exception catch (error) {
@@ -112,6 +115,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await submitReportDraft(
         widget.api,
         _currentDraft(),
+        webPhotoBytes: _webPhotoBytes,
         onImagesUploaded: (updated) async {
           if (mounted) {
             setState(() => _uploadedImageUrls = updated.uploadedImageUrls);
@@ -126,13 +130,14 @@ class _ReportScreenState extends State<ReportScreen> {
       _location.clear();
       setState(() {
         _photoPaths.clear();
+        _webPhotoBytes.clear();
         _uploadedImageUrls = const [];
         _latitude = null;
         _longitude = null;
         _idempotencyKey = const Uuid().v4();
       });
       try {
-        await deleteReportPhotos(submittedPhotos);
+        await _deletePhotos(submittedPhotos);
         await widget.drafts.clearDraft();
       } on Exception catch (error) {
         _showMessage(
@@ -179,8 +184,20 @@ class _ReportScreenState extends State<ReportScreen> {
           _uploadedImageUrls = draft.uploadedImageUrls;
           _photoPaths
             ..clear()
-            ..addAll(draft.photoPaths.where((path) => File(path).existsSync()));
+            ..addAll(
+              kIsWeb
+                  ? draft.photoPaths
+                  : draft.photoPaths.where((path) => File(path).existsSync()),
+            );
         });
+        final missingWebPhotos = draft.photoPaths
+            .where((path) => !_webPhotoBytes.containsKey(path))
+            .length;
+        if (kIsWeb && missingWebPhotos > draft.uploadedImageUrls.length) {
+          _showMessage(
+            'Las fotos no se conservan al cerrar o recargar esta pestaña. Selecciónalas de nuevo antes de enviar.',
+          );
+        }
       }
     } on Exception catch (error) {
       if (mounted) _showMessage('No se pudo restaurar el borrador: $error');
@@ -200,6 +217,12 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _saveForLater() async {
     if (!_formKey.currentState!.validate()) return;
+    if (kIsWeb && _photoPaths.length != _uploadedImageUrls.length) {
+      _showMessage(
+        'En la versión web, las fotos solo están disponibles mientras esta pestaña permanece abierta. Envíalas con conexión o quítalas antes de guardar para después.',
+      );
+      return;
+    }
     try {
       final draft = _currentDraft();
       await widget.drafts.enqueue(draft);
@@ -210,12 +233,17 @@ class _ReportScreenState extends State<ReportScreen> {
       _location.clear();
       setState(() {
         _photoPaths.clear();
+        _webPhotoBytes.clear();
         _uploadedImageUrls = const [];
         _latitude = null;
         _longitude = null;
         _idempotencyKey = const Uuid().v4();
       });
-      _showMessage('Guardado en el dispositivo para enviarlo después');
+      _showMessage(
+        kIsWeb
+            ? 'Guardado en este navegador para enviarlo después'
+            : 'Guardado en el dispositivo para enviarlo después',
+      );
       Navigator.of(context).pop();
     } on Exception catch (error) {
       _showMessage('No se pudo guardar el envío pendiente: $error');
@@ -224,6 +252,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _pickPhotos(ImageSource source) async {
     final createdPaths = <String>[];
+    final createdWebPaths = <String>[];
     try {
       final List<XFile> picked;
       if (source == ImageSource.gallery) {
@@ -241,11 +270,13 @@ class _ReportScreenState extends State<ReportScreen> {
         _showMessage('Puedes adjuntar hasta 5 fotografías');
         return;
       }
-      final directory = await getApplicationDocumentsDirectory();
-      final targetDirectory = Directory(
-        '${directory.path}/report_evidence/${Uri.encodeComponent(widget.drafts.owner)}',
-      );
-      await targetDirectory.create(recursive: true);
+      String? targetDirectoryPath;
+      if (!kIsWeb) {
+        final directory = await getApplicationDocumentsDirectory();
+        targetDirectoryPath =
+            '${directory.path}/report_evidence/${Uri.encodeComponent(widget.drafts.owner)}';
+        await Directory(targetDirectoryPath).create(recursive: true);
+      }
       final added = <String>[];
       for (final image in picked.take(available)) {
         final contentType = image.mimeType?.toLowerCase();
@@ -267,25 +298,31 @@ class _ReportScreenState extends State<ReportScreen> {
           'image/png' => 'png',
           _ => 'webp',
         };
-        final target = File(
-          '${targetDirectory.path}/${const Uuid().v4()}.$extension',
-        );
-        await target.writeAsBytes(bytes, flush: true);
-        added.add(target.path);
-        createdPaths.add(target.path);
+        if (targetDirectoryPath == null) {
+          final path = 'web/${const Uuid().v4()}.$extension';
+          _webPhotoBytes[path] = bytes;
+          added.add(path);
+          createdWebPaths.add(path);
+        } else {
+          final target = File(
+            '$targetDirectoryPath/${const Uuid().v4()}.$extension',
+          );
+          await target.writeAsBytes(bytes, flush: true);
+          added.add(target.path);
+          createdPaths.add(target.path);
+        }
       }
       if (!mounted) {
-        await deleteReportPhotos(createdPaths);
+        await _deletePhotos([...createdPaths, ...createdWebPaths]);
         return;
       }
       setState(() {
         _photoPaths.addAll(added);
-        if (added.isNotEmpty) _uploadedImageUrls = const [];
       });
       await _saveDraft();
     } on PlatformException catch (error) {
       try {
-        await deleteReportPhotos(createdPaths);
+        await _deletePhotos([...createdPaths, ...createdWebPaths]);
       } on Exception catch (cleanupError) {
         if (mounted) {
           _showMessage(
@@ -301,7 +338,7 @@ class _ReportScreenState extends State<ReportScreen> {
       }
     } on Exception catch (error) {
       try {
-        await deleteReportPhotos(createdPaths);
+        await _deletePhotos([...createdPaths, ...createdWebPaths]);
       } on Exception catch (cleanupError) {
         if (mounted) {
           _showMessage(
@@ -318,14 +355,17 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _removePhoto(String path) async {
     try {
-      await deleteReportPhotos([path]);
+      await _deletePhotos([path]);
     } on Exception catch (error) {
       _showMessage('No se pudo quitar la fotografía: $error');
       return;
     }
+    final index = _photoPaths.indexOf(path);
     setState(() {
       _photoPaths.remove(path);
-      _uploadedImageUrls = const [];
+      if (index >= 0 && index < _uploadedImageUrls.length) {
+        _uploadedImageUrls = List.of(_uploadedImageUrls)..removeAt(index);
+      }
     });
     await _saveDraft();
   }
@@ -335,8 +375,10 @@ class _ReportScreenState extends State<ReportScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Borrar borrador'),
-        content: const Text(
-          'Se eliminarán los datos y las fotografías de este borrador del dispositivo. Esta acción no se puede deshacer.',
+        content: Text(
+          kIsWeb
+              ? 'Se eliminarán los datos guardados de este borrador en el navegador. Esta acción no se puede deshacer.'
+              : 'Se eliminarán los datos y las fotografías de este borrador del dispositivo. Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(
@@ -352,7 +394,7 @@ class _ReportScreenState extends State<ReportScreen> {
     );
     if (confirmed != true) return;
     try {
-      await deleteReportPhotos(_photoPaths);
+      await _deletePhotos(_photoPaths);
       await widget.drafts.clearDraft();
       if (!mounted) return;
       _description.clear();
@@ -361,21 +403,76 @@ class _ReportScreenState extends State<ReportScreen> {
         _type = 'ROBO';
         _priority = 'MEDIUM';
         _photoPaths.clear();
+        _webPhotoBytes.clear();
         _uploadedImageUrls = const [];
         _latitude = null;
         _longitude = null;
         _idempotencyKey = const Uuid().v4();
       });
-      _showMessage('Borrador eliminado del dispositivo');
+      _showMessage(
+        kIsWeb
+            ? 'Borrador eliminado del navegador'
+            : 'Borrador eliminado del dispositivo',
+      );
     } on Exception catch (error) {
       _showMessage('No se pudo borrar el borrador: $error');
     }
   }
 
+  Future<void> _deletePhotos(Iterable<String> paths) async {
+    if (kIsWeb) {
+      for (final path in paths) {
+        _webPhotoBytes.remove(path);
+      }
+      return;
+    }
+    await deleteReportPhotos(paths);
+  }
+
+  Widget _photoPreview(String path) {
+    final image = _webPhotoBytes[path];
+    if (kIsWeb && image != null) {
+      return Image.memory(
+        image,
+        width: 76,
+        height: 76,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _brokenPhoto(),
+      );
+    }
+    if (kIsWeb) {
+      final index = _photoPaths.indexOf(path);
+      if (index >= 0 && index < _uploadedImageUrls.length) {
+        return Image.network(
+          _uploadedImageUrls[index],
+          width: 76,
+          height: 76,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _brokenPhoto(),
+        );
+      }
+      return _brokenPhoto();
+    }
+    return Image.file(
+      File(path),
+      width: 76,
+      height: 76,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _brokenPhoto(),
+    );
+  }
+
+  Widget _brokenPhoto() => const SizedBox(
+    width: 76,
+    height: 76,
+    child: Icon(Icons.broken_image_outlined),
+  );
+
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -583,20 +680,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
-                                      child: Image.file(
-                                        File(path),
-                                        width: 76,
-                                        height: 76,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) =>
-                                            const SizedBox(
-                                              width: 76,
-                                              height: 76,
-                                              child: Icon(
-                                                Icons.broken_image_outlined,
-                                              ),
-                                            ),
-                                      ),
+                                      child: _photoPreview(path),
                                     ),
                                     Positioned(
                                       right: 0,

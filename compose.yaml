@@ -75,6 +75,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  flutter-web:
+    profiles: ["production"]
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile.web
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
   caddy:
     image: caddy:2-alpine
     profiles: ["production"]
@@ -90,6 +105,7 @@ services:
       - caddy_config:/config
     depends_on:
       - frontend
+      - flutter-web
     restart: unless-stopped
 
 volumes:
