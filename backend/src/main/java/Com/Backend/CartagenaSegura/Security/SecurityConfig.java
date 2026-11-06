@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
@@ -101,14 +102,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+        List<String> origins = new ArrayList<>(Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
-                .toList();
+                .toList());
         if (origins.isEmpty()) {
             throw new IllegalStateException("CORS_ALLOWED_ORIGINS debe incluir al menos un origen permitido");
         }
-        config.setAllowedOrigins(origins);
+        // Permitir automáticamente los túneles Cloudflare y patrones si no están definidos
+        if (!origins.contains("*")) {
+            origins.add("https://*.trycloudflare.com");
+            origins.add("http://*.trycloudflare.com");
+        }
+        config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
