@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data/api_client.dart';
+import '../data/location_service.dart';
 import '../data/models.dart';
 
 class IncidentsMapScreen extends StatefulWidget {
@@ -20,7 +22,10 @@ class IncidentsMapScreen extends StatefulWidget {
 }
 
 class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
+  final _mapController = MapController();
   late Future<List<Incident>> _incidents;
+  Position? _position;
+  bool _locating = false;
 
   @override
   void initState() {
@@ -63,6 +68,55 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     setState(() {
       _incidents = _loadIncidents();
     });
+  }
+
+  Future<void> _locateMe() async {
+    setState(() => _locating = true);
+    try {
+      final position = await LocationService.currentPosition();
+      if (!mounted) return;
+      setState(() => _position = position);
+      _mapController.move(LatLng(position.latitude, position.longitude), 15);
+    } on LocationAccessException catch (error) {
+      _showLocationError(error);
+    } on Exception catch (error) {
+      _showMessage(
+        'No se pudo determinar tu ubicación. Revisa la señal GPS e inténtalo de nuevo: $error',
+      );
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
+  }
+
+  void _showLocationError(LocationAccessException error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error.message),
+        duration: const Duration(seconds: 8),
+        action: error.settingsTarget == null
+            ? null
+            : SnackBarAction(
+                label: 'Abrir ajustes',
+                onPressed: () async {
+                  final opened = await LocationService.openSettings(
+                    error.settingsTarget!,
+                  );
+                  if (!opened && mounted) {
+                    _showMessage(
+                      'No fue posible abrir los ajustes del sistema.',
+                    );
+                  }
+                },
+              ),
+      ),
+    );
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -111,37 +165,80 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
               ),
             ),
             Expanded(
-              child: FlutterMap(
-                options: const MapOptions(
-                  initialCenter: LatLng(10.391, -75.4794),
-                  initialZoom: 12,
-                ),
+              child: Stack(
                 children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName:
-                        'com.cartagenasegura.cartagena_segura',
-                  ),
-                  MarkerLayer(
-                    markers: withLocation.map((incident) {
-                      final color = _priorityColor(incident.priority);
-                      return Marker(
-                        point: LatLng(incident.latitude!, incident.longitude!),
-                        width: 44,
-                        height: 44,
-                        child: IconButton(
-                          tooltip: incident.type,
-                          onPressed: () => _showIncident(incident),
-                          icon: Icon(Icons.location_on, color: color, size: 38),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const RichAttributionWidget(
-                    attributions: [
-                      TextSourceAttribution('OpenStreetMap contributors'),
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: const MapOptions(
+                      initialCenter: LatLng(10.391, -75.4794),
+                      initialZoom: 12,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName:
+                            'com.cartagenasegura.cartagena_segura',
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          ...withLocation.map((incident) {
+                            final color = _priorityColor(incident.priority);
+                            return Marker(
+                              point: LatLng(
+                                incident.latitude!,
+                                incident.longitude!,
+                              ),
+                              width: 44,
+                              height: 44,
+                              child: IconButton(
+                                tooltip: incident.type,
+                                onPressed: () => _showIncident(incident),
+                                icon: Icon(
+                                  Icons.location_on,
+                                  color: color,
+                                  size: 38,
+                                ),
+                              ),
+                            );
+                          }),
+                          if (_position case final position?)
+                            Marker(
+                              point: LatLng(
+                                position.latitude,
+                                position.longitude,
+                              ),
+                              width: 44,
+                              height: 44,
+                              child: const Icon(
+                                Icons.my_location,
+                                color: Color(0xFF1D4ED8),
+                                size: 30,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const RichAttributionWidget(
+                        attributions: [
+                          TextSourceAttribution('OpenStreetMap contributors'),
+                        ],
+                      ),
                     ],
+                  ),
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: FilledButton.tonalIcon(
+                      onPressed: _locating ? null : _locateMe,
+                      icon: _locating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.my_location),
+                      label: Text(_locating ? 'Buscando…' : 'Mi ubicación'),
+                    ),
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import CommentsSection from '@/Components/CommentsSection'
 import { useSearchParams } from 'react-router-dom'
 import { incidentService, aiService } from '@/Services/Services'
+import { getCurrentPosition } from '@/Services/Location'
 import {
   AlertTriangle, Plus, X, Loader2, MapPin, Navigation,
   Sparkles, Check, Image, Paperclip, Upload, Eye, Trash2,
@@ -261,18 +262,21 @@ export default function CitizenIncidents() {
   }
 
   /* ── GPS ── */
-  const detectGPS = () => {
-    if (!navigator.geolocation) { toast.error('GPS no soportado'); return }
+  const detectGPS = async () => {
     setGpsLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setForm(f => ({ ...f, latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) }))
-        toast.success('📍 Ubicación GPS detectada')
-        setGpsLoading(false)
-      },
-      () => { toast.error('No se pudo obtener GPS'); setGpsLoading(false) },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+    try {
+      const position = await getCurrentPosition()
+      setForm(f => ({
+        ...f,
+        latitude: position.coords.latitude.toFixed(6),
+        longitude: position.coords.longitude.toFixed(6),
+      }))
+      toast.success('📍 Ubicación GPS detectada')
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setGpsLoading(false)
+    }
   }
 
   /* ── Submit ── */

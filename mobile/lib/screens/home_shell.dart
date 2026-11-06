@@ -32,6 +32,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final api = widget.session.api;
+    final wideLayout = MediaQuery.sizeOf(context).width >= 700;
     final pages = [
       WelcomeScreen(
         session: widget.session,
@@ -112,38 +113,96 @@ class _HomeShellState extends State<HomeShell> {
           const SizedBox(width: 8),
         ],
       ),
-      body: IndexedStack(index: _selectedIndex, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _selectTab,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Reportes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Mapa',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.phone_outlined),
-            selectedIcon: Icon(Icons.phone),
-            label: 'Emergencias',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
-      ),
+      body: wideLayout
+          ? Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _selectTab,
+                  extended: MediaQuery.sizeOf(context).width >= 1000,
+                  labelType: MediaQuery.sizeOf(context).width >= 1000
+                      ? null
+                      : NavigationRailLabelType.all,
+                  destinations: _railDestinations,
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: pages,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : IndexedStack(index: _selectedIndex, children: pages),
+      bottomNavigationBar: wideLayout
+          ? null
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _selectTab,
+              destinations: _navigationDestinations,
+            ),
     );
   }
+
+  static const _navigationDestinations = [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
+      label: 'Inicio',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.assignment_outlined),
+      selectedIcon: Icon(Icons.assignment),
+      label: 'Reportes',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.map_outlined),
+      selectedIcon: Icon(Icons.map),
+      label: 'Mapa',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.phone_outlined),
+      selectedIcon: Icon(Icons.phone),
+      label: 'Emergencias',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: 'Perfil',
+    ),
+  ];
+
+  static const _railDestinations = [
+    NavigationRailDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
+      label: Text('Inicio'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.assignment_outlined),
+      selectedIcon: Icon(Icons.assignment),
+      label: Text('Reportes'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.map_outlined),
+      selectedIcon: Icon(Icons.map),
+      label: Text('Mapa'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.phone_outlined),
+      selectedIcon: Icon(Icons.phone),
+      label: Text('Emergencias'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: Text('Perfil'),
+    ),
+  ];
 }

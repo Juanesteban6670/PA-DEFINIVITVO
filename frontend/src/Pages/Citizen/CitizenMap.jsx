@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { incidentService } from '@/Services/Services'
 import { AlertTriangle, Loader2, Navigation, Layers, MapPin, X } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { getCurrentPosition } from '@/Services/Location'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -39,7 +41,7 @@ const userIcon = L.divIcon({
 
 function FlyTo({ coords }) {
   const map = useMap()
-  useEffect(() => { if (coords) map.flyTo(coords, 16, { animate: true, duration: 1.5 }) }, [coords])
+  useEffect(() => { if (coords) map.flyTo(coords, 16, { animate: true, duration: 1.5 }) }, [coords, map])
   return null
 }
 
@@ -47,39 +49,66 @@ export default function CitizenMap() {
   const [all, setAll]           = useState([])
   const [mine, setMine]         = useState([])
   const [loading, setLoading]   = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filter, setFilter]     = useState('all')
   const [userCoords, setUserCoords] = useState(null)
   const [gpsLoading, setGpsLoading] = useState(false)
   const [flyTo, setFlyTo]       = useState(null)
-  const [selected, setSelected] = useState(null)
 
-  useEffect(() => {
-    Promise.all([
-      incidentService.getAll().then(r => r.data?.data ?? r.data ?? []),
-      incidentService.getMine().then(r => r.data?.data ?? r.data ?? []),
-    ])
-      .then(([a, m]) => { setAll(Array.isArray(a) ? a : []); setMine(Array.isArray(m) ? m : []) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+  const loadIncidents = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const [allResponse, mineResponse] = await Promise.all([
+        incidentService.getAll(),
+        incidentService.getMine(),
+      ])
+      const publicIncidents = allResponse.data?.data ?? allResponse.data ?? []
+      const ownIncidents = mineResponse.data?.data ?? mineResponse.data ?? []
+      setAll(Array.isArray(publicIncidents) ? publicIncidents : [])
+      setMine(Array.isArray(ownIncidents) ? ownIncidents : [])
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const handleLocate = () => {
-    if (!navigator.geolocation) return
+  useEffect(() => {
+    loadIncidents()
+  }, [loadIncidents])
+
+  const handleLocate = async () => {
     setGpsLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      pos => { const c = [pos.coords.latitude, pos.coords.longitude]; setUserCoords(c); setFlyTo(c); setGpsLoading(false) },
-      () => setGpsLoading(false),
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+    try {
+      const position = await getCurrentPosition()
+      const coordinates = [position.coords.latitude, position.coords.longitude]
+      setUserCoords(coordinates)
+      setFlyTo(coordinates)
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setGpsLoading(false)
+    }
   }
 
   const mineIds   = new Set(mine.map(i => i.id))
-  const displayed = (filter === 'mine' ? mine : all).filter(i => i.latitude && i.longitude)
-  const noCoords  = (filter === 'mine' ? mine : all).filter(i => !i.latitude || !i.longitude)
+  const displayed = (filter === 'mine' ? mine : all).filter(i => i.latitude !== null && i.latitude !== undefined && i.longitude !== null && i.longitude !== undefined)
+  const noCoords  = (filter === 'mine' ? mine : all).filter(i => i.latitude == null || i.longitude == null)
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
       <Loader2 size={24} style={{ color: '#3B82F6', animation: 'spin 1s linear infinite' }} />
+    </div>
+  )
+  if (loadError) return (
+    <div role="alert" style={{ display: 'flex', minHeight: 300, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ textAlign: 'center', maxWidth: 360 }}>
+        <AlertTriangle size={32} style={{ color: '#DC6803', margin: '0 auto 12px' }} />
+        <p style={{ fontWeight: 700, color: '#0F172A' }}>No se pudo cargar el mapa</p>
+        <p style={{ marginTop: 6, color: '#64748B', fontSize: 13 }}>Revisa tu conexión e inténtalo de nuevo.</p>
+        <button className="btn-secondary" style={{ marginTop: 14 }} onClick={loadIncidents}>Reintentar</button>
+      </div>
     </div>
   )
 
@@ -116,7 +145,7 @@ export default function CitizenMap() {
       </div>
 
       {/* Map */}
-      <div style={{ position: 'relative', height: 420, margin: '0 0 0 0' }}>
+      <div style={{ position: 'relative', height: 'clamp(320px, 60dvh, 620px)', margin: '0 0 0 0' }}>
         <MapContainer center={CENTER} zoom={13} style={{ height: '100%', width: '100%', zIndex: 0 }} scrollWheelZoom>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -136,9 +165,11 @@ export default function CitizenMap() {
           )}
 
           {displayed.map(inc => (
-            <Marker key={inc.id} position={[inc.latitude, inc.longitude]}
+            <Marker
+              key={inc.id}
+              position={[inc.latitude, inc.longitude]}
               icon={createIcon(PRIORITY_COLOR[inc.priority] ?? '#6B7280', mineIds.has(inc.id))}
-              eventHandlers={{ click: () => setSelected(inc) }}>
+            >
               <Popup>
                 <div style={{ padding: '12px 14px', minWidth: 180 }}>
                   {mineIds.has(inc.id) && (
@@ -169,7 +200,7 @@ export default function CitizenMap() {
         </button>
 
         {/* Stats overlay */}
-        <div style={{ position: 'absolute', top: 12, left: 52, zIndex: 1000, display: 'flex', gap: 6 }}>
+        <div style={{ position: 'absolute', top: 12, left: 52, maxWidth: 'calc(100% - 108px)', zIndex: 1000, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {Object.entries(PRIORITY_COLOR).map(([lvl, color]) => {
             const count = displayed.filter(i => i.priority === lvl).length
             if (!count) return null

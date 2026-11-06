@@ -4,6 +4,7 @@ import '../data/incident_repository.dart';
 import '../data/models.dart';
 import '../data/session_controller.dart';
 import '../theme.dart';
+import 'citizen_chat_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
@@ -95,19 +96,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               onReport: () => widget.onSelectTab(1),
             ),
             const SizedBox(height: 18),
-            Row(
-              children: [
-                for (var index = 0; index < stats.length; index++) ...[
-                  if (index > 0) const SizedBox(width: 8),
-                  Expanded(
-                    child: _StatCard(
-                      stat: stats[index],
-                      loading:
-                          snapshot.connectionState == ConnectionState.waiting,
-                    ),
-                  ),
-                ],
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth < 420 ? 2 : 4;
+                final cardWidth =
+                    (constraints.maxWidth - 8 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final stat in stats)
+                      SizedBox(
+                        width: cardWidth,
+                        child: _StatCard(
+                          stat: stat,
+                          loading:
+                              snapshot.connectionState ==
+                              ConnectionState.waiting,
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
             if (snapshot.hasError) ...[
               const SizedBox(height: 12),
@@ -141,6 +151,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               subtitle: 'Encuentra contactos de ayuda',
               accent: AppColors.red,
               onTap: () => widget.onSelectTab(3),
+            ),
+            const SizedBox(height: 10),
+            _QuickAction(
+              icon: Icons.chat_bubble_outline,
+              label: 'Asistente ciudadano',
+              subtitle: 'Resuelve dudas sobre seguridad',
+              accent: AppColors.brightBlue,
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => CitizenChatScreen(session: widget.session),
+                ),
+              ),
             ),
             const SizedBox(height: 18),
             Container(

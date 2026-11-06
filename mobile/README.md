@@ -9,11 +9,14 @@
 - Inicio con resumen de reportes propios y accesos rápidos.
 - Lista de reportes propios con estado, prioridad y detalle.
 - Creación de reportes con ubicación escrita y GPS opcional.
-- Mapa de incidentes públicos con OpenStreetMap.
+- Mapa de incidentes públicos con OpenStreetMap, marcadores por prioridad y centrado en tu ubicación cuando otorgas permiso.
 - Contactos de emergencia desde la API y llamada al 123 o a contactos disponibles.
+- Asistente ciudadano conectado al endpoint autenticado existente del backend.
 - Perfil de solo lectura y cierre de sesión. El backend actual no ofrece una operación ciudadana para editar el perfil.
 
 El mapa, las teselas, la autenticación y las operaciones de datos requieren conexión. La app no guarda borradores de reportes sin conexión. El formulario no adjunta fotografías todavía.
+
+La ubicación es opcional: puedes escribir una dirección sin dar permiso. Si los servicios del teléfono están apagados, se deniega el permiso o este quedó bloqueado, la app informa cómo continuar y ofrece abrir los ajustes del sistema. El chatbot utiliza la sesión iniciada y el endpoint `/api/Ai/Chat`; la clave del proveedor de IA permanece configurada en el backend.
 
 ## Requisitos
 
@@ -41,7 +44,7 @@ flutter analyze
 flutter test
 ```
 
-Las pruebas usan `MockClient` y verifican autenticación, restauración de sesión, contratos de solicitud, navegación y actualización del mapa/lista después de reportar. También revisa los flujos reales en Android/iOS, en especial permisos GPS, llamadas y almacenamiento seguro.
+Las pruebas usan `MockClient` y verifican autenticación, restauración de sesión, contratos de solicitud, navegación y actualización del mapa/lista después de reportar. También revisa los flujos reales en Android/iOS y tamaños de pantalla compactos y tabletas, en especial permisos GPS, llamadas, teclado y almacenamiento seguro.
 
 ## Compilar
 

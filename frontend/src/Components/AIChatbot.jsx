@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, Sparkles, Bot, User, AlertCircle, Trash2, ChevronDown } from 'lucide-react'
 import { aiService } from '@/Services/Services'
 import useAuthStore from '@/Store/AuthStore'
@@ -19,16 +19,12 @@ function avatarColor(name) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-const WELCOME = {
-  role: 'assistant',
-  content: '¡Hola! 👋 Soy el **Agente Inteligente de Cartagena Segura**. Mi misión es asistirte en la gestión de incidentes y seguridad ciudadana.\n\n¿En qué puedo apoyarte hoy?\n\n• Reportar un incidente\n• Consultar zonas de riesgo\n• Protocolos de emergencia',
-}
-
-function fmt(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br/>')
-    .replace(/• /g, '&bull;&nbsp;')
+function renderMessage(text) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => (
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : part
+  ))
 }
 
 function genId() { return 'cs-' + Math.random().toString(36).slice(2) }
@@ -59,11 +55,13 @@ export default function AIChatbot() {
     }
   }, [open, msgs])
 
-  const send = async () => {
-    const text = input.trim()
+  const send = async (retryText = null) => {
+    const text = retryText ?? input.trim()
     if (!text || loading) return
-    setMsgs(p => [...p, { role: 'user', content: text }])
-    setInput('')
+    if (retryText == null) {
+      setMsgs(p => [...p, { role: 'user', content: text }])
+      setInput('')
+    }
     setLoading(true)
     try {
       // Inyectamos el nombre del usuario en el mensaje para que la IA lo sepa si el backend no lo hace aún
@@ -74,8 +72,14 @@ export default function AIChatbot() {
       })
       const reply = res.data?.reply ?? res.data?.message ?? res.data ?? 'Sin respuesta.'
       setMsgs(p => [...p, { role: 'assistant', content: typeof reply === 'string' ? reply : JSON.stringify(reply) }])
-    } catch {
-      setMsgs(p => [...p, { role: 'assistant', content: '⚠️ No pude conectarme con el asistente. Intenta de nuevo.', error: true }])
+    } catch (error) {
+      const status = error?.response?.status
+      const message = status === 401
+        ? 'Tu sesión venció. Inicia sesión de nuevo para continuar.'
+        : status >= 500
+          ? 'El asistente no está disponible en este momento. Intenta más tarde.'
+          : error?.response?.data?.message || 'No pude conectarme con el asistente. Revisa tu conexión e inténtalo de nuevo.'
+      setMsgs(p => [...p, { role: 'assistant', content: `⚠️ ${message}`, error: true, retryText: text }])
     } finally { setLoading(false) }
   }
 
@@ -107,7 +111,7 @@ export default function AIChatbot() {
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={() => setOpen(false)} />
 
           <div className="animate-drawer-slide"
-            style={{ position: 'relative', width: '100%', maxWidth: 400, height: '100%', display: 'flex', flexDirection: 'column', background: '#F8FAFC', boxShadow: '-8px 0 48px rgba(0,0,0,0.2)', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+            style={{ position: 'relative', width: '100%', maxWidth: 400, height: '100dvh', maxHeight: '100dvh', boxSizing: 'border-box', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', display: 'flex', flexDirection: 'column', background: '#F8FAFC', boxShadow: '-8px 0 48px rgba(0,0,0,0.2)', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* Header */}
             <div style={{ padding: '16px 16px 14px', background: 'linear-gradient(135deg, #1E3A5F, #1D4ED8)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
@@ -135,7 +139,7 @@ export default function AIChatbot() {
             </div>
 
             {/* Messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               {msgs.map((msg, i) => (
                 <div key={i} className="animate-chat-slide-in"
                   style={{ display: 'flex', gap: 10, flexDirection: msg.role === 'user' ? 'row-reverse' : 'row', animationDelay: `${Math.min(i * 30, 200)}ms` }}>
@@ -153,8 +157,15 @@ export default function AIChatbot() {
                         : <Bot size={14} style={{ color: '#fff' }} />}
                   </div>
 
-                  <div style={{ maxWidth: '80%', padding: '10px 14px', borderRadius: msg.role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px', fontSize: 13, lineHeight: 1.6, background: msg.role === 'user' ? 'linear-gradient(135deg, #1D4ED8, #3B82F6)' : msg.error ? '#FEF2F2' : '#fff', color: msg.role === 'user' ? '#fff' : msg.error ? '#991B1B' : '#1E293B', border: msg.role === 'user' ? 'none' : msg.error ? '1px solid #FECACA' : '1px solid #F1F5F9', boxShadow: msg.role === 'user' ? '0 4px 12px rgba(29,78,216,0.2)' : '0 1px 4px rgba(0,0,0,0.06)' }}
-                    dangerouslySetInnerHTML={{ __html: fmt(msg.content) }} />
+                  <div style={{ maxWidth: '80%', minWidth: 0, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', padding: '10px 14px', borderRadius: msg.role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px', fontSize: 13, lineHeight: 1.6, background: msg.role === 'user' ? 'linear-gradient(135deg, #1D4ED8, #3B82F6)' : msg.error ? '#FEF2F2' : '#fff', color: msg.role === 'user' ? '#fff' : msg.error ? '#991B1B' : '#1E293B', border: msg.role === 'user' ? 'none' : msg.error ? '1px solid #FECACA' : '1px solid #F1F5F9', boxShadow: msg.role === 'user' ? '0 4px 12px rgba(29,78,216,0.2)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                    {msg.role === 'assistant' ? renderMessage(msg.content) : msg.content}
+                  </div>
+                  {msg.retryText && (
+                    <button onClick={() => send(msg.retryText)} disabled={loading}
+                      style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', border: 'none', background: 'transparent', color: '#1D4ED8', fontSize: 12, fontWeight: 700, padding: '4px 8px', cursor: loading ? 'wait' : 'pointer' }}>
+                      Reintentar
+                    </button>
+                  )}
                 </div>
               ))}
 

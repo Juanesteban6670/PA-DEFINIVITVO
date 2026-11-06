@@ -35,6 +35,12 @@ El archivo `.env.example` contiene credenciales exclusivamente locales. `.env` e
 
 La publicación local queda ligada a `127.0.0.1` por seguridad. Para una prueba temporal en una red privada, cambia `WEB_BIND_ADDRESS` en `.env` a `0.0.0.0`, agrega `http://<IP-del-PC>:3000` a `CORS_ALLOWED_ORIGINS`, abre el puerto `WEB_PORT` solo en una red confiable y visita desde el teléfono `http://<IP-del-PC>:3000`. Limita el acceso con el firewall y restaura la configuración al terminar. Las funciones del navegador que requieren contexto seguro, como geolocalización, deben probarse en un despliegue HTTPS real.
 
+### GPS en Safari/iPhone
+
+Safari no permite geolocalización desde una dirección HTTP de red local como `http://192.168.x.x:3000`, aunque el iPhone y el servidor estén en la misma Wi‑Fi. La aplicación mostrará un aviso para abrir una dirección HTTPS; no es un fallo del permiso GPS ni se debe intentar eludir la política del navegador. Para probar en un iPhone usa el dominio HTTPS de staging/producción con certificado válido. En pruebas HTTPS locales, el certificado debe ser confiable también para iOS y CORS debe permitir el origen exacto. Los reportes permiten escribir la dirección aunque no se comparta la ubicación.
+
+En Flutter nativo, habilita Servicios de Localización y concede permiso “Mientras se usa la app” a Cartagena Segura. Si el permiso quedó bloqueado, usa **Abrir ajustes** desde el aviso de la app; la ubicación es opcional y puede usarse una referencia escrita.
+
 ## Despliegue en un VPS con HTTPS
 
 1. Instala Docker Engine y Compose v2 en el VPS y clona el repositorio.
