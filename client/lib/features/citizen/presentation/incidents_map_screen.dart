@@ -9,6 +9,9 @@ import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_filters.dart';
 import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/core/data/safe_route_service.dart';
+import 'package:cartagena_segura/features/citizen/presentation/destination_search_dialog.dart';
+import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.dart';
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
 
 class IncidentsMapScreen extends StatefulWidget {
@@ -33,6 +36,12 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   String? _typeFilter;
   String? _statusFilter;
   String? _priorityFilter;
+
+  List<SafeRoute>? _safeRoutes;
+  int _selectedRouteIndex = 0;
+  DestinationPreset? _selectedDestination;
+  bool _isRouting = false;
+  bool _isSelectingDestinationOnMap = false;
 
   @override
   void initState() {
@@ -146,6 +155,117 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _openDestinationSearch() async {
+    final start = _position != null
+        ? LatLng(_position!.latitude, _position!.longitude)
+        : null;
+
+    final result = await showDialog<dynamic>(
+      context: context,
+      builder: (context) => DestinationSearchDialog(currentLocation: start),
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result == 'CHOOSE_ON_MAP') {
+      setState(() => _isSelectingDestinationOnMap = true);
+      _showMessage('Toca cualquier punto del mapa para fijar tu destino');
+      return;
+    }
+
+    if (result is DestinationPreset) {
+      await _startRouting(result);
+    }
+  }
+
+  void _onMapTap(LatLng point) {
+    if (_isSelectingDestinationOnMap) {
+      setState(() => _isSelectingDestinationOnMap = false);
+      final dest = DestinationPreset(
+        name: 'Punto fijado en el mapa',
+        description:
+            '${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)}',
+        location: point,
+        category: 'Personalizado',
+      );
+      _startRouting(dest);
+    }
+  }
+
+  Future<void> _startRouting(DestinationPreset destination) async {
+    setState(() {
+      _isRouting = true;
+      _selectedDestination = destination;
+    });
+
+    LatLng origin;
+    if (_position != null) {
+      origin = LatLng(_position!.latitude, _position!.longitude);
+    } else {
+      try {
+        final pos = await LocationService.currentPosition();
+        if (mounted) setState(() => _position = pos);
+        origin = LatLng(pos.latitude, pos.longitude);
+      } catch (_) {
+        origin = const LatLng(10.4236, -75.5478);
+      }
+    }
+
+    try {
+      final currentIncidents = await _incidents;
+      final routes = await SafeRouteService.calculateRoutes(
+        origin: origin,
+        destination: destination.location,
+        incidents: currentIncidents,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _safeRoutes = routes;
+        _selectedRouteIndex = 0;
+      });
+
+      _centerRoute();
+    } catch (e) {
+      if (mounted) {
+        _showMessage('No fue posible calcular las rutas seguras: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRouting = false);
+      }
+    }
+  }
+
+  void _centerRoute() {
+    if (_safeRoutes == null || _safeRoutes!.isEmpty) return;
+    final active = _safeRoutes![_selectedRouteIndex];
+    if (active.points.isEmpty) return;
+
+    final bounds = LatLngBounds.fromPoints(active.points);
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.fromLTRB(40, 80, 40, 200),
+      ),
+    );
+  }
+
+  void _closeRoute() {
+    setState(() {
+      _safeRoutes = null;
+      _selectedDestination = null;
+      _selectedRouteIndex = 0;
+      _isRouting = false;
+    });
+  }
+
+  Color _routeColor(SafetyLevel level) => switch (level) {
+    SafetyLevel.safe => const Color(0xFF10B981),
+    SafetyLevel.moderate => const Color(0xFFF59E0B),
+    SafetyLevel.risky => const Color(0xFFEF4444),
+  };
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Incident>>(
@@ -225,9 +345,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 children: [
                   FlutterMap(
                     mapController: _mapController,
-                    options: const MapOptions(
-                      initialCenter: LatLng(10.391, -75.4794),
+                    options: MapOptions(
+                      initialCenter: const LatLng(10.391, -75.4794),
                       initialZoom: 12,
+                      onTap: (tapPosition, point) => _onMapTap(point),
                     ),
                     children: [
                       TileLayer(
@@ -236,6 +357,79 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         userAgentPackageName:
                             'com.cartagenasegura.cartagena_segura',
                       ),
+                      if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
+                        PolylineLayer(
+                          polylines: [
+                            for (var i = 0; i < routes.length; i++)
+                              if (i != _selectedRouteIndex)
+                                Polyline(
+                                  points: routes[i].points,
+                                  strokeWidth: 4.0,
+                                  color: const Color(0xFF94A3B8),
+                                  borderColor: Colors.white,
+                                  borderStrokeWidth: 1.0,
+                                ),
+                            Polyline(
+                              points: routes[_selectedRouteIndex].points,
+                              strokeWidth: 6.0,
+                              color: _routeColor(routes[_selectedRouteIndex].safetyLevel),
+                              borderColor: Colors.white,
+                              borderStrokeWidth: 2.0,
+                            ),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: routes[_selectedRouteIndex].points.first,
+                              width: 36,
+                              height: 36,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1D4ED8),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                ),
+                                child: const Icon(Icons.navigation, color: Colors.white, size: 18),
+                              ),
+                            ),
+                            Marker(
+                              point: routes[_selectedRouteIndex].points.last,
+                              width: 36,
+                              height: 36,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDC2626),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                ),
+                                child: const Icon(Icons.flag, color: Colors.white, size: 18),
+                              ),
+                            ),
+                            for (final hazard in routes[_selectedRouteIndex].hazardsOnRoute)
+                              Marker(
+                                point: LatLng(hazard.latitude!, hazard.longitude!),
+                                width: 32,
+                                height: 32,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFDC2626), width: 1.5),
+                                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                                  ),
+                                  child: const Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Color(0xFFDC2626),
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                       MarkerLayer(
                         markers: [
                           ...withLocation.map((incident) {
@@ -281,9 +475,103 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       ),
                     ],
                   ),
+
+                  // Botón flotante para Trazar Ruta
+                  if (!_isSelectingDestinationOnMap && _safeRoutes == null)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF1D4ED8),
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        onPressed: _openDestinationSearch,
+                        icon: const Icon(Icons.alt_route, size: 18),
+                        label: const Text(
+                          'Trazar Ruta Segura',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    ),
+
+                  // Banner informativo para elegir destino en el mapa
+                  if (_isSelectingDestinationOnMap)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      right: 12,
+                      child: Material(
+                        elevation: 6,
+                        borderRadius: BorderRadius.circular(14),
+                        color: const Color(0xFF0F172A),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.touch_app, color: Colors.amberAccent, size: 20),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text(
+                                  'Toca en el mapa el punto de destino',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                                onPressed: () => setState(() => _isSelectingDestinationOnMap = false),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Indicador de cálculo de rutas
+                  if (_isRouting)
+                    Positioned(
+                      top: 70,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Card(
+                          elevation: 6,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Calculando rutas e índices de seguridad…',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Botón Mi ubicación
                   Positioned(
                     right: 12,
-                    bottom: 12,
+                    bottom: _safeRoutes != null ? 220 : 12,
                     child: FilledButton.tonalIcon(
                       onPressed: _locating ? null : _locateMe,
                       icon: _locating
@@ -296,6 +584,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       label: Text(_locating ? 'Buscando…' : 'Mi ubicación'),
                     ),
                   ),
+
+                  // Tarjeta HUD de la Ruta Segura activa
+                  if (_safeRoutes case final routes? when routes.isNotEmpty)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: SafeRouteSheet(
+                          routes: routes,
+                          selectedRouteIndex: _selectedRouteIndex,
+                          destinationName: _selectedDestination?.name ?? 'Destino seleccionado',
+                          onSelectRoute: (idx) {
+                            setState(() => _selectedRouteIndex = idx);
+                            _centerRoute();
+                          },
+                          onCloseRoute: _closeRoute,
+                          onCenterRoute: _centerRoute,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
