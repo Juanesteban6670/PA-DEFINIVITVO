@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cartagena_segura/data/api_client.dart';
 import 'package:cartagena_segura/data/session_controller.dart';
 import 'package:cartagena_segura/screens/home_shell.dart';
+import 'package:cartagena_segura/screens/password_recovery_screen.dart';
 import 'package:cartagena_segura/screens/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +36,7 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'citizen');
       await tester.enterText(find.byType(TextFormField).at(1), 'wrongpass');
-      await tester.tap(find.text('Iniciar sesión'));
+      await tester.tap(find.text('Ingresar'));
       await tester.pumpAndSettle();
 
       expect(find.text('Credenciales incorrectas'), findsOneWidget);
@@ -76,7 +77,7 @@ void main() {
         MaterialApp(home: SignInScreen(session: session)),
       );
 
-      await tester.tap(find.text('Crear una cuenta ciudadana'));
+      await tester.tap(find.text('¿No tienes cuenta? Regístrate'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Crear cuenta'));
       await tester.tap(find.text('Crear cuenta'));
@@ -107,11 +108,60 @@ void main() {
     });
   });
 
+  testWidgets('requests and completes password recovery', (tester) async {
+    _setMobileViewport(tester);
+    final requests = <String>[];
+    final session = SessionController(
+      api: ApiClient(
+        baseUrl: 'https://api.example.com/api',
+        client: MockClient((request) async {
+          requests.add(request.url.path);
+          return http.Response(
+            '{"success":true,"message":"OK","data":null}',
+            200,
+          );
+        }),
+      ),
+      storage: _MemorySessionStorage(),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: PasswordRecoveryScreen(session: session)),
+    );
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'citizen@example.com',
+    );
+    await tester.tap(find.text('Solicitar enlace'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Si el correo está registrado, recibirás instrucciones para recuperar tu cuenta.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Restablecer').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).at(0), 'reset-token');
+    await tester.enterText(find.byType(TextFormField).at(1), 'new-secret');
+    await tester.tap(find.text('Restablecer contraseña'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Contraseña restablecida. Ya puedes iniciar sesión.'),
+      findsOneWidget,
+    );
+    expect(requests, ['/api/Auth/ForgotPassword', '/api/Auth/ResetPassword']);
+    session.dispose();
+  });
+
   testWidgets(
     'refreshes incidents after a successful report and navigates tabs',
     (tester) async {
       _setMobileViewport(tester);
       var incidentReads = 0;
+      var mineReads = 0;
       final storage = _MemorySessionStorage({
         'session.token': 'valid-token',
         'session.user': jsonEncode({
@@ -123,6 +173,14 @@ void main() {
       final client = MockClient((request) async {
         if (request.method == 'GET' && request.url.path == '/api/Incidents') {
           incidentReads++;
+          return http.Response(
+            '{"success":true,"message":"OK","data":[]}',
+            200,
+          );
+        }
+        if (request.method == 'GET' &&
+            request.url.path == '/api/Incidents/My') {
+          mineReads++;
           return http.Response(
             '{"success":true,"message":"OK","data":[]}',
             200,
@@ -154,8 +212,11 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: HomeShell(session: session)));
       await tester.pump();
       expect(incidentReads, 1);
+      expect(mineReads, 2);
 
-      await tester.tap(find.text('Reportar').last);
+      await tester.tap(find.text('Reportes').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Nuevo'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextFormField).at(0),
@@ -171,6 +232,9 @@ void main() {
         findsOneWidget,
       );
       expect(incidentReads, 2);
+      expect(mineReads, 4);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Emergencias').last);
       await tester.pumpAndSettle();
@@ -179,7 +243,7 @@ void main() {
 
       await tester.tap(find.text('Inicio').last);
       await tester.pumpAndSettle();
-      expect(find.text('Hola, Persona Ciudadana'), findsOneWidget);
+      expect(find.text('Persona Ciudadana'), findsOneWidget);
       session.dispose();
     },
   );

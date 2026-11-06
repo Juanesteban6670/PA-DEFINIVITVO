@@ -5,6 +5,7 @@ import 'data/api_client.dart';
 import 'data/session_controller.dart';
 import 'screens/home_shell.dart';
 import 'screens/sign_in_screen.dart';
+import 'theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,22 +42,7 @@ class _CartagenaAppState extends State<CartagenaApp> {
     return MaterialApp(
       title: 'Cartagena Segura',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF155EEF),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-        useMaterial3: true,
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
+      theme: buildAppTheme(),
       home: AnimatedBuilder(
         animation: _session,
         builder: (context, _) {

@@ -4,12 +4,14 @@ class AppUser {
     required this.username,
     required this.fullName,
     this.email = '',
+    this.phone = '',
   });
 
   final String token;
   final String username;
   final String fullName;
   final String email;
+  final String phone;
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
@@ -17,6 +19,7 @@ class AppUser {
       username: json['username']?.toString() ?? '',
       fullName: json['fullName']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
     );
   }
 
@@ -25,6 +28,7 @@ class AppUser {
     'username': username,
     'fullName': fullName,
     'email': email,
+    'phone': phone,
   };
 }
 
@@ -38,6 +42,8 @@ class Incident {
     this.longitude,
     this.priority = 'MEDIUM',
     this.status = 'PENDING',
+    this.createdAt,
+    this.imageUrls = const [],
   });
 
   final String id;
@@ -48,6 +54,8 @@ class Incident {
   final double? longitude;
   final String priority;
   final String status;
+  final DateTime? createdAt;
+  final List<String> imageUrls;
 
   factory Incident.fromJson(Map<String, dynamic> json) => Incident(
     id: json['id']?.toString() ?? '',
@@ -58,6 +66,12 @@ class Incident {
     longitude: _asDouble(json['longitude']),
     priority: json['priority']?.toString() ?? 'MEDIUM',
     status: json['status']?.toString() ?? 'PENDING',
+    createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+    imageUrls:
+        (json['imageUrls'] as List?)?.whereType<String>().toList(
+          growable: false,
+        ) ??
+        const [],
   );
 
   static double? _asDouble(dynamic value) => value is num

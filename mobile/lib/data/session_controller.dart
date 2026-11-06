@@ -78,6 +78,20 @@ class SessionController extends ChangeNotifier {
     await _saveUser(data);
   }
 
+  Future<void> requestPasswordReset(String email) async {
+    await api.post('Auth/ForgotPassword', {'email': email.trim()});
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    await api.post('Auth/ResetPassword', {
+      'token': token.trim(),
+      'newPassword': newPassword,
+    });
+  }
+
   Future<void> _saveUser(dynamic data) async {
     if (data is! Map<String, dynamic>) {
       throw const FormatException(
@@ -96,6 +110,7 @@ class SessionController extends ChangeNotifier {
           'username': authenticatedUser.username,
           'fullName': authenticatedUser.fullName,
           'email': authenticatedUser.email,
+          'phone': authenticatedUser.phone,
         }),
       );
       await storage.write(_tokenKey, authenticatedUser.token);
@@ -116,9 +131,8 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() => _clearSession(
-    'No se pudo borrar completamente la sesión local',
-  );
+  Future<void> logout() =>
+      _clearSession('No se pudo borrar completamente la sesión local');
 
   Future<void> _handleUnauthorized() => _clearSession(
     'La sesión fue rechazada y no se pudo borrar completamente la sesión local',

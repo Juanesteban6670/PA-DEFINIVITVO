@@ -166,12 +166,14 @@ void main() {
       'username': 'ciudadano',
       'fullName': 'Persona Ciudadana',
       'email': 'persona@example.com',
+      'phone': '3001234567',
       'roles': ['USER'],
     });
 
     expect(user.token, 'jwt-token');
     expect(user.username, 'ciudadano');
     expect(user.fullName, 'Persona Ciudadana');
+    expect(user.phone, '3001234567');
   });
 
   test('parses incident coordinates from JSON numbers', () {
@@ -182,9 +184,17 @@ void main() {
       'location': 'Getsemaní',
       'latitude': 10.42,
       'longitude': -75.55,
+      'priority': 'HIGH',
+      'status': 'IN_PROGRESS',
+      'createdAt': '2026-10-09T16:30:00',
+      'imageUrls': ['https://example.com/evidence.jpg'],
     });
 
     expect(incident.latitude, 10.42);
     expect(incident.longitude, -75.55);
+    expect(incident.priority, 'HIGH');
+    expect(incident.status, 'IN_PROGRESS');
+    expect(incident.createdAt, DateTime(2026, 10, 9, 16, 30));
+    expect(incident.imageUrls, ['https://example.com/evidence.jpg']);
   });
 }

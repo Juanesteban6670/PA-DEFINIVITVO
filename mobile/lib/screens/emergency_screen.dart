@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
+import '../theme.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({required this.api, super.key});
@@ -55,40 +56,53 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       builder: (context, snapshot) {
         final contacts = snapshot.data ?? const <EmergencyContact>[];
         return ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
-            Card(
-              color: const Color(0xFFFEF3F2),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      '¿Necesitas ayuda inmediata?',
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text('Línea nacional de emergencias de Colombia'),
-                    const SizedBox(height: 12),
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFB42318),
-                      ),
-                      onPressed: () => _call('123'),
-                      icon: const Icon(Icons.call),
-                      label: const Text('Llamar al 123'),
-                    ),
-                  ],
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7F1D1D), Color(0xFFDC2626), AppColors.red],
                 ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    '¿Necesitas ayuda inmediata?',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Línea nacional de emergencias de Colombia',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.red,
+                    ),
+                    onPressed: () => _call('123'),
+                    icon: const Icon(Icons.call),
+                    label: const Text('Llamar al 123'),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
             Text(
               'Contactos disponibles',
-              style: Theme.of(context).textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.navy,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 10),
             if (snapshot.connectionState == ConnectionState.waiting)

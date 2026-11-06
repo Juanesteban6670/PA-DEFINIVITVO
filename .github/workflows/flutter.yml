@@ -42,3 +42,6 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug --dart-define=API_BASE_URL=https://example.invalid/api

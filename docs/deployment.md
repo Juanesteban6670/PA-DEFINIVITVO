@@ -5,11 +5,12 @@
 El proyecto se ejecuta con Docker Compose:
 
 - **Frontend:** React/Vite compilado y servido por Nginx.
+- **App móvil:** Flutter nativo para Android/iOS, con la misma identidad visual y API; no sustituye ni modifica la web.
 - **API:** backend Spring Boot.
 - **Datos:** PostgreSQL y MongoDB con volúmenes persistentes y sin puertos expuestos a Internet.
 - **HTTPS opcional/producción:** Caddy termina TLS automáticamente y publica web/API bajo un mismo dominio.
 
-El teléfono Android o iOS abre la URL de la web en Chrome o Safari. No necesita instalar Flutter, crear un APK/IPA ni publicar en una tienda. La PWA precarga los archivos de interfaz y ofrece una página informativa offline; no almacena respuestas del API, datos personales, sesiones ni reportes.
+En teléfono se puede usar la PWA desde el navegador o instalar el cliente Flutter nativo. Ambos consumen el mismo backend. La PWA ofrece una página informativa offline; no almacena respuestas del API, datos personales, sesiones ni reportes.
 
 ## Requisitos
 
@@ -48,7 +49,9 @@ La publicación local queda ligada a `127.0.0.1` por seguridad. Para una prueba 
    ```
 
 6. Visita `https://<tu-dominio>`. Caddy solicitará y renovará los certificados TLS automáticamente. La API se sirve en el mismo origen bajo `/api`; el navegador no necesita una URL de API diferente.
-7. En el teléfono instala la PWA: en Android abre la URL con Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS abre la URL con Safari y usa **Compartir > Añadir a pantalla de inicio**. HTTPS es necesario para instalación PWA, geolocalización y otras capacidades seguras.
+7. Elige la experiencia móvil:
+   - **PWA:** en Android abre la URL con Chrome y selecciona **Instalar aplicación** o **Añadir a pantalla de inicio**. En iOS abre la URL con Safari y usa **Compartir > Añadir a pantalla de inicio**.
+   - **Flutter nativo:** compila la app usando `https://<tu-dominio>/api` como `API_BASE_URL`, firma los artefactos con credenciales propias y distribúyelos por los canales oficiales de Android/iOS. Consulta [mobile/README.md](../mobile/README.md).
 
 PostgreSQL, MongoDB y la API no publican puertos al host. El frontend solo se publica en loopback y Caddy es el punto de entrada en producción. No habilites puertos de bases de datos en el firewall.
 
@@ -61,7 +64,7 @@ Compose mantiene datos en volúmenes `postgres_data`, `mongo_data`, `uploaded_fi
 - `POSTGRES_*`, `MONGO_*`: bases locales del stack. No publiques los servicios de datos externamente.
 - `JWT_SECRET`: secreto privado aleatorio; nunca reutilices el valor de ejemplo.
 - `GROQ_API_KEY` y `APPS_SCRIPT_URL`: opcionales según las funciones de IA/correo habilitadas.
-- `CORS_ALLOWED_ORIGINS`: orígenes permitidos, separados por comas. En producción indica únicamente la URL web HTTPS.
+- `CORS_ALLOWED_ORIGINS`: orígenes web permitidos, separados por comas. En producción indica únicamente la URL web HTTPS; el cliente Flutter nativo no depende de CORS del navegador.
 - `BASE_URL` y `FRONTEND_URL`: enlaces públicos usados por la API, por ejemplo para archivos y correos.
 - `WEB_PORT`: puerto local de loopback para abrir la aplicación en el propio servidor/desarrollador.
 
@@ -76,4 +79,4 @@ El Docker Compose incluido usa bases de datos autocontenidas y persistentes en e
 
 ## Flutter nativo
 
-`mobile/` permanece como cliente Flutter independiente y opcional. Para el flujo Android/iOS basado en web descrito aquí no se requiere compilar Android ni disponer de macOS/Xcode. La [guía Flutter](../mobile/README.md) se conserva para quien quiera ejecutar ese cliente por separado.
+`mobile/` proporciona los flujos ciudadanos nativos de acceso/registro, inicio, reportes, mapa, emergencias y perfil de solo lectura. En desarrollo con Compose, el backend no publica el puerto 8080 al host; configura Flutter con `http://10.0.2.2:3000/api` en Android Emulator, `http://localhost:3000/api` en Flutter Web sobre el host, o una URL HTTPS pública para producción. La compilación de iOS requiere macOS/Xcode; las cuentas de publicación, certificados Apple y firma Android deben ser aportados por el propietario.

@@ -8,63 +8,64 @@ import 'package:http/testing.dart';
 
 void main() {
   group('SessionController', () {
-    test('logs in, trims the username and persists the returned session', () async {
-      final storage = _FakeSessionStorage();
-      final client = MockClient((request) async {
-        expect(request.url.path, '/api/Auth/Login');
-        expect(
-          jsonDecode(request.body),
-          {'username': 'citizen', 'password': 'secret1'},
+    test(
+      'logs in, trims the username and persists the returned session',
+      () async {
+        final storage = _FakeSessionStorage();
+        final client = MockClient((request) async {
+          expect(request.url.path, '/api/Auth/Login');
+          expect(jsonDecode(request.body), {
+            'username': 'citizen',
+            'password': 'secret1',
+          });
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'message': 'Login exitoso',
+              'data': {
+                'token': 'login-token',
+                'username': 'citizen',
+                'fullName': 'Persona Ciudadana',
+                'email': 'citizen@example.com',
+              },
+            }),
+            200,
+          );
+        });
+        final session = SessionController(
+          api: ApiClient(
+            baseUrl: 'https://api.example.com/api',
+            client: client,
+          ),
+          storage: storage,
         );
-        return http.Response(
-          jsonEncode({
-            'success': true,
-            'message': 'Login exitoso',
-            'data': {
-              'token': 'login-token',
-              'username': 'citizen',
-              'fullName': 'Persona Ciudadana',
-              'email': 'citizen@example.com',
-            },
-          }),
-          200,
-        );
-      });
-      final session = SessionController(
-        api: ApiClient(baseUrl: 'https://api.example.com/api', client: client),
-        storage: storage,
-      );
 
-      await session.login(' citizen ', 'secret1');
+        await session.login(' citizen ', 'secret1');
 
-      expect(session.user?.username, 'citizen');
-      expect(session.api.token, 'login-token');
-      expect(storage.values['session.token'], 'login-token');
-      expect(
-        jsonDecode(storage.values['session.user']!),
-        {
+        expect(session.user?.username, 'citizen');
+        expect(session.api.token, 'login-token');
+        expect(storage.values['session.token'], 'login-token');
+        expect(jsonDecode(storage.values['session.user']!), {
           'username': 'citizen',
           'fullName': 'Persona Ciudadana',
           'email': 'citizen@example.com',
-        },
-      );
-      session.dispose();
-    });
+          'phone': '',
+        });
+        session.dispose();
+      },
+    );
 
     test('registers a citizen and persists the returned session', () async {
       final storage = _FakeSessionStorage();
       final client = MockClient((request) async {
         expect(request.url.path, '/api/Auth/Register');
-        expect(
-          jsonDecode(request.body),
-          {
-            'username': 'newcitizen',
-            'fullName': 'Nombre Completo',
-            'email': 'citizen@example.com',
-            'phone': '3001234567',
-            'password': 'secret1',
-          },
-        );
+        expect(jsonDecode(request.body), {
+          'username': 'newcitizen',
+          'fullName': 'Nombre Completo',
+          'email': 'citizen@example.com',
+          'phone': '3001234567',
+          'password': 'secret1',
+        });
         return http.Response(
           jsonEncode({
             'success': true,
@@ -97,6 +98,42 @@ void main() {
       expect(storage.values['session.token'], 'register-token');
       session.dispose();
     });
+
+    test(
+      'requests and completes a password reset using the backend contract',
+      () async {
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/Auth/ForgotPassword') {
+            expect(jsonDecode(request.body), {'email': 'citizen@example.com'});
+          } else {
+            expect(request.url.path, '/api/Auth/ResetPassword');
+            expect(jsonDecode(request.body), {
+              'token': 'reset-token',
+              'newPassword': 'new-secret',
+            });
+          }
+          return http.Response(
+            '{"success":true,"message":"OK","data":null}',
+            200,
+          );
+        });
+        final session = SessionController(
+          api: ApiClient(
+            baseUrl: 'https://api.example.com/api',
+            client: client,
+          ),
+          storage: _FakeSessionStorage(),
+        );
+
+        await session.requestPasswordReset(' citizen@example.com ');
+        await session.resetPassword(
+          token: ' reset-token ',
+          newPassword: 'new-secret',
+        );
+
+        session.dispose();
+      },
+    );
 
     test('keeps logged out when authentication is rejected', () async {
       final storage = _FakeSessionStorage();
@@ -131,8 +168,7 @@ void main() {
     });
 
     test('does not activate session when secure storage write fails', () async {
-      final storage = _FakeSessionStorage()
-        ..failWriteKey = 'session.token';
+      final storage = _FakeSessionStorage()..failWriteKey = 'session.token';
       final client = MockClient(
         (_) async => http.Response(
           jsonEncode({
@@ -163,30 +199,35 @@ void main() {
       session.dispose();
     });
 
-    test('rejects malformed authentication data without saving a session',
-        () async {
-      final storage = _FakeSessionStorage();
-      final client = MockClient(
-        (_) async => http.Response(
-          '{"success":true,"message":"OK","data":{"username":"citizen"}}',
-          200,
-        ),
-      );
-      final session = SessionController(
-        api: ApiClient(baseUrl: 'https://api.example.com/api', client: client),
-        storage: storage,
-      );
+    test(
+      'rejects malformed authentication data without saving a session',
+      () async {
+        final storage = _FakeSessionStorage();
+        final client = MockClient(
+          (_) async => http.Response(
+            '{"success":true,"message":"OK","data":{"username":"citizen"}}',
+            200,
+          ),
+        );
+        final session = SessionController(
+          api: ApiClient(
+            baseUrl: 'https://api.example.com/api',
+            client: client,
+          ),
+          storage: storage,
+        );
 
-      await expectLater(
-        session.login('citizen', 'secret1'),
-        throwsA(isA<FormatException>()),
-      );
+        await expectLater(
+          session.login('citizen', 'secret1'),
+          throwsA(isA<FormatException>()),
+        );
 
-      expect(session.user, isNull);
-      expect(session.api.token, isNull);
-      expect(storage.values, isEmpty);
-      session.dispose();
-    });
+        expect(session.user, isNull);
+        expect(session.api.token, isNull);
+        expect(storage.values, isEmpty);
+        session.dispose();
+      },
+    );
 
     test('clears persisted session after the API rejects its token', () async {
       final storage = _FakeSessionStorage({

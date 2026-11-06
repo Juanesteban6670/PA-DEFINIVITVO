@@ -3,9 +3,9 @@
 
 **Proyecto académico de Computación Móvil**
 
-**Versión de la aplicación móvil analizada:** 1.0.0+1
+**Versión de la aplicación móvil analizada:** 1.1.0+2
 
-**Fecha de análisis:** 9 de octubre de 2026
+**Fecha de análisis:** 5 de noviembre de 2026
 
 > Este documento describe el estado visible en el repositorio. Es una especificación académica del alcance implementado, no un contrato legal ni una promesa de disponibilidad de servicios externos.
 
@@ -27,20 +27,26 @@ La aplicación móvil consume la misma API del proyecto; no implementa un backen
 
 El alcance implementado en `mobile/` comprende:
 
-1. **Registro e inicio de sesión** mediante usuario/contraseña; el formulario de registro solicita nombre, correo y teléfono.
-2. **Persistencia local de sesión:** el token y un subconjunto del perfil se guardan con almacenamiento seguro del dispositivo para restaurar la sesión.
-3. **Inicio ciudadano:** saludo y accesos directos al mapa, al formulario de reporte y a los contactos de emergencia.
-4. **Consulta cartográfica:** listado de incidentes de la API representados en un mapa OpenStreetMap cuando contienen coordenadas.
-5. **Creación de reportes:** categoría, descripción, dirección/referencia, prioridad y coordenadas obtenidas opcionalmente con GPS.
-6. **Contactos de emergencia:** consulta de contactos activos y opción de iniciar una llamada mediante la aplicación telefónica del dispositivo; también se ofrece el número 123.
-7. **Estados de carga, errores y reintento** en las consultas de datos donde se implementaron.
+1. **Acceso, registro y recuperación de contraseña** mediante los endpoints públicos de autenticación.
+2. **Persistencia local de sesión:** el token y los datos básicos de perfil se guardan con almacenamiento seguro del dispositivo para restaurar la sesión.
+3. **Inicio ciudadano:** saludo, resumen de incidentes propios por estado y accesos rápidos.
+4. **Mis reportes:** consulta de incidentes propios, estado, prioridad, fecha y detalles.
+5. **Mapa ciudadano:** incidentes de la API representados en OpenStreetMap cuando contienen coordenadas.
+6. **Creación de reportes:** categoría, descripción, dirección/referencia, prioridad y coordenadas opcionales obtenidas con GPS.
+7. **Emergencias:** consulta de contactos activos, llamada a un contacto o a la línea 123 desde el dispositivo.
+8. **Perfil de solo lectura y cierre de sesión.** El backend no ofrece una operación ciudadana para editar el perfil.
+9. **Estados de carga, errores y reintento** en las consultas de datos donde se implementaron.
+
+La app móvil usa la identidad visual de Cartagena Segura (azul `#1D4ED8`, navy `#0F172A`, fondos claros y recursos de marca compartidos con la web). La interfaz web React/PWA permanece como cliente separado y no se sustituye.
 
 ### 1.4 Reglas funcionales observables
 
 - El acceso al contenido principal depende de que exista una sesión restaurada o iniciada.
 - El formulario requiere usuario y contraseña para iniciar sesión. En registro se requieren usuario, nombre, correo y contraseña; el teléfono es opcional. La validación local de contraseña exige al menos seis caracteres y la validación de correo comprueba que contenga `@`.
+- La recuperación solicita el correo con `POST /Auth/ForgotPassword`; el restablecimiento usa el token enviado por correo y `POST /Auth/ResetPassword`.
+- El resumen y la lista consultan `GET /Incidents/My`, que requiere un token válido. El mapa consulta `GET /Incidents`, público según la configuración HTTP del backend.
 - Un reporte requiere tipo, descripción y dirección o referencia. El uso del GPS es opcional y depende de que el usuario otorgue permisos y tenga habilitados los servicios de ubicación.
-- Después de enviar un reporte correctamente, el mapa vuelve a consultar los incidentes para reflejar los datos actualizados.
+- Después de enviar un reporte correctamente, el mapa, el resumen y la lista vuelven a consultar los incidentes.
 - El reporte envía prioridad elegida y una lista `imageUrls` vacía. No se implementa selección ni carga de fotografías desde la app móvil actual.
 - En el mapa, solo se dibujan marcadores para incidentes con latitud y longitud. Al seleccionar un marcador se muestran descripción, ubicación, estado y prioridad.
 - Los contactos proceden de la API. El número 123 está configurado directamente en la interfaz móvil.
@@ -48,7 +54,7 @@ El alcance implementado en `mobile/` comprende:
 
 ### 1.5 Fuera del alcance móvil actual
 
-No se identifican en la app móvil pantallas de perfil, recuperación/restablecimiento de contraseña, historial personal de reportes, comentarios, chatbot, notificaciones, administración de zonas ni carga de evidencia fotográfica. Algunas de estas capacidades existen en el sistema web o en la API, pero no deben describirse como funcionalidades móviles implementadas.
+No se implementan en la app móvil edición de perfil, comentarios, chatbot, notificaciones, análisis Power BI, administración de zonas ni carga de evidencia fotográfica. Algunas capacidades existen en la web o en la API, pero no deben describirse como funcionalidades móviles implementadas. La administración permanece únicamente en la web.
 
 La app tampoco sustituye servicios oficiales de emergencia, garantiza la atención de reportes ni proporciona operación sin conexión. La disponibilidad de mapas, GPS, telefonía, API y datos depende del dispositivo, permisos, conectividad y servicios externos.
 
@@ -57,10 +63,13 @@ La app tampoco sustituye servicios oficiales de emergencia, garantiza la atenci�
 Para considerar operativo el alcance móvil, en un dispositivo o emulador con conectividad se debe poder:
 
 - completar registro o autenticarse con una cuenta válida;
-- entrar a la navegación principal y cambiar entre Inicio, Mapa, Reportar y Emergencias;
+- entrar a la navegación principal y cambiar entre Inicio, Reportes, Mapa, Emergencias y Perfil;
+- recuperar/restablecer contraseña siguiendo el token enviado por correo;
+- consultar el resumen e historial propio con la cuenta autenticada;
 - obtener la lista de incidentes y visualizar los que tengan coordenadas;
 - enviar un reporte válido con dirección, tipo y descripción;
 - cargar el directorio de contactos y solicitar una llamada a un número seleccionado;
+- consultar la información de perfil recibida al iniciar sesión y cerrar sesión;
 - recibir un mensaje comprensible cuando falte conexión, haya un error de API o no se conceda permiso de ubicación.
 
 El cumplimiento de estas pruebas depende de que la API y la autenticación estén correctamente configuradas. Véase la limitación técnica en la sección 2.5.
@@ -72,10 +81,10 @@ El cumplimiento de estas pruebas depende de que la API y la autenticación esté
 **No hay un Mock Server independiente configurado para la app móvil.** En ejecución, Flutter usa solicitudes HTTP reales hacia el backend Spring Boot. El endpoint base se define al compilar, por ejemplo:
 
 ```text
-http://10.0.2.2:8080/api
+http://10.0.2.2:3000/api
 ```
 
-para el emulador Android, o una URL HTTPS pública para producción.
+para el emulador Android con Docker Compose (el API no publica directamente el puerto 8080 al host), o una URL HTTPS pública para producción.
 
 El proyecto sí usa `MockClient` de `package:http/testing.dart` en pruebas unitarias (`mobile/test/models_test.dart`). Ese cliente falso sustituye el transporte HTTP dentro de una prueba, devuelve una respuesta JSON preparada y permite verificar el parseo y las solicitudes; no es un servidor ejecutable ni abastece datos a la app normal.
 
@@ -101,7 +110,10 @@ Las rutas siguientes se muestran relativas al prefijo `/api`, que debe estar inc
 |---|---|---|
 | `POST /Auth/Login` | Iniciar sesión | Pública |
 | `POST /Auth/Register` | Crear cuenta ciudadana | Pública |
+| `POST /Auth/ForgotPassword` | Solicitar recuperación por correo | Pública |
+| `POST /Auth/ResetPassword` | Restablecer contraseña con token | Pública |
 | `GET /Incidents` | Obtener incidentes para el mapa | Pública según `SecurityConfig` |
+| `GET /Incidents/My` | Resumen e historial de reportes propios | Requiere JWT |
 | `POST /Incidents` | Crear reporte ciudadano | Requiere JWT |
 | `GET /EmergencyContacts` | Cargar directorio de contactos activos | Pública |
 
@@ -217,12 +229,13 @@ Arranque
   ├─ Sin usuario → Acceso / Registro
   └─ Usuario autenticado → Navegación inferior
        ├─ Inicio
+       ├─ Reportes → Crear reporte
        ├─ Mapa
-       ├─ Reportar
-       └─ Emergencias
+       ├─ Emergencias
+       └─ Perfil
 ```
 
-La barra superior de las cuatro vistas autenticadas incluye el nombre de la app y la acción para cerrar sesión. La barra de navegación inferior conserva las cuatro secciones.
+El acceso/registro permite abrir recuperación de contraseña; esa vista solicita el correo o permite introducir el token recibido y la nueva contraseña. La barra superior presenta la marca y el acceso al perfil; el cierre de sesión está en Perfil.
 
 ### 3.2 Inventario de vistas
 
@@ -230,19 +243,20 @@ La barra superior de las cuatro vistas autenticadas incluye el nombre de la app 
 |---|---|---|
 | **Carga/restauración de sesión** | Estado transitorio al inicializar almacenamiento seguro y revisar si existe una sesión previa. | Muestra un indicador de progreso; decide si abre el acceso o la navegación principal. |
 | **Error de restauración** | Informa que no se pudo recuperar la sesión almacenada. | Muestra el detalle del error; no carga la experiencia autenticada. |
-| **Acceso / Registro** | Una misma pantalla alterna entre modo de inicio de sesión y creación de cuenta. Presenta identidad visual, campos de formulario y errores de validación/API. | Envía `POST /Auth/Login` o `POST /Auth/Register`. En registro agrega nombre, correo y teléfono. Permite alternar entre los modos. |
-| **Inicio** | Saludo con el nombre completo (o usuario como alternativa), mensaje de bienvenida, accesos destacados y recordatorio de llamar al 123 ante peligro inmediato. | Atajos a Reportar, Mapa y Emergencias. No realiza por sí sola una consulta de incidentes. |
+| **Acceso / Registro** | Pantalla con fondos, logotipo, panel translúcido, campos y errores de validación/API que conserva el estilo visual de la web. | Envía `POST /Auth/Login` o `POST /Auth/Register`. En registro agrega nombre, correo y teléfono. Permite alternar los modos y abrir recuperación. |
+| **Recuperación** | Formulario para solicitar enlace y vista para pegar token y establecer contraseña nueva. | Envía `POST /Auth/ForgotPassword` y `POST /Auth/ResetPassword`. |
+| **Inicio** | Banner de bienvenida, resumen personal por estado, accesos rápidos y recordatorio de llamar al 123 ante peligro inmediato. | Consulta `GET /Incidents/My`; accesos a Reportes, Mapa y Emergencias. |
+| **Mis reportes** | Lista propia con ubicación, fecha, estados/prioridad y panel de detalle; muestra vacíos, errores y reintento. | Consulta `GET /Incidents/My`; abre el formulario de creación. |
 | **Mapa ciudadano** | Mapa centrado inicialmente en Cartagena con mosaicos de OpenStreetMap, pines coloreados según prioridad y resumen de cantidad de reportes/con ubicación. | Consulta `GET /Incidents`, permite actualizar y seleccionar marcadores para ver detalles. Incidentes sin coordenadas no aparecen como pines. |
-| **Reportar un incidente** | Formulario de tipo, descripción, dirección/referencia y prioridad; muestra las coordenadas si el usuario solicita GPS. | Valida campos obligatorios, solicita permisos de ubicación y envía `POST /Incidents`. Al completar, limpia descripción, dirección y coordenadas, muestra confirmación/error y, ante éxito, actualiza la consulta del mapa. No adjunta fotos. |
-| **Emergencias** | Tarjeta destacada para el 123 y directorio de contactos obtenidos desde la API. | Consulta `GET /EmergencyContacts`, permite reintentar si falla y solicita al sistema operativo abrir el marcador telefónico para llamar. |
+| **Reportar un incidente** | Formulario de tipo, descripción, dirección/referencia y prioridad; muestra las coordenadas si el usuario solicita GPS. | Valida campos obligatorios, solicita permisos de ubicación y envía `POST /Incidents`. Tras éxito, actualiza el mapa, el resumen y la lista. No adjunta fotos. |
+| **Emergencias** | Banner destacado para el 123 y directorio de contactos obtenidos desde la API. | Consulta `GET /EmergencyContacts`, permite reintentar si falla y solicita al sistema operativo abrir el marcador telefónico para llamar. |
+| **Perfil** | Presenta usuario, nombre, correo y teléfono devueltos por la API. | Permite cerrar la sesión segura. No ofrece edición de datos, pues no existe endpoint ciudadano para ese fin. |
 
 ### 3.3 Navegación y componentes
 
 - **Inicio** corresponde al índice `0` de la navegación inferior.
-- **Mapa** corresponde al índice `1`.
-- **Reportar** corresponde al índice `2`.
-- **Emergencias** corresponde al índice `3`.
-- La vista Inicio presenta tarjetas que cambian directamente a las pestañas de Mapa, Reportar y Emergencias.
+- **Reportes** corresponde al índice `1` y permite abrir el formulario de creación.
+- **Mapa**, **Emergencias** y **Perfil** corresponden a los índices `2`, `3` y `4`.
 - Cerrar sesión elimina las claves de sesión guardadas y devuelve al flujo de acceso.
 - El mapa requiere acceso de red tanto a la API como al servicio de teselas de OpenStreetMap.
 

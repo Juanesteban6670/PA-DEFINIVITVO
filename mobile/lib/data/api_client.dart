@@ -17,9 +17,8 @@ class ApiClient {
     required String baseUrl,
     http.Client? client,
     this.requestTimeout = const Duration(seconds: 20),
-  })
-    : _baseUrl = _normalizeBaseUrl(baseUrl),
-      _client = client ?? http.Client();
+  }) : _baseUrl = _normalizeBaseUrl(baseUrl),
+       _client = client ?? http.Client();
 
   final String _baseUrl;
   final http.Client _client;
@@ -81,9 +80,7 @@ class ApiClient {
       if (body != null) {
         request.body = jsonEncode(body);
       }
-      final streamed = await _client
-          .send(request)
-          .timeout(requestTimeout);
+      final streamed = await _client.send(request).timeout(requestTimeout);
       response = await http.Response.fromStream(streamed);
     } on Exception catch (error) {
       throw ApiException('No fue posible conectar con la API: $error');
