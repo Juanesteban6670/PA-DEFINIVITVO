@@ -67,6 +67,8 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile.web
+    volumes:
+      - ./client/nginx.web.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3000}:80"
     depends_on:
