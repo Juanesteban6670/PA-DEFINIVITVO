@@ -98,6 +98,15 @@ services:
       - backend
     restart: unless-stopped
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel", "public"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://flutter-web:80
+    depends_on:
+      flutter-web:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   mongo_data:
