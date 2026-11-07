@@ -6,8 +6,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class WelcomeController {
 
-    @GetMapping("/")
-    public String welcome() {
-        return "forward:/Index.html";
+    @GetMapping(value = {
+        "/",
+        "/Login",
+        "/Register",
+        "/ForgotPassword",
+        "/ResetPassword",
+        "/App",
+        "/App/**",
+        "/Admin",
+        "/Admin/**"
+    })
+    public String forwardSpa() {
+        return "forward:/index.html";
     }
 }

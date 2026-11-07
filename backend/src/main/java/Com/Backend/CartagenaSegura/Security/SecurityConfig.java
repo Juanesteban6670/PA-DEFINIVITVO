@@ -56,17 +56,35 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        // ===== Recursos estaticos y raiz - publico =====
+                        // ===== Recursos estaticos y Flutter Web SPA - publico =====
                         .requestMatchers(
                                 "/",
+                                "/index.html",
                                 "/Index.html",
                                 "/*.ico",
-                                "/logo-full.png",
-                                "/AppLogo.png",
+                                "/*.png",
+                                "/*.jpg",
+                                "/*.jpeg",
+                                "/*.svg",
+                                "/*.js",
+                                "/*.json",
+                                "/*.wasm",
+                                "/*.map",
+                                "/canvaskit/**",
+                                "/assets/**",
+                                "/icons/**",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/error"
+                                "/error",
+                                "/Login",
+                                "/Register",
+                                "/ForgotPassword",
+                                "/ResetPassword",
+                                "/App",
+                                "/App/**",
+                                "/Admin",
+                                "/Admin/**"
                         ).permitAll()
                         // ===== Actuator - publico =====
                         .requestMatchers(

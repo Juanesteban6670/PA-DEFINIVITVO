@@ -21,6 +21,7 @@ SELECT setval(pg_get_serial_sequence('roles', 'id'), COALESCE(MAX(id), 1)) FROM 
 INSERT INTO users (username, password, email, full_name, phone, enabled, account_non_locked, created_at)
 VALUES 
     ('admin', '$2a$10$hdsIPyfub2eCquZ19Jx/qeaZiGtMCT8aTRYRXKKNPF/6pQ7hKJ572', 'admin@cartagenasegura.gov.co', 'Comisario Distrital de Cartagena', '3001234567', true, true, NOW()),
+    ('juan123', '$2a$10$hdsIPyfub2eCquZ19Jx/qeaZiGtMCT8aTRYRXKKNPF/6pQ7hKJ572', 'delosriostibochajuanesteban98@gmail.com', 'Juan Esteban de los Ríos', '3001234567', true, true, NOW()),
     ('oficial_cuadrante4', '$2a$10$hdsIPyfub2eCquZ19Jx/qeaZiGtMCT8aTRYRXKKNPF/6pQ7hKJ572', 'cuadrante4@policia.gov.co', 'Subteniente Carlos Mendoza (Cuadrante 4)', '3102427891', true, true, NOW()),
     ('ciudadano_maria', '$2a$10$hdsIPyfub2eCquZ19Jx/qeaZiGtMCT8aTRYRXKKNPF/6pQ7hKJ572', 'maria.castillo@gmail.com', 'María Fernanda Castillo', '3157890123', true, true, NOW()),
     ('ciudadano_camilo', '$2a$10$hdsIPyfub2eCquZ19Jx/qeaZiGtMCT8aTRYRXKKNPF/6pQ7hKJ572', 'camilo.torres@hotmail.com', 'Camilo Andrés Torres', '3184561234', true, true, NOW())

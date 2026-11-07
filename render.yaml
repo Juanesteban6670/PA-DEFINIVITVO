@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: cartagena-segura
+    runtime: docker
+    dockerfilePath: ./Dockerfile.cloud
+    plan: free
+    region: ohio
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: DB_SSLMODE
+        value: "require"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DATABASE
+        value: cartagena_segura
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: APPS_SCRIPT_URL
+        sync: false
