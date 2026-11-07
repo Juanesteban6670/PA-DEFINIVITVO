@@ -4,6 +4,16 @@ Plataforma integral de seguridad ciudadana, monitoreo geoespacial en tiempo real
 
 ---
 
+## 🌐 Despliegue Oficial en Vivo 24/7 (Producción Cloud)
+
+La plataforma se encuentra actualmente desplegada y disponible permanentemente en la nube para acceso público, evaluación docente y pruebas ciudadanas:
+
+* 🚀 **Aplicación Web Oficial:** [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com)
+* 📖 **Documentación Interactiva Swagger:** [https://pa-definivitvo.onrender.com/swagger-ui/index.html](https://pa-definivitvo.onrender.com/swagger-ui/index.html)
+* 🩺 **Monitoreo de Salud del Sistema:** [https://pa-definivitvo.onrender.com/actuator/health](https://pa-definivitvo.onrender.com/actuator/health)
+
+---
+
 ## 🛠️ Stack Tecnológico, Lenguajes y Frameworks
 
 El proyecto está diseñado bajo una arquitectura desacoplada, modular y de alta disponibilidad:
