@@ -71,9 +71,24 @@ public class AuthController {
             )
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
-        AuthResponse response = authService.login(request,
-                httpRequest.getRemoteAddr(), httpRequest.getHeader("User-Agent"));
+        String clientIp = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+        AuthResponse response = authService.login(request, clientIp, userAgent);
         return ResponseEntity.ok(ApiResponse.ok("Login exitoso", response));
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String[] headers = {
+                "CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP",
+                "Proxy-Client-IP", "WL-Proxy-Client-IP"
+        };
+        for (String h : headers) {
+            String ip = request.getHeader(h);
+            if (ip != null && !ip.isBlank() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+        return request.getRemoteAddr();
     }
 
     @PutMapping("/Profile")

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
+import 'package:cartagena_segura/core/data/realtime_service.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/pill_badge.dart';
@@ -154,11 +155,48 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   String _statusFilter = 'ALL';
   String? _openedIncidentId;
   bool _resolvingIncident = false;
+  RealtimeAlertService? _realtimeService;
 
   @override
   void initState() {
     super.initState();
     _data = _load();
+    _realtimeService = RealtimeAlertService(baseUrl: widget.api.baseUrl);
+    _realtimeService?.addIncidentListener(() {
+      if (mounted) setState(() => _data = _load());
+    });
+    _realtimeService?.addAlertListener((alert) {
+      if (!mounted) return;
+      setState(() => _data = _load());
+      final type = alert['type']?.toString() ?? 'SOS';
+      final loc = alert['location']?.toString() ?? 'Cartagena';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFC0392B),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 7),
+          content: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '🚨 ALERTA SOS CRÍTICA: $type en $loc',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+    _realtimeService?.connect();
+  }
+
+  @override
+  void dispose() {
+    _realtimeService?.dispose();
+    super.dispose();
   }
 
   Future<dynamic> _load() {
@@ -463,6 +501,23 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     );
   }
 
+  Future<void> _downloadExecutivePdf(BuildContext context) async {
+    try {
+      _notify(context, 'Generando Informe Oficial PDF de Cartagena...');
+      final bytes = await widget.api.getRawBytes('Reports/Pdf');
+      final base64Pdf = base64Encode(bytes);
+      final dataUri = 'data:application/pdf;base64,$base64Pdf';
+      await launchUrl(Uri.parse(dataUri));
+      if (context.mounted) {
+        _notify(context, 'Informe Ejecutivo PDF descargado correctamente');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _notify(context, 'No se pudo generar el informe PDF: $e');
+      }
+    }
+  }
+
   String _escapeCsv(String val) {
     if (val.contains(',') ||
         val.contains('"') ||
@@ -493,15 +548,31 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
       context,
       title: 'Incidentes',
       subtitle: '${visible.length} registros',
-      action: FilledButton.icon(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.green,
-          foregroundColor: Colors.white,
-          visualDensity: VisualDensity.compact,
-        ),
-        onPressed: () => _exportIncidentsToCsv(context, visible),
-        icon: const Icon(Icons.file_download_outlined, size: 18),
-        label: const Text('Exportar CSV'),
+      action: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFC0392B),
+              foregroundColor: Colors.white,
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () => _downloadExecutivePdf(context),
+            icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
+            label: const Text('Informe PDF'),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.green,
+              foregroundColor: Colors.white,
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () => _exportIncidentsToCsv(context, visible),
+            icon: const Icon(Icons.file_download_outlined, size: 18),
+            label: const Text('Exportar CSV'),
+          ),
+        ],
       ),
       child: Column(
         children: [

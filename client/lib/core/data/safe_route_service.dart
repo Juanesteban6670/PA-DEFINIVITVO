@@ -1,12 +1,23 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
 import 'package:cartagena_segura/core/data/models.dart';
 
 enum SafetyLevel { safe, moderate, risky }
+
+enum TransportMode {
+  driving('Vehicular', 'driving', Icons.directions_car_rounded),
+  walking('Caminata Segura', 'foot', Icons.directions_walk_rounded);
+
+  const TransportMode(this.label, this.osrmProfile, this.icon);
+  final String label;
+  final String osrmProfile;
+  final IconData icon;
+}
 
 class DestinationPreset {
   const DestinationPreset({
@@ -128,11 +139,13 @@ class SafeRouteService {
     required LatLng origin,
     required LatLng destination,
     required List<Incident> incidents,
+    TransportMode mode = TransportMode.driving,
     http.Client? client,
   }) async {
     final httpClient = client ?? http.Client();
+    final profile = mode.osrmProfile;
     final url = Uri.parse(
-      'https://router.project-osrm.org/route/v1/driving/'
+      'https://router.project-osrm.org/route/v1/$profile/'
       '${origin.longitude},${origin.latitude};'
       '${destination.longitude},${destination.latitude}'
       '?overview=full&geometries=geojson&alternatives=true',

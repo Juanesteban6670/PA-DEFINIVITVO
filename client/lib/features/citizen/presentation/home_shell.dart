@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cartagena_segura/core/data/location_service.dart';
+import 'package:cartagena_segura/core/data/realtime_service.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
@@ -36,6 +37,7 @@ class _HomeShellState extends State<HomeShell> {
   late int _selectedIndex = widget.initialIndex;
   final _incidentRefresh = ValueNotifier<int>(0);
   late final ReportDraftStore _drafts;
+  RealtimeAlertService? _realtimeService;
 
   @override
   void initState() {
@@ -44,10 +46,43 @@ class _HomeShellState extends State<HomeShell> {
       storage: widget.session.storage,
       owner: widget.session.user!.username,
     );
+    _realtimeService = RealtimeAlertService(baseUrl: widget.session.api.baseUrl);
+    _realtimeService?.addIncidentListener(() {
+      if (mounted) _incidentRefresh.value++;
+    });
+    _realtimeService?.addAlertListener(_onEmergencyAlertReceived);
+    _realtimeService?.connect();
+  }
+
+  void _onEmergencyAlertReceived(Map<String, dynamic> alert) {
+    if (!mounted) return;
+    _incidentRefresh.value++;
+    final type = alert['type']?.toString() ?? 'SOS';
+    final loc = alert['location']?.toString() ?? 'Cartagena';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFFC0392B),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 6),
+        content: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '🚨 ALERTA SOS EN TIEMPO REAL: $type en $loc',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _realtimeService?.dispose();
     _incidentRefresh.dispose();
     super.dispose();
   }

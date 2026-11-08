@@ -1,9 +1,13 @@
 package Com.Backend.CartagenaSegura.Controller;
 
 import Com.Backend.CartagenaSegura.Dto.SharedDto.ApiResponse;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +21,11 @@ import java.util.*;
 
 @RestController
 @RequestMapping({"/api/Files", "/api/files"})
-@Tag(name = "Archivos", description = "Upload y servicio de imágenes y documentos de incidentes")
+@Tag(name = "Archivos", description = "Upload y servicio de imágenes, audios y documentos de incidentes")
 @SecurityRequirement(name = "bearerAuth")
 public class FileUploadController {
+
+    private static final Logger log = LoggerFactory.getLogger(FileUploadController.class);
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -27,18 +33,36 @@ public class FileUploadController {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
+    @Value("${CLOUDINARY_URL:}")
+    private String cloudinaryUrl;
+
     private static final long MAX_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
+            // Imágenes
             "image/jpeg", "image/png", "image/webp", "image/gif",
+            // Audios de evidencia
+            "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm", "audio/mp4", "audio/x-m4a",
+            // Documentos
             "application/pdf", "text/plain",
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 
+    private Cloudinary initCloudinary() {
+        String envUrl = System.getenv("CLOUDINARY_URL");
+        if (envUrl != null && !envUrl.isBlank()) {
+            return new Cloudinary(envUrl);
+        }
+        if (cloudinaryUrl != null && !cloudinaryUrl.isBlank()) {
+            return new Cloudinary(cloudinaryUrl);
+        }
+        return null;
+    }
+
     @PostMapping("/Upload")
     @Operation(summary = "Subir archivos de evidencia",
-            description = "Sube hasta 5 archivos (imágenes/docs) y retorna las URLs públicas para guardar en el incidente.")
+            description = "Sube hasta 5 archivos (imágenes, audios o docs). Almacena en Cloudinary (si está configurado) o en almacenamiento persistente local.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> upload(
             @RequestParam("files") List<MultipartFile> files) throws IOException {
 
@@ -79,14 +103,42 @@ public class FileUploadController {
 
         Files.createDirectories(dir);
         List<String> urls = new ArrayList<>();
+        Cloudinary cloudinary = initCloudinary();
+
         try {
             for (int i = 0; i < acceptedFiles.size(); i++) {
-                String savedName = UUID.randomUUID() + extensions.get(i);
-                try (InputStream input = acceptedFiles.get(i).getInputStream()) {
-                    Files.copy(input, dir.resolve(savedName));
+                MultipartFile file = acceptedFiles.get(i);
+                boolean uploadedToCloud = false;
+
+                if (cloudinary != null) {
+                    try {
+                        Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                                file.getBytes(),
+                                ObjectUtils.asMap(
+                                        "folder", "cartagena_segura",
+                                        "resource_type", "auto"
+                                )
+                        );
+                        String secureUrl = (String) uploadResult.get("secure_url");
+                        if (secureUrl != null && !secureUrl.isBlank()) {
+                            urls.add(secureUrl);
+                            uploadedToCloud = true;
+                            log.info("Archivo almacenado en Cloudinary CDN: {}", secureUrl);
+                        }
+                    } catch (Exception cloudEx) {
+                        log.warn("Fallo al subir a Cloudinary, usando almacenamiento local de respaldo: {}", cloudEx.getMessage());
+                    }
                 }
-                savedNames.add(savedName);
-                urls.add(baseUrl + "/api/Files/" + savedName);
+
+                // Fallback local si Cloudinary no está configurado o falló
+                if (!uploadedToCloud) {
+                    String savedName = UUID.randomUUID() + extensions.get(i);
+                    try (InputStream input = file.getInputStream()) {
+                        Files.copy(input, dir.resolve(savedName));
+                    }
+                    savedNames.add(savedName);
+                    urls.add(baseUrl + "/api/Files/" + savedName);
+                }
             }
         } catch (IOException error) {
             for (String savedName : savedNames) {
@@ -122,6 +174,18 @@ public class FileUploadController {
             case "image/gif" -> header.length >= 6
                     && (new String(header, 0, 6, java.nio.charset.StandardCharsets.US_ASCII).equals("GIF87a")
                     || new String(header, 0, 6, java.nio.charset.StandardCharsets.US_ASCII).equals("GIF89a"));
+            case "audio/wav" -> header.length >= 12
+                    && new String(header, 0, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("RIFF")
+                    && new String(header, 8, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("WAVE");
+            case "audio/ogg" -> header.length >= 4
+                    && new String(header, 0, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("OggS");
+            case "audio/mpeg", "audio/mp3" -> header.length >= 3
+                    && ((header[0] == 'I' && header[1] == 'D' && header[2] == '3')
+                    || ((header[0] & 0xFF) == 0xFF && (header[1] & 0xE0) == 0xE0));
+            case "audio/webm" -> header.length >= 4
+                    && (header[0] & 0xFF) == 0x1A && (header[1] & 0xFF) == 0x45;
+            case "audio/mp4", "audio/x-m4a" -> header.length >= 8
+                    && new String(header, 4, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("ftyp");
             case "application/pdf" -> header.length >= 5
                     && new String(header, 0, 5, java.nio.charset.StandardCharsets.US_ASCII).equals("%PDF-");
             case "application/msword" -> header.length >= 4
@@ -130,7 +194,7 @@ public class FileUploadController {
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ->
                     header.length >= 4 && header[0] == 0x50 && header[1] == 0x4B;
             case "text/plain" -> !containsNullByte(file);
-            default -> false;
+            default -> true;
         };
     }
 
@@ -153,11 +217,16 @@ public class FileUploadController {
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
             case "image/gif" -> ".gif";
+            case "audio/mpeg", "audio/mp3" -> ".mp3";
+            case "audio/wav" -> ".wav";
+            case "audio/ogg" -> ".ogg";
+            case "audio/webm" -> ".webm";
+            case "audio/mp4", "audio/x-m4a" -> ".m4a";
             case "application/pdf" -> ".pdf";
             case "text/plain" -> ".txt";
             case "application/msword" -> ".doc";
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> ".docx";
-            default -> throw new IllegalArgumentException("Tipo de archivo no permitido");
+            default -> ".bin";
         };
     }
 

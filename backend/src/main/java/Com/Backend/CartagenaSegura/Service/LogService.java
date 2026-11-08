@@ -31,6 +31,12 @@ public class LogService {
     public void logFull(String action, String user, String details,
                         String ipAddress, String userAgent,
                         String entityType, String entityId) {
+        logFull(action, user, details, ipAddress, userAgent, entityType, entityId, LogEntry.LogLevel.INFO);
+    }
+
+    public void logFull(String action, String user, String details,
+                        String ipAddress, String userAgent,
+                        String entityType, String entityId, LogEntry.LogLevel level) {
         LogEntry entry = new LogEntry();
         entry.setAction(action);
         entry.setUser(user);
@@ -39,7 +45,7 @@ public class LogService {
         entry.setUserAgent(userAgent);
         entry.setEntityType(entityType);
         entry.setEntityId(entityId);
-        entry.setLevel(LogEntry.LogLevel.INFO);
+        entry.setLevel(level != null ? level : LogEntry.LogLevel.INFO);
         logEntryRepository.save(entry);
     }
 

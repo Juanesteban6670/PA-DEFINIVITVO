@@ -76,9 +76,17 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request, String ipAddress, String userAgent) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.username(), request.password())
+            );
+        } catch (org.springframework.security.core.AuthenticationException ex) {
+            logService.logFull("LOGIN_FAILED", request.username(),
+                    "Intento de autenticación fallido: credenciales inválidas",
+                    ipAddress, userAgent, "User", null, Com.Backend.CartagenaSegura.Model.LogEntry.LogLevel.WARN);
+            throw ex;
+        }
+
         User user = userRepository.findByUsername(request.username())
                 .or(() -> userRepository.findByEmail(request.username()))
                 .or(() -> userRepository.findByPhone(request.username()))

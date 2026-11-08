@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 public class IncidentService {
@@ -22,17 +23,21 @@ public class IncidentService {
     private final NotificationService notificationService;
     private final ZoneService zoneService;
     private final LogService logService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public IncidentService(IncidentRepository incidentRepository,
                            IncidentHistoryRepository historyRepository,
                            NotificationService notificationService,
                            ZoneService zoneService,
-                           LogService logService) {
+                           LogService logService,
+                           @org.springframework.beans.factory.annotation.Autowired(required = false)
+                           SimpMessagingTemplate messagingTemplate) {
         this.incidentRepository = incidentRepository;
         this.historyRepository = historyRepository;
         this.notificationService = notificationService;
         this.zoneService = zoneService;
         this.logService = logService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Incident create(CreateIncidentRequest req, String reportedBy) {
@@ -85,6 +90,29 @@ public class IncidentService {
         logService.log("CREATE_INCIDENT", reportedBy,
                 "Incidente creado: " + req.type() + " en " + req.location(),
                 "Incident", saved.getId());
+
+        // Emitir alerta en tiempo real a oficiales y administradores via WebSocket
+        if (messagingTemplate != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/incidents", saved);
+                boolean isEmergency = saved.getPriority() == Incident.Priority.CRITICAL
+                        || "SOS".equalsIgnoreCase(saved.getType())
+                        || "BOTON_PANICO".equalsIgnoreCase(saved.getType())
+                        || "PANICO".equalsIgnoreCase(saved.getType());
+                if (isEmergency) {
+                    java.util.Map<String, Object> alert = new java.util.HashMap<>();
+                    alert.put("id", saved.getId());
+                    alert.put("type", saved.getType());
+                    alert.put("location", saved.getLocation());
+                    alert.put("latitude", saved.getLatitude());
+                    alert.put("longitude", saved.getLongitude());
+                    alert.put("priority", saved.getPriority().name());
+                    alert.put("reportedBy", reportedBy);
+                    alert.put("timestamp", java.time.Instant.now().toEpochMilli());
+                    messagingTemplate.convertAndSend("/topic/alerts", alert);
+                }
+            } catch (Exception ignored) {}
+        }
 
         return saved;
     }
@@ -163,6 +191,12 @@ public class IncidentService {
         logService.log("UPDATE_INCIDENT_STATUS", changedBy,
                 "Estado cambiado de " + oldStatus + " a " + req.status(),
                 "Incident", id);
+
+        if (messagingTemplate != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/incidents", updated);
+            } catch (Exception ignored) {}
+        }
 
         return updated;
     }

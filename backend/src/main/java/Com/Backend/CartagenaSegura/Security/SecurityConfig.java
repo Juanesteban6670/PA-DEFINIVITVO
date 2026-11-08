@@ -86,10 +86,14 @@ public class SecurityConfig {
                                 "/Admin",
                                 "/Admin/**"
                         ).permitAll()
-                        // ===== Actuator - publico =====
+                        // ===== Actuator y WebSockets - publico =====
                         .requestMatchers(
                                 "/actuator",
-                                "/actuator/**"
+                                "/actuator/**",
+                                "/ws",
+                                "/ws/**",
+                                "/ws-sockjs",
+                                "/ws-sockjs/**"
                         ).permitAll()
                         // ===== Auth - publico =====
                         .requestMatchers(HttpMethod.PUT, "/api/Auth/Profile").authenticated()
@@ -103,9 +107,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/Files/**", "/api/files/**").permitAll()
                         // ===== Contactos de emergencia - publico =====
                         .requestMatchers("/api/EmergencyContacts", "/api/EmergencyContacts/**").permitAll()
-                        // ===== Solo ADMIN =====
+                        // ===== Solo ADMIN u OFFICER =====
                         .requestMatchers("/api/Admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/Reports/**").hasRole("ADMIN")
+                        .requestMatchers("/api/Reports/**").hasAnyRole("ADMIN", "OFFICER")
                         .requestMatchers("/api/Logs/**").hasRole("ADMIN")
                         .requestMatchers("/api/Ai/Summary", "/api/Ai/Zones/Analysis").hasRole("ADMIN")
                         // ===== Todo lo demás requiere autenticación =====

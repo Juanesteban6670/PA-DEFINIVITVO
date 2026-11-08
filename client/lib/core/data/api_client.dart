@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -26,6 +27,8 @@ class ApiClient {
   final Duration requestTimeout;
   String? token;
   Future<void> Function()? onUnauthorized;
+
+  String get baseUrl => _baseUrl;
 
   void close() => _client.close();
 
@@ -66,6 +69,20 @@ class ApiClient {
   }
 
   Future<dynamic> get(String path) => _send('GET', path);
+
+  Future<Uint8List> getRawBytes(String path) async {
+    final headers = <String, String>{
+      'Accept': 'application/pdf, application/octet-stream, */*',
+    };
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    final response = await _client.get(endpoint(path), headers: headers);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    }
+    throw ApiException('Error al descargar archivo: ${response.statusCode}', statusCode: response.statusCode);
+  }
 
   Future<dynamic> post(String path, Map<String, dynamic> body) =>
       _send('POST', path, body: body);
