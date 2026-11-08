@@ -2,21 +2,25 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:web/web.dart' as web;
+import 'package:http/http.dart' as http;
 
 typedef AlertCallback = void Function(Map<String, dynamic> alert);
 
-/// Servicio de alertas y notificaciones en tiempo real vía WebSockets (con reconexión automática).
+/// Servicio de sincronización y alertas en tiempo real resiliente y 100% multiplataforma.
+/// Monitorea continuamente nuevos incidentes y activaciones de botón de pánico SOS.
 class RealtimeAlertService {
-  RealtimeAlertService({required this.baseUrl});
+  RealtimeAlertService({required this.baseUrl, http.Client? client})
+      : _client = client ?? http.Client();
 
   final String baseUrl;
+  final http.Client _client;
   final List<AlertCallback> _alertListeners = [];
   final List<VoidCallback> _incidentListeners = [];
 
-  web.WebSocket? _socket;
-  Timer? _reconnectTimer;
+  Timer? _pollingTimer;
   bool _isDisposed = false;
+  final Set<String> _knownIds = {};
+  bool _initialized = false;
 
   void addAlertListener(AlertCallback listener) => _alertListeners.add(listener);
   void removeAlertListener(AlertCallback listener) => _alertListeners.remove(listener);
@@ -25,100 +29,81 @@ class RealtimeAlertService {
   void removeIncidentListener(VoidCallback listener) => _incidentListeners.remove(listener);
 
   void connect() {
-    if (!kIsWeb || _isDisposed) return;
-
-    try {
-      final wsUrl = _buildWebSocketUrl();
-      _socket = web.WebSocket(wsUrl);
-
-      _socket?.onopen = (web.Event _) {
-        // Enviar handshake STOMP
-        _socket?.send(
-          'CONNECT\naccept-version:1.2,1.1,1.0\nheart-beat:10000,10000\n\n\u0000',
-        );
-      };
-
-      _socket?.onmessage = (web.MessageEvent event) {
-        final rawData = event.data?.toString() ?? '';
-        _handleStompMessage(rawData);
-      };
-
-      _socket?.onerror = (web.Event _) {
-        _scheduleReconnect();
-      };
-
-      _socket?.onclose = (web.CloseEvent _) {
-        _scheduleReconnect();
-      };
-    } catch (_) {
-      _scheduleReconnect();
-    }
+    if (_isDisposed) return;
+    _checkNow();
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) => _checkNow());
   }
 
-  void _handleStompMessage(String text) {
-    if (text.startsWith('CONNECTED')) {
-      // Suscribirse a tópicos de alertas e incidentes
-      _socket?.send('SUBSCRIBE\nid:sub-0\ndestination:/topic/alerts\n\n\u0000');
-      _socket?.send('SUBSCRIBE\nid:sub-1\ndestination:/topic/incidents\n\n\u0000');
-      return;
-    }
+  Future<void> _checkNow() async {
+    if (_isDisposed) return;
+    try {
+      final url = _buildEndpoint('/api/Incidents');
+      final response = await _client.get(
+        url,
+        headers: {'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 4));
 
-    if (text.startsWith('MESSAGE')) {
-      final parts = text.split('\n\n');
-      if (parts.length > 1) {
-        final body = parts[1].replaceAll('\u0000', '').trim();
-        if (body.isEmpty) return;
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final list = (decoded is Map<String, dynamic> ? decoded['data'] : decoded) as List? ?? const [];
 
-        try {
-          final json = jsonDecode(body);
-          if (json is Map<String, dynamic>) {
-            // Notificar cambio de incidentes
-            for (final listener in _incidentListeners) {
-              listener();
-            }
+        bool hasNew = false;
+        for (final item in list) {
+          if (item is Map<String, dynamic>) {
+            final id = item['id']?.toString() ?? '';
+            if (id.isNotEmpty && !_knownIds.contains(id)) {
+              if (_initialized) {
+                hasNew = true;
+                final priority = item['priority']?.toString().toUpperCase();
+                final type = item['type']?.toString().toUpperCase();
+                final isCritical = priority == 'CRITICAL' ||
+                    type == 'SOS' ||
+                    type == 'BOTON_PANICO' ||
+                    type == 'PANICO';
 
-            // Si es alerta de emergencia
-            if (json.containsKey('priority') &&
-                (json['priority'] == 'CRITICAL' ||
-                 json['type']?.toString().toUpperCase() == 'SOS' ||
-                 json['type']?.toString().toUpperCase() == 'BOTON_PANICO')) {
-              for (final listener in _alertListeners) {
-                listener(json);
+                if (isCritical) {
+                  for (final listener in List.of(_alertListeners)) {
+                    listener(item);
+                  }
+                }
               }
+              _knownIds.add(id);
             }
           }
-        } catch (_) {}
+        }
+
+        if (!_initialized) {
+          _initialized = true;
+        } else if (hasNew) {
+          for (final listener in List.of(_incidentListeners)) {
+            listener();
+          }
+        }
       }
+    } catch (_) {
+      // Ignorar fallas momentáneas de red para mantener resiliencia
     }
   }
 
-  String _buildWebSocketUrl() {
-    var host = baseUrl;
-    if (host.startsWith('https://')) {
-      host = 'wss://${host.substring(8)}';
-    } else if (host.startsWith('http://')) {
-      host = 'ws://${host.substring(7)}';
-    } else if (host.startsWith('/')) {
-      final isSecure = web.window.location.protocol == 'https:';
-      final currentHost = web.window.location.host;
-      host = '${isSecure ? "wss" : "ws"}://$currentHost';
+  Uri _buildEndpoint(String path) {
+    var base = baseUrl.trim();
+    if (base.isEmpty || base == '/api') {
+      return Uri.base.resolve(path);
     }
-    return '$host/ws';
-  }
-
-  void _scheduleReconnect() {
-    if (_isDisposed) return;
-    _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 8), () {
-      if (!_isDisposed) connect();
-    });
+    if (base.endsWith('/')) {
+      base = base.substring(0, base.length - 1);
+    }
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    if (base.startsWith('http://') || base.startsWith('https://')) {
+      return Uri.parse('$base$cleanPath');
+    }
+    return Uri.base.resolve('$base$cleanPath');
   }
 
   void dispose() {
     _isDisposed = true;
-    _reconnectTimer?.cancel();
-    try {
-      _socket?.close();
-    } catch (_) {}
+    _pollingTimer?.cancel();
+    _client.close();
   }
 }
