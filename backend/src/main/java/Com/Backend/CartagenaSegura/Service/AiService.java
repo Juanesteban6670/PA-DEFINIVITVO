@@ -582,7 +582,7 @@ public class AiService {
 
         // 1. Detección de incidentes críticos abiertos
         long openCritical = allIncidents.stream()
-                .filter(i -> i.getPriority() == Incident.Priority.CRITICAL && i.getStatus() != Incident.Status.RESOLVED && i.getStatus() != Incident.Status.CLOSED)
+                .filter(i -> i.getPriority() == Incident.Priority.CRITICAL && i.getStatus() != Incident.Status.RESOLVED && i.getStatus() != Incident.Status.REJECTED)
                 .count();
 
         if (openCritical > 0) {
@@ -630,7 +630,7 @@ public class AiService {
 
         // 3. Análisis de tasa global de resolución
         long total = allIncidents.size();
-        long resolved = allIncidents.stream().filter(i -> i.getStatus() == Incident.Status.RESOLVED || i.getStatus() == Incident.Status.CLOSED).count();
+        long resolved = allIncidents.stream().filter(i -> i.getStatus() == Incident.Status.RESOLVED || i.getStatus() == Incident.Status.REJECTED).count();
         double resRate = total > 0 ? (resolved * 100.0 / total) : 100.0;
 
         if (resRate < 70.0 && total >= 5) {
