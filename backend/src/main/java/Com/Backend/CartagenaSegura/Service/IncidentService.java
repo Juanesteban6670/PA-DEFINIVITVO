@@ -33,6 +33,7 @@ public class IncidentService {
         this(incidentRepository, historyRepository, notificationService, zoneService, logService, null);
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
     public IncidentService(IncidentRepository incidentRepository,
                            IncidentHistoryRepository historyRepository,
                            NotificationService notificationService,
