@@ -2,7 +2,6 @@ package Com.Backend.CartagenaSegura.Controller;
 
 import Com.Backend.CartagenaSegura.Dto.SharedDto.ApiResponse;
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -114,7 +113,7 @@ public class FileUploadController {
                     try {
                         Map<?, ?> uploadResult = cloudinary.uploader().upload(
                                 file.getBytes(),
-                                ObjectUtils.asMap(
+                                Map.of(
                                         "folder", "cartagena_segura",
                                         "resource_type", "auto"
                                 )
