@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -470,5 +472,187 @@ public class AiService {
         }
 
         return new AiDto.ZoneAnalysis(list);
+    }
+
+    /**
+     * PLAN TÁCTICO DE PATRULLAJE INTELIGENTE
+     */
+    public AiDto.PatrolPlanResponse generatePatrolPlan() {
+        List<Zone> zones = zoneRepository.findAll();
+        List<Incident> allIncidents = incidentRepository.findAll();
+
+        List<Incident> activeIncidents = allIncidents.stream()
+                .filter(i -> i.getStatus() == Incident.Status.PENDING || i.getStatus() == Incident.Status.IN_PROGRESS)
+                .toList();
+
+        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        List<AiDto.PatrolAssignment> assignments = new ArrayList<>();
+
+        for (Zone zone : zones) {
+            long zoneActiveCount = activeIncidents.stream()
+                    .filter(i -> zone.getId() != null && zone.getId().equals(i.getZoneId()))
+                    .count();
+
+            String timeWindow;
+            String unitType;
+            String focus;
+            int suggestedUnits;
+
+            String zName = zone.getName().toLowerCase();
+            if (zName.contains("centro") || zName.contains("amurallada")) {
+                timeWindow = "18:00 - 03:00 (Pico turístico y peatonal)";
+                unitType = "Policía de Turismo + Patrulla Motorizada Bivalente";
+                focus = "Plazas principales (Paz, Santo Domingo, Proclamación), baluartes y corredores gastronómicos.";
+                suggestedUnits = zoneActiveCount > 1 ? 4 : 3;
+            } else if (zName.contains("bocagrande") || zName.contains("castillogrande") || zName.contains("laguito")) {
+                timeWindow = "16:00 - 00:00 (Corredor hotelero y playas)";
+                unitType = "Patrulla Motorizada Ligera + Ciclo-patrulla";
+                focus = "Avenida San Martín, malecón de las playas y zonas bancarias.";
+                suggestedUnits = zoneActiveCount > 1 ? 3 : 2;
+            } else if (zName.contains("getsemaní") || zName.contains("getsemani")) {
+                timeWindow = "20:00 - 04:00 (Vida nocturna y eventos)";
+                unitType = "Cuadrante de Proximidad + CAI Móvil";
+                focus = "Plaza de la Trinidad, Calle de la Media Luna y Calle del Arsenal.";
+                suggestedUnits = zoneActiveCount > 1 ? 3 : 2;
+            } else if (zName.contains("olaya") || zName.contains("herrera")) {
+                timeWindow = "14:00 - 23:00 (Sectores residenciales y comercio)";
+                unitType = "Fuerza de Reacción Rápida + Cuadrante Móvil";
+                focus = "Vías arterias, sectores Stella, Boston y corredores de transporte.";
+                suggestedUnits = 4;
+            } else if (zName.contains("pozon") || zName.contains("pozón") || zName.contains("bazurto")) {
+                timeWindow = "05:00 - 18:00 (Comercio mayorista y aglomeraciones)";
+                unitType = "Puesto de Control Fijo + Dron de Reconocimiento CAD";
+                focus = "Intersecciones principales, paraderos de Transcaribe y zonas de carga.";
+                suggestedUnits = zoneActiveCount > 2 ? 4 : 3;
+            } else {
+                timeWindow = "12:00 - 22:00 (Vigilancia preventiva estándar)";
+                unitType = "Patrulla Cuadrante Motorizado";
+                focus = "Parques vecinales, corredores comerciales y accesos principales.";
+                suggestedUnits = switch (zone.getRiskLevel()) {
+                    case CRITICAL -> 4;
+                    case HIGH -> 3;
+                    case MODERATE -> 2;
+                    case LOW -> 1;
+                };
+            }
+
+            assignments.add(new AiDto.PatrolAssignment(
+                    zone.getName(),
+                    zone.getRiskLevel().name(),
+                    timeWindow,
+                    unitType,
+                    focus,
+                    suggestedUnits,
+                    (int) zoneActiveCount
+            ));
+        }
+
+        assignments.sort((a, b) -> Integer.compare(b.getActiveIncidentsCount(), a.getActiveIncidentsCount()));
+
+        long criticalCount = allIncidents.stream().filter(i -> i.getPriority() == Incident.Priority.CRITICAL).count();
+        String threatLevel = criticalCount > 2 ? "ELEVADO - ATENCIÓN PRIORITARIA" : (activeIncidents.size() > 5 ? "MODERADO EN OBSERVACIÓN" : "ESTABLE CONTROLADO");
+
+        List<String> tacticalRecs = List.of(
+                "Desplegar puestos de control dinámicos de 20 minutos en accesos a zonas turísticas para control de parrilleros en motocicleta.",
+                "Sincronizar el patrullaje de cuadrantes con el monitoreo en tiempo real de cámaras domo del CAD Distrital.",
+                "Priorizar cierre de reportes clasificados como 'ROBO' y 'ACCIDENTE' con geolocalización confirmada.",
+                "Activar protocolo de caminatas seguras para turistas en Centro y Getsemaní entre las 20:00 y las 02:00."
+        );
+
+        String executiveNotes = String.format(
+                "Plan táctico generado automáticamente por Cartagena Segura AI para %d sectores distritales. " +
+                "Se registran %d incidentes activos que requieren despacho o seguimiento inmediato. " +
+                "Nivel general de amenaza distrital evaluado como %s.",
+                zones.size(), activeIncidents.size(), threatLevel
+        );
+
+        return new AiDto.PatrolPlanResponse(nowStr, threatLevel, activeIncidents.size(), assignments, tacticalRecs, executiveNotes);
+    }
+
+    /**
+     * DETECCIÓN DE ANOMALÍAS Y PICOS DE RIESGO
+     */
+    public AiDto.AnomalyResponse detectAnomalies() {
+        List<Zone> zones = zoneRepository.findAll();
+        List<Incident> allIncidents = incidentRepository.findAll();
+        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+        List<AiDto.AnomalyItem> anomalies = new ArrayList<>();
+        int anomalyScore = 15;
+
+        // 1. Detección de incidentes críticos abiertos
+        long openCritical = allIncidents.stream()
+                .filter(i -> i.getPriority() == Incident.Priority.CRITICAL && i.getStatus() != Incident.Status.RESOLVED && i.getStatus() != Incident.Status.CLOSED)
+                .count();
+
+        if (openCritical > 0) {
+            anomalyScore += (int) (openCritical * 18);
+            anomalies.add(new AiDto.AnomalyItem(
+                    "Distrito General",
+                    "Incidentes Críticos Sin Resolver",
+                    "CRITICAL",
+                    String.format("Existen %d reportes de prioridad CRÍTICA pendientes de resolución inmediata en la red distrital.", openCritical),
+                    "Despachar unidad de reacción inmediata y notificar al oficial de guardia de la Policía Metropolitana."
+            ));
+        }
+
+        // 2. Detección de concentración de incidentes por zona
+        for (Zone zone : zones) {
+            List<Incident> zoneIncidents = allIncidents.stream()
+                    .filter(i -> zone.getId() != null && zone.getId().equals(i.getZoneId()))
+                    .toList();
+
+            long openCount = zoneIncidents.stream()
+                    .filter(i -> i.getStatus() == Incident.Status.PENDING || i.getStatus() == Incident.Status.IN_PROGRESS)
+                    .count();
+
+            if (openCount >= 3) {
+                anomalyScore += 15;
+                anomalies.add(new AiDto.AnomalyItem(
+                        zone.getName(),
+                        "Saturación de Incidentes Activos",
+                        "HIGH",
+                        String.format("La zona registra %d reportes activos en curso, superando el umbral operacional estándar.", openCount),
+                        "Redistribuir unidades de cuadrantes vecinos para apoyo táctico y acelerar atención."
+                ));
+            }
+
+            if (zone.getRiskLevel() == Zone.RiskLevel.CRITICAL && zoneIncidents.isEmpty()) {
+                anomalies.add(new AiDto.AnomalyItem(
+                        zone.getName(),
+                        "Zona Crítica con Sub-registro Potencial",
+                        "MEDIUM",
+                        "Zona catalogada con riesgo crítico sin reportes ciudadanos recientes en la plataforma.",
+                        "Enviar patrulla comunitaria para incentivar frentes de seguridad y verificar situación."
+                ));
+            }
+        }
+
+        // 3. Análisis de tasa global de resolución
+        long total = allIncidents.size();
+        long resolved = allIncidents.stream().filter(i -> i.getStatus() == Incident.Status.RESOLVED || i.getStatus() == Incident.Status.CLOSED).count();
+        double resRate = total > 0 ? (resolved * 100.0 / total) : 100.0;
+
+        if (resRate < 70.0 && total >= 5) {
+            anomalyScore += 12;
+            anomalies.add(new AiDto.AnomalyItem(
+                    "Operaciones Distritales",
+                    "Baja Tasa de Resolución de Casos",
+                    "HIGH",
+                    String.format("La tasa de resolución se sitúa en %.1f%%, por debajo del objetivo distrital (85%%).", resRate),
+                    "Auditar tiempos de cierre de casos y revisar disponibilidad de patrullas en turnos rotativos."
+            ));
+        }
+
+        anomalyScore = Math.min(Math.max(anomalyScore, 10), 98);
+        String status = anomalyScore >= 60 ? "ALERTA TÁCTICA" : (anomalyScore >= 35 ? "PRECAUCIÓN" : "NORMAL ESTABLE");
+
+        String diagnosis = String.format(
+                "Diagnóstico IA: Se detectaron %d desviaciones/anomalías operativas en Cartagena. " +
+                "Puntuación de riesgo compuesta: %d/100 (Estado: %s).",
+                anomalies.size(), anomalyScore, status
+        );
+
+        return new AiDto.AnomalyResponse(anomalyScore, status, anomalies.size(), anomalies, diagnosis, nowStr);
     }
 }

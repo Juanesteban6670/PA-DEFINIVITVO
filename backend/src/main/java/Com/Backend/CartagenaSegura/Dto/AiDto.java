@@ -71,5 +71,59 @@ public class AiDto {
         private String riskLevel;
         private String recommendation;
     }
+
+    /**
+     * Plan táctico de patrullaje generado por IA
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PatrolPlanResponse {
+        private String generatedAt;
+        private String districtThreatLevel;
+        private int totalActiveIncidents;
+        private List<PatrolAssignment> assignments;
+        private List<String> tacticalRecommendations;
+        private String executiveNotes;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PatrolAssignment {
+        private String zoneName;
+        private String riskLevel;
+        private String priorityTimeWindow;
+        private String unitType;
+        private String focusArea;
+        private int suggestedUnits;
+        private int activeIncidentsCount;
+    }
+
+    /**
+     * Detección de anomalías y picos de riesgo
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnomalyResponse {
+        private int anomalyScore;
+        private String threatStatus;
+        private int totalAnomaliesDetected;
+        private List<AnomalyItem> anomalies;
+        private String systemDiagnosis;
+        private String generatedAt;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnomalyItem {
+        private String quadrantOrCategory;
+        private String anomalyType;
+        private String severity;
+        private String description;
+        private String immediateAction;
+    }
 }
 

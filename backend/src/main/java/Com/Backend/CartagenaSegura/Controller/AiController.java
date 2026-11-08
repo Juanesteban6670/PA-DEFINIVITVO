@@ -53,5 +53,21 @@ public class AiController {
     public ResponseEntity<AiDto.ZoneAnalysis> getZonesAnalysis() {
         return ResponseEntity.ok(aiService.analyzeZones());
     }
+
+    /**
+     * Plan táctico de patrullaje generado por IA (Solo ADMIN)
+     */
+    @GetMapping("/PatrolPlan")
+    public ResponseEntity<AiDto.PatrolPlanResponse> getPatrolPlan() {
+        return ResponseEntity.ok(aiService.generatePatrolPlan());
+    }
+
+    /**
+     * Detección de anomalías y picos de riesgo (Solo ADMIN)
+     */
+    @GetMapping("/Anomalies")
+    public ResponseEntity<AiDto.AnomalyResponse> getAnomalies() {
+        return ResponseEntity.ok(aiService.detectAnomalies());
+    }
 }
 

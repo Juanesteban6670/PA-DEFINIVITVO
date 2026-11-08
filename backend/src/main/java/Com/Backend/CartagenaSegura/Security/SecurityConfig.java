@@ -111,7 +111,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/Admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/Reports/**").hasAnyRole("ADMIN", "OFFICER")
                         .requestMatchers("/api/Logs/**").hasRole("ADMIN")
-                        .requestMatchers("/api/Ai/Summary", "/api/Ai/Zones/Analysis").hasRole("ADMIN")
+                        .requestMatchers("/api/Ai/Summary", "/api/Ai/Zones/Analysis", "/api/Ai/PatrolPlan", "/api/Ai/Anomalies").hasRole("ADMIN")
                         // ===== Todo lo demás requiere autenticación =====
                         .anyRequest().authenticated()
                 )
