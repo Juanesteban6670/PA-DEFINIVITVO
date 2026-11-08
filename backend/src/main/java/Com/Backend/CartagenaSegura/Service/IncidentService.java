@@ -29,6 +29,14 @@ public class IncidentService {
                            IncidentHistoryRepository historyRepository,
                            NotificationService notificationService,
                            ZoneService zoneService,
+                           LogService logService) {
+        this(incidentRepository, historyRepository, notificationService, zoneService, logService, null);
+    }
+
+    public IncidentService(IncidentRepository incidentRepository,
+                           IncidentHistoryRepository historyRepository,
+                           NotificationService notificationService,
+                           ZoneService zoneService,
                            LogService logService,
                            @org.springframework.beans.factory.annotation.Autowired(required = false)
                            SimpMessagingTemplate messagingTemplate) {
