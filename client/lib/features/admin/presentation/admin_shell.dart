@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
@@ -320,6 +319,7 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
               const SizedBox(width: 4),
               LiveStatusBadge(realtimeService: _realtimeService),
               const SizedBox(width: 8),
+              // ignore: use_null_aware_elements
               if (action != null) action,
             ],
           ),

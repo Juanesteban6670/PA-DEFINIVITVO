@@ -650,7 +650,6 @@ class _DynamicAnalyticsDashboardState
   );
 
   Timer? _timer;
-  bool _loading = true;
   DateTime _lastUpdated = DateTime.now();
 
   List<Map<String, dynamic>> _incidents = [];
@@ -681,9 +680,6 @@ class _DynamicAnalyticsDashboardState
   }
 
   Future<void> _fetchRealData({bool silent = false}) async {
-    if (!silent) {
-      setState(() => _loading = true);
-    }
     try {
       final responses = await Future.wait([
         _api.get('Incidents'),
@@ -721,13 +717,8 @@ class _DynamicAnalyticsDashboardState
         _incidents = incidents;
         _zones = zones;
         _lastUpdated = DateTime.now();
-        _loading = false;
       });
-    } catch (_) {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
+    } catch (_) {}
   }
 
   @override
@@ -739,9 +730,6 @@ class _DynamicAnalyticsDashboardState
     final totalCount = _incidents.length;
     final resolvedCount = _incidents
         .where((i) => i['status'] == 'RESOLVED' || i['status'] == 'CLOSED')
-        .length;
-    final pendingCount = _incidents
-        .where((i) => i['status'] == 'PENDING' || i['status'] == 'IN_PROGRESS')
         .length;
     final criticalCount = _incidents
         .where((i) => i['priority'] == 'CRITICAL' || i['priority'] == 'HIGH')
