@@ -24,13 +24,23 @@ public class IncidentService {
     private final ZoneService zoneService;
     private final LogService logService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final WhatsAppNotificationService whatsAppService;
 
     public IncidentService(IncidentRepository incidentRepository,
                            IncidentHistoryRepository historyRepository,
                            NotificationService notificationService,
                            ZoneService zoneService,
                            LogService logService) {
-        this(incidentRepository, historyRepository, notificationService, zoneService, logService, null);
+        this(incidentRepository, historyRepository, notificationService, zoneService, logService, null, null);
+    }
+
+    public IncidentService(IncidentRepository incidentRepository,
+                           IncidentHistoryRepository historyRepository,
+                           NotificationService notificationService,
+                           ZoneService zoneService,
+                           LogService logService,
+                           SimpMessagingTemplate messagingTemplate) {
+        this(incidentRepository, historyRepository, notificationService, zoneService, logService, messagingTemplate, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -40,13 +50,16 @@ public class IncidentService {
                            ZoneService zoneService,
                            LogService logService,
                            @org.springframework.beans.factory.annotation.Autowired(required = false)
-                           SimpMessagingTemplate messagingTemplate) {
+                           SimpMessagingTemplate messagingTemplate,
+                           @org.springframework.beans.factory.annotation.Autowired(required = false)
+                           WhatsAppNotificationService whatsAppService) {
         this.incidentRepository = incidentRepository;
         this.historyRepository = historyRepository;
         this.notificationService = notificationService;
         this.zoneService = zoneService;
         this.logService = logService;
         this.messagingTemplate = messagingTemplate;
+        this.whatsAppService = whatsAppService;
     }
 
     public Incident create(CreateIncidentRequest req, String reportedBy) {
@@ -100,14 +113,15 @@ public class IncidentService {
                 "Incidente creado: " + req.type() + " en " + req.location(),
                 "Incident", saved.getId());
 
+        boolean isEmergency = saved.getPriority() == Incident.Priority.CRITICAL
+                || "SOS".equalsIgnoreCase(saved.getType())
+                || "BOTON_PANICO".equalsIgnoreCase(saved.getType())
+                || "PANICO".equalsIgnoreCase(saved.getType());
+
         // Emitir alerta en tiempo real a oficiales y administradores via WebSocket
         if (messagingTemplate != null) {
             try {
                 messagingTemplate.convertAndSend("/topic/incidents", saved);
-                boolean isEmergency = saved.getPriority() == Incident.Priority.CRITICAL
-                        || "SOS".equalsIgnoreCase(saved.getType())
-                        || "BOTON_PANICO".equalsIgnoreCase(saved.getType())
-                        || "PANICO".equalsIgnoreCase(saved.getType());
                 if (isEmergency) {
                     java.util.Map<String, Object> alert = new java.util.HashMap<>();
                     alert.put("id", saved.getId());
@@ -120,6 +134,13 @@ public class IncidentService {
                     alert.put("timestamp", java.time.Instant.now().toEpochMilli());
                     messagingTemplate.convertAndSend("/topic/alerts", alert);
                 }
+            } catch (Exception ignored) {}
+        }
+
+        // Despachar alerta automática de WhatsApp para emergencias críticas
+        if (isEmergency && whatsAppService != null) {
+            try {
+                whatsAppService.sendEmergencyIncidentAlert(saved);
             } catch (Exception ignored) {}
         }
 
