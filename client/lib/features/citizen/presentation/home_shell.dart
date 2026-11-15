@@ -195,8 +195,11 @@ class _HomeShellState extends State<HomeShell> {
               ],
             ),
             actions: [
-              LiveStatusBadge(realtimeService: _realtimeService, compact: true),
-              const SizedBox(width: 4),
+              if (wideLayout) ...[
+                LiveStatusBadge(
+                    realtimeService: _realtimeService, compact: true),
+                const SizedBox(width: 4),
+              ],
               // Botón SOS de Pánico
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -219,8 +222,10 @@ class _HomeShellState extends State<HomeShell> {
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
-              const LanguageToggleButton(),
+              if (wideLayout) ...[
+                const SizedBox(width: 4),
+                const LanguageToggleButton(),
+              ],
               const SizedBox(width: 4),
               const ThemeToggleButton(),
               NotificationsBell(
