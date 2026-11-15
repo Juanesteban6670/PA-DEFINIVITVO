@@ -36,13 +36,13 @@ class AppUser {
   }
 
   Map<String, dynamic> toJson() => {
-    'token': token,
-    'username': username,
-    'fullName': fullName,
-    'email': email,
-    'phone': phone,
-    'roles': roles,
-  };
+        'token': token,
+        'username': username,
+        'fullName': fullName,
+        'email': email,
+        'phone': phone,
+        'roles': roles,
+      };
 }
 
 class Incident {
@@ -71,21 +71,20 @@ class Incident {
   final List<String> imageUrls;
 
   factory Incident.fromJson(Map<String, dynamic> json) => Incident(
-    id: json['id']?.toString() ?? '',
-    type: json['type']?.toString() ?? 'Incidente',
-    description: json['description']?.toString() ?? '',
-    location: json['location']?.toString() ?? '',
-    latitude: _asDouble(json['latitude']),
-    longitude: _asDouble(json['longitude']),
-    priority: json['priority']?.toString() ?? 'MEDIUM',
-    status: json['status']?.toString() ?? 'PENDING',
-    createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
-    imageUrls:
-        (json['imageUrls'] as List?)?.whereType<String>().toList(
-          growable: false,
-        ) ??
-        const [],
-  );
+        id: json['id']?.toString() ?? '',
+        type: json['type']?.toString() ?? 'Incidente',
+        description: json['description']?.toString() ?? '',
+        location: json['location']?.toString() ?? '',
+        latitude: _asDouble(json['latitude']),
+        longitude: _asDouble(json['longitude']),
+        priority: json['priority']?.toString() ?? 'MEDIUM',
+        status: json['status']?.toString() ?? 'PENDING',
+        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+        imageUrls: (json['imageUrls'] as List?)?.whereType<String>().toList(
+                  growable: false,
+                ) ??
+            const [],
+      );
 
   static double? _asDouble(dynamic value) => value is num
       ? value.toDouble()

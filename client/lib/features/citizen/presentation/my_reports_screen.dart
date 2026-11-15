@@ -245,7 +245,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             children: [
               Text(
                 incident.type,
-                style: Theme.of(context).textTheme.titleLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 10),
@@ -303,12 +305,10 @@ class _ReportsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pending = incidents.where((item) => item.status == 'PENDING').length;
-    final active = incidents
-        .where((item) => item.status == 'IN_PROGRESS')
-        .length;
-    final resolved = incidents
-        .where((item) => item.status == 'RESOLVED')
-        .length;
+    final active =
+        incidents.where((item) => item.status == 'IN_PROGRESS').length;
+    final resolved =
+        incidents.where((item) => item.status == 'RESOLVED').length;
     return Row(
       children: [
         _SummaryPill(label: '$pending pendientes', color: AppColors.amber),
@@ -329,25 +329,25 @@ class _SummaryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _IncidentCard extends StatelessWidget {
@@ -506,31 +506,31 @@ class _ReportsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.cloud_off_outlined,
-            color: AppColors.muted,
-            size: 38,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Icon(
+                Icons.cloud_off_outlined,
+                color: AppColors.muted,
+                size: 38,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'No se pudieron cargar tus reportes',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Text(message, textAlign: TextAlign.center),
+              TextButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'No se pudieron cargar tus reportes',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(message, textAlign: TextAlign.center),
-          TextButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _PendingReports extends StatelessWidget {
@@ -546,46 +546,46 @@ class _PendingReports extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      const SizedBox(height: 16),
-      Text(
-        'Pendientes de enviar (${drafts.length})',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      const SizedBox(height: 8),
-      for (final draft in drafts)
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.cloud_upload_outlined),
-            title: Text(draft.type),
-            subtitle: Text(
-              draft.location,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: Wrap(
-              spacing: 4,
-              children: [
-                IconButton(
-                  tooltip: 'Reintentar envío',
-                  onPressed: () => onRetry(draft),
-                  icon: const Icon(Icons.refresh),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          Text(
+            'Pendientes de enviar (${drafts.length})',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
                 ),
-                IconButton(
-                  tooltip: 'Eliminar envío pendiente',
-                  onPressed: () => onDelete(draft),
-                  icon: const Icon(Icons.delete_outline),
-                ),
-              ],
-            ),
           ),
-        ),
-    ],
-  );
+          const SizedBox(height: 8),
+          for (final draft in drafts)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.cloud_upload_outlined),
+                title: Text(draft.type),
+                subtitle: Text(
+                  draft.location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Wrap(
+                  spacing: 4,
+                  children: [
+                    IconButton(
+                      tooltip: 'Reintentar envío',
+                      onPressed: () => onRetry(draft),
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    IconButton(
+                      tooltip: 'Eliminar envío pendiente',
+                      onPressed: () => onDelete(draft),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
 }
 
 String _formatDate(DateTime value) {

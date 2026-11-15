@@ -294,7 +294,7 @@ void _setMobileViewport(WidgetTester tester) {
 
 class _MemorySessionStorage implements SessionStorage {
   _MemorySessionStorage([Map<String, String>? values])
-    : values = Map.of(values ?? const {});
+      : values = Map.of(values ?? const {});
 
   final Map<String, String> values;
 

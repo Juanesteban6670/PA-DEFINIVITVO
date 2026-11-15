@@ -43,11 +43,15 @@ class RealtimeAlertService {
   bool _initialized = false;
   int _reconnectAttempts = 0;
 
-  void addAlertListener(AlertCallback listener) => _alertListeners.add(listener);
-  void removeAlertListener(AlertCallback listener) => _alertListeners.remove(listener);
+  void addAlertListener(AlertCallback listener) =>
+      _alertListeners.add(listener);
+  void removeAlertListener(AlertCallback listener) =>
+      _alertListeners.remove(listener);
 
-  void addIncidentListener(VoidCallback listener) => _incidentListeners.add(listener);
-  void removeIncidentListener(VoidCallback listener) => _incidentListeners.remove(listener);
+  void addIncidentListener(VoidCallback listener) =>
+      _incidentListeners.add(listener);
+  void removeIncidentListener(VoidCallback listener) =>
+      _incidentListeners.remove(listener);
 
   void connect() {
     if (_isDisposed) return;
@@ -153,7 +157,8 @@ class RealtimeAlertService {
     } catch (_) {}
   }
 
-  void _sendStompFrame(String command, Map<String, String> headers, [String body = '']) {
+  void _sendStompFrame(String command, Map<String, String> headers,
+      [String body = '']) {
     if (_ws?.isOpen != true) return;
     final buffer = StringBuffer()..writeln(command);
     headers.forEach((k, v) => buffer.writeln('$k:$v'));
@@ -173,7 +178,8 @@ class RealtimeAlertService {
     connectionMode.value = RealtimeMode.pollingFallback;
     _checkNow();
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) => _checkNow());
+    _pollingTimer =
+        Timer.periodic(const Duration(seconds: 4), (_) => _checkNow());
 
     // Reintentar reconexión WebSocket con backoff exponencial
     _reconnectTimer?.cancel();
@@ -207,7 +213,10 @@ class RealtimeAlertService {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final list = (decoded is Map<String, dynamic> ? decoded['data'] : decoded) as List? ?? const [];
+        final list = (decoded is Map<String, dynamic>
+                ? decoded['data']
+                : decoded) as List? ??
+            const [];
 
         bool hasNew = false;
         for (final item in list) {

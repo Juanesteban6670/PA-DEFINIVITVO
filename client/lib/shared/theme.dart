@@ -265,7 +265,7 @@ ThemeData buildDarkAppTheme() {
 /// Gestor de estado reactivo para la preferencia de modo claro/oscuro.
 class ThemeModeController extends ChangeNotifier {
   ThemeModeController({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage() {
+      : _storage = storage ?? const FlutterSecureStorage() {
     _loadTheme();
   }
 

@@ -50,7 +50,8 @@ class _HomeShellState extends State<HomeShell> {
       storage: widget.session.storage,
       owner: widget.session.user!.username,
     );
-    _realtimeService = RealtimeAlertService(baseUrl: widget.session.api.baseUrl);
+    _realtimeService =
+        RealtimeAlertService(baseUrl: widget.session.api.baseUrl);
     _realtimeService?.addIncidentListener(() {
       if (mounted) _incidentRefresh.value++;
     });
@@ -70,12 +71,14 @@ class _HomeShellState extends State<HomeShell> {
         duration: const Duration(seconds: 6),
         content: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.white, size: 24),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 '🚨 ALERTA SOS EN TIEMPO REAL: $type en $loc',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
           ],
@@ -143,151 +146,153 @@ class _HomeShellState extends State<HomeShell> {
         return Scaffold(
           appBar: AppBar(
             titleSpacing: 16,
-        title: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.blue.withValues(alpha: 0.06),
-                border: Border.all(
-                  color: AppColors.blue.withValues(alpha: 0.1),
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Image.asset('assets/brand/app-icon.png'),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Cartagena Segura',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    'Ciudadano',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Theme.of(context).colorScheme.onSurface
-                          .withValues(alpha: 0.55),
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          LiveStatusBadge(realtimeService: _realtimeService, compact: true),
-          const SizedBox(width: 4),
-          // Botón SOS de Pánico
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                visualDensity: VisualDensity.compact,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: () => _showSosDialog(context),
-              icon: const Icon(Icons.emergency_rounded, size: 16),
-              label: const Text(
-                'SOS 123',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          const LanguageToggleButton(),
-          const SizedBox(width: 4),
-          const ThemeToggleButton(),
-          NotificationsBell(
-            api: api,
-            onPressed: () {
-              if (GoRouter.maybeOf(context) != null) {
-                context.push('/App/Notifications');
-              } else {
-                Navigator.of(context).push<void>(
-                  MaterialPageRoute<void>(
-                    builder: (_) => NotificationsScreen(api: api),
-                  ),
-                );
-              }
-            },
-          ),
-          IconButton(
-            tooltip: 'Perfil',
-            onPressed: () => _selectTab(4),
-            icon: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.blue,
-              child: Text(
-                (widget.session.user?.username.isNotEmpty ?? false)
-                    ? widget.session.user!.username[0].toUpperCase()
-                    : 'U',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: wideLayout
-          ? Row(
+            title: Row(
               children: [
-                NavigationRail(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _selectTab,
-                  extended: MediaQuery.sizeOf(context).width >= 1000,
-                  labelType: MediaQuery.sizeOf(context).width >= 1000
-                      ? null
-                      : NavigationRailLabelType.all,
-                  destinations: _buildRailDestinations(strings),
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1120),
-                      child: IndexedStack(
-                        index: _selectedIndex,
-                        children: pages,
-                      ),
+                Container(
+                  width: 34,
+                  height: 34,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.blue.withValues(alpha: 0.06),
+                    border: Border.all(
+                      color: AppColors.blue.withValues(alpha: 0.1),
                     ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Image.asset('assets/brand/app-icon.png'),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cartagena Segura',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        'Ciudadano',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.55),
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            )
-          : IndexedStack(index: _selectedIndex, children: pages),
-      bottomNavigationBar: wideLayout
-          ? null
-          : NavigationBar(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _selectTab,
-              destinations: _buildNavDestinations(strings),
             ),
-    );
+            actions: [
+              LiveStatusBadge(realtimeService: _realtimeService, compact: true),
+              const SizedBox(width: 4),
+              // Botón SOS de Pánico
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    visualDensity: VisualDensity.compact,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () => _showSosDialog(context),
+                  icon: const Icon(Icons.emergency_rounded, size: 16),
+                  label: const Text(
+                    'SOS 123',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const LanguageToggleButton(),
+              const SizedBox(width: 4),
+              const ThemeToggleButton(),
+              NotificationsBell(
+                api: api,
+                onPressed: () {
+                  if (GoRouter.maybeOf(context) != null) {
+                    context.push('/App/Notifications');
+                  } else {
+                    Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) => NotificationsScreen(api: api),
+                      ),
+                    );
+                  }
+                },
+              ),
+              IconButton(
+                tooltip: 'Perfil',
+                onPressed: () => _selectTab(4),
+                icon: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.blue,
+                  child: Text(
+                    (widget.session.user?.username.isNotEmpty ?? false)
+                        ? widget.session.user!.username[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: wideLayout
+              ? Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _selectedIndex,
+                      onDestinationSelected: _selectTab,
+                      extended: MediaQuery.sizeOf(context).width >= 1000,
+                      labelType: MediaQuery.sizeOf(context).width >= 1000
+                          ? null
+                          : NavigationRailLabelType.all,
+                      destinations: _buildRailDestinations(strings),
+                    ),
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1120),
+                          child: IndexedStack(
+                            index: _selectedIndex,
+                            children: pages,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : IndexedStack(index: _selectedIndex, children: pages),
+          bottomNavigationBar: wideLayout
+              ? null
+              : NavigationBar(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _selectTab,
+                  destinations: _buildNavDestinations(strings),
+                ),
+        );
       },
     );
   }
@@ -320,7 +325,8 @@ class _HomeShellState extends State<HomeShell> {
         ),
       ];
 
-  List<NavigationRailDestination> _buildRailDestinations(AppStrings strings) => [
+  List<NavigationRailDestination> _buildRailDestinations(AppStrings strings) =>
+      [
         NavigationRailDestination(
           icon: const Icon(Icons.home_outlined),
           selectedIcon: const Icon(Icons.home),

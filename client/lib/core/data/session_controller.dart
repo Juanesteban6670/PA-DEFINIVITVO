@@ -175,8 +175,8 @@ class SessionController extends ChangeNotifier {
       _clearSession('No se pudo borrar completamente la sesión local');
 
   Future<void> _handleUnauthorized() => _clearSession(
-    'La sesión fue rechazada y no se pudo borrar completamente la sesión local',
-  );
+        'La sesión fue rechazada y no se pudo borrar completamente la sesión local',
+      );
 
   Future<void> _clearSession(String storageFailureMessage) async {
     api.token = null;

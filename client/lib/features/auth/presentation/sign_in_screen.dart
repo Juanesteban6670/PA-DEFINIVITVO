@@ -212,9 +212,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                                     MaterialPageRoute<void>(
                                                       builder: (_) =>
                                                           PasswordRecoveryScreen(
-                                                            session:
-                                                                widget.session,
-                                                          ),
+                                                        session: widget.session,
+                                                      ),
                                                     ),
                                                   );
                                                 }
@@ -323,8 +322,8 @@ class _SignInScreenState extends State<SignInScreen> {
       keyboardType: email
           ? TextInputType.emailAddress
           : phone
-          ? TextInputType.phone
-          : TextInputType.text,
+              ? TextInputType.phone
+              : TextInputType.text,
       textCapitalization: email || password || username || phone
           ? TextCapitalization.none
           : TextCapitalization.words,
@@ -339,8 +338,8 @@ class _SignInScreenState extends State<SignInScreen> {
           password
               ? Icons.lock_outline
               : email
-              ? Icons.mail_outline
-              : Icons.person_outline,
+                  ? Icons.mail_outline
+                  : Icons.person_outline,
           color: Colors.white70,
         ),
         border: OutlineInputBorder(

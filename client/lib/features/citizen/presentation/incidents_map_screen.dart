@@ -298,10 +298,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Color _routeColor(SafetyLevel level) => switch (level) {
-    SafetyLevel.safe => const Color(0xFF10B981),
-    SafetyLevel.moderate => const Color(0xFFF59E0B),
-    SafetyLevel.risky => const Color(0xFFEF4444),
-  };
+        SafetyLevel.safe => const Color(0xFF10B981),
+        SafetyLevel.moderate => const Color(0xFFF59E0B),
+        SafetyLevel.risky => const Color(0xFFEF4444),
+      };
 
   void _zoomIn() {
     final currentZoom = _mapController.camera.zoom;
@@ -468,9 +468,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                             color: isDark
                                 ? const Color(0xFF475569)
                                 : const Color(0xFF94A3B8),
-                            borderColor: isDark
-                                ? Colors.black54
-                                : Colors.white70,
+                            borderColor:
+                                isDark ? Colors.black54 : Colors.white70,
                             borderStrokeWidth: 1.0,
                           ),
                       Polyline(
@@ -655,8 +654,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         visualDensity: VisualDensity.compact,
                         onPressed: () => _showFilters(context),
                         icon: Badge(
-                          isLabelVisible:
-                              _typeFilter != null ||
+                          isLabelVisible: _typeFilter != null ||
                               _statusFilter != null ||
                               _priorityFilter != null ||
                               _distanceFilterKm != null ||
@@ -1034,7 +1032,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 children: [
                   Text(
                     'Filtros Avanzados del Mapa',
-                    style: Theme.of(context).textTheme.titleLarge
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 14),
@@ -1179,38 +1179,39 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     required String? value,
     required List<String> values,
     required ValueChanged<String?> onChanged,
-  }) => DropdownButtonFormField<String>(
-    initialValue: value,
-    decoration: InputDecoration(labelText: label),
-    items: [
-      const DropdownMenuItem<String>(value: null, child: Text('Todos')),
-      ...values.map(
-        (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
-      ),
-    ],
-    onChanged: onChanged,
-  );
+  }) =>
+      DropdownButtonFormField<String>(
+        initialValue: value,
+        decoration: InputDecoration(labelText: label),
+        items: [
+          const DropdownMenuItem<String>(value: null, child: Text('Todos')),
+          ...values.map(
+            (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
+          ),
+        ],
+        onChanged: onChanged,
+      );
 
   String _label(String value) => switch (value) {
-    'ROBO' => 'Robo',
-    'ACCIDENTE' => 'Accidente',
-    'PELEA' => 'Pelea',
-    'INCENDIO' => 'Incendio',
-    'EMERGENCIA' => 'Emergencia',
-    'ACTIVIDAD_SOSPECHOSA' => 'Actividad Sospechosa',
-    'LUMINARIA_DANADA' => 'Alumbrado Público',
-    'OBSTACULO_VIAL' => 'Obstáculo Vial',
-    'OTRO' => 'Otro',
-    'PENDING' => 'Pendiente',
-    'IN_PROGRESS' => 'En progreso',
-    'RESOLVED' => 'Resuelto',
-    'REJECTED' => 'Rechazado',
-    'LOW' => 'Baja',
-    'MEDIUM' => 'Media',
-    'HIGH' => 'Alta',
-    'CRITICAL' => 'Crítica',
-    _ => value,
-  };
+        'ROBO' => 'Robo',
+        'ACCIDENTE' => 'Accidente',
+        'PELEA' => 'Pelea',
+        'INCENDIO' => 'Incendio',
+        'EMERGENCIA' => 'Emergencia',
+        'ACTIVIDAD_SOSPECHOSA' => 'Actividad Sospechosa',
+        'LUMINARIA_DANADA' => 'Alumbrado Público',
+        'OBSTACULO_VIAL' => 'Obstáculo Vial',
+        'OTRO' => 'Otro',
+        'PENDING' => 'Pendiente',
+        'IN_PROGRESS' => 'En progreso',
+        'RESOLVED' => 'Resuelto',
+        'REJECTED' => 'Rechazado',
+        'LOW' => 'Baja',
+        'MEDIUM' => 'Media',
+        'HIGH' => 'Alta',
+        'CRITICAL' => 'Crítica',
+        _ => value,
+      };
 
   void _showIncidentList(List<Incident> incidents) {
     showModalBottomSheet<void>(
@@ -1292,7 +1293,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 Expanded(
                   child: Text(
                     incident.type,
-                    style: Theme.of(context).textTheme.titleLarge
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -1437,11 +1440,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Color _priorityColor(String priority) => switch (priority) {
-    'CRITICAL' => const Color(0xFFEF4444),
-    'HIGH' => const Color(0xFFF97316),
-    'LOW' => const Color(0xFF10B981),
-    _ => const Color(0xFF3B82F6),
-  };
+        'CRITICAL' => const Color(0xFFEF4444),
+        'HIGH' => const Color(0xFFF97316),
+        'LOW' => const Color(0xFF10B981),
+        _ => const Color(0xFF3B82F6),
+      };
 }
 
 /// Marcador de cluster agrupado para vistas panorámicas del mapa
@@ -1669,11 +1672,11 @@ class _FloatingMapButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColor = isActive
         ? (isDark
-              ? AppColors.brightBlue.withValues(alpha: 0.35)
-              : AppColors.blue.withValues(alpha: 0.15))
+            ? AppColors.brightBlue.withValues(alpha: 0.35)
+            : AppColors.blue.withValues(alpha: 0.15))
         : (isDark
-              ? AppColors.darkCard.withValues(alpha: 0.82)
-              : Colors.white.withValues(alpha: 0.9));
+            ? AppColors.darkCard.withValues(alpha: 0.82)
+            : Colors.white.withValues(alpha: 0.9));
     final borderColor = isActive
         ? (isDark ? AppColors.brightBlue : AppColors.blue)
         : (isDark ? AppColors.darkBorder : AppColors.border);
@@ -1739,10 +1742,10 @@ class _MapZone {
 }
 
 Color _zoneColor(String risk) => switch (risk.toUpperCase()) {
-  'LOW' => const Color(0xFF10B981),
-  'HIGH' || 'CRITICAL' => const Color(0xFFEF4444),
-  _ => const Color(0xFFF59E0B),
-};
+      'LOW' => const Color(0xFF10B981),
+      'HIGH' || 'CRITICAL' => const Color(0xFFEF4444),
+      _ => const Color(0xFFF59E0B),
+    };
 
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.message, required this.onRetry});
@@ -1752,24 +1755,24 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.cloud_off_outlined, size: 44),
-          const SizedBox(height: 12),
-          const Text('No se pudieron cargar los incidentes'),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_outlined, size: 44),
+              const SizedBox(height: 12),
+              const Text('No se pudieron cargar los incidentes'),
+              const SizedBox(height: 8),
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

@@ -34,7 +34,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     super.initState();
     _messages.add(
       const _ChatMessage(
-        text: 'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
+        text:
+            'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
       ),
     );
     _restoreHistory();
@@ -110,7 +111,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         ..clear()
         ..add(
           const _ChatMessage(
-            text: 'Conversación nueva. ¿En qué puedo orientarte sobre seguridad ciudadana?',
+            text:
+                'Conversación nueva. ¿En qué puedo orientarte sobre seguridad ciudadana?',
           ),
         );
     });
@@ -285,9 +287,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                       const SizedBox(width: 8),
                       IconButton.filled(
                         tooltip: 'Enviar mensaje',
-                        onPressed: _sending || _restoring
-                            ? null
-                            : () => _send(),
+                        onPressed:
+                            _sending || _restoring ? null : () => _send(),
                         icon: _sending
                             ? const SizedBox(
                                 width: 18,
@@ -349,27 +350,24 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alignment = message.fromUser
-        ? CrossAxisAlignment.end
-        : CrossAxisAlignment.start;
+    final alignment =
+        message.fromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = message.error
         ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
         : message.fromUser
-        ? AppColors.brightBlue
-        : (isDark ? AppColors.darkCard : Colors.white);
+            ? AppColors.brightBlue
+            : (isDark ? AppColors.darkCard : Colors.white);
     final textColor = message.error
         ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B))
         : message.fromUser
-        ? Colors.white
-        : (isDark ? AppColors.darkText : AppColors.navy);
+            ? Colors.white
+            : (isDark ? AppColors.darkText : AppColors.navy);
 
-    final show123Chip =
-        !message.fromUser &&
+    final show123Chip = !message.fromUser &&
         !message.error &&
         (message.text.contains('123') || message.text.contains('Policía'));
-    final show119Chip =
-        !message.fromUser &&
+    final show119Chip = !message.fromUser &&
         !message.error &&
         (message.text.contains('119') || message.text.contains('Bomberos'));
 
@@ -395,11 +393,11 @@ class _MessageBubble extends StatelessWidget {
                 border: Border.all(
                   color: message.error
                       ? (isDark
-                            ? const Color(0xFF7F1D1D)
-                            : const Color(0xFFFECACA))
+                          ? const Color(0xFF7F1D1D)
+                          : const Color(0xFFFECACA))
                       : message.fromUser
-                      ? AppColors.brightBlue
-                      : (isDark ? AppColors.darkBorder : AppColors.border),
+                          ? AppColors.brightBlue
+                          : (isDark ? AppColors.darkBorder : AppColors.border),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -683,9 +681,8 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                     children: List.generate(3, (i) {
                       final delay = i * 0.25;
                       final progress = (_anim.value - delay) % 1.0;
-                      final bounce = progress < 0.5
-                          ? (progress * 2)
-                          : (2 - progress * 2);
+                      final bounce =
+                          progress < 0.5 ? (progress * 2) : (2 - progress * 2);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: Transform.translate(

@@ -21,7 +21,8 @@ class AdminAiOperationsCenter extends StatefulWidget {
 }
 
 class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
-  int _activeTab = 0; // 0: Resumen & Diagnóstico, 1: Plan Táctico, 2: Anomalías, 3: Copiloto & Clasificador
+  int _activeTab =
+      0; // 0: Resumen & Diagnóstico, 1: Plan Táctico, 2: Anomalías, 3: Copiloto & Clasificador
 
   Map<String, dynamic> _map(dynamic val) {
     if (val is Map<String, dynamic>) return val;
@@ -59,7 +60,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
     final anomaliesMap = _map(anomaliesObj);
     final anomaliesList = _list(anomaliesMap['anomalies']);
     final anomalyScore = (anomaliesMap['anomalyScore'] as num?)?.toInt() ?? 18;
-    final threatStatus = anomaliesMap['threatStatus']?.toString() ?? 'NORMAL ESTABLE';
+    final threatStatus =
+        anomaliesMap['threatStatus']?.toString() ?? 'NORMAL ESTABLE';
 
     return Padding(
       padding: EdgeInsets.all(isMobile ? 12 : 24),
@@ -77,7 +79,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.blue.withValues(alpha: 0.25),
+                color: isDark
+                    ? AppColors.darkBorder
+                    : AppColors.blue.withValues(alpha: 0.25),
               ),
             ),
             child: Wrap(
@@ -108,7 +112,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.brightBlue.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(999),
@@ -130,7 +135,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                   label: const Text('Re-analizar Sistema'),
                   style: FilledButton.styleFrom(
                     visualDensity: VisualDensity.compact,
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    textStyle: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -152,13 +158,17 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _tabButton(0, Icons.analytics_outlined, 'Resumen y Diagnóstico', isDark),
+                  _tabButton(0, Icons.analytics_outlined,
+                      'Resumen y Diagnóstico', isDark),
                   const SizedBox(width: 6),
-                  _tabButton(1, Icons.local_police_outlined, 'Plan Táctico de Patrullaje', isDark),
+                  _tabButton(1, Icons.local_police_outlined,
+                      'Plan Táctico de Patrullaje', isDark),
                   const SizedBox(width: 6),
-                  _tabButton(2, Icons.warning_amber_rounded, 'Detección de Anomalías ($anomalyScore/100)', isDark),
+                  _tabButton(2, Icons.warning_amber_rounded,
+                      'Detección de Anomalías ($anomalyScore/100)', isDark),
                   const SizedBox(width: 6),
-                  _tabButton(3, Icons.auto_awesome_rounded, 'Copiloto y Clasificador', isDark),
+                  _tabButton(3, Icons.auto_awesome_rounded,
+                      'Copiloto y Clasificador', isDark),
                 ],
               ),
             ),
@@ -194,13 +204,13 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: active
-              ? (isDark ? AppColors.blue.withValues(alpha: 0.35) : AppColors.blue)
+              ? (isDark
+                  ? AppColors.blue.withValues(alpha: 0.35)
+                  : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: active
-                ? AppColors.brightBlue
-                : Colors.transparent,
+            color: active ? AppColors.brightBlue : Colors.transparent,
           ),
         ),
         child: Row(
@@ -247,9 +257,11 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
       case 0:
         return _buildSummaryTab(isDark, isMobile, summaryText, zonesList);
       case 1:
-        return _buildPatrolTab(isDark, isMobile, patrolMap, patrolAssignments, tacticalRecs);
+        return _buildPatrolTab(
+            isDark, isMobile, patrolMap, patrolAssignments, tacticalRecs);
       case 2:
-        return _buildAnomaliesTab(isDark, isMobile, anomaliesMap, anomaliesList, anomalyScore, threatStatus);
+        return _buildAnomaliesTab(isDark, isMobile, anomaliesMap, anomaliesList,
+            anomalyScore, threatStatus);
       case 3:
         return _buildCopilotTab(isDark, isMobile);
       default:
@@ -260,7 +272,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
   // ===========================================================================
   // TAB 0: RESUMEN EJECUTIVO Y DIAGNÓSTICO
   // ===========================================================================
-  Widget _buildSummaryTab(bool isDark, bool isMobile, String summaryText, List<dynamic> zonesList) {
+  Widget _buildSummaryTab(
+      bool isDark, bool isMobile, String summaryText, List<dynamic> zonesList) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -272,11 +285,15 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.description_outlined, color: AppColors.brightBlue, size: 22),
+                    const Icon(Icons.description_outlined,
+                        color: AppColors.brightBlue, size: 22),
                     const SizedBox(width: 10),
                     Text(
                       'Informe Ejecutivo Distrital Generado por IA',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -284,10 +301,14 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
+                    color: isDark
+                        ? AppColors.darkSurface
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : const Color(0xFFE2E8F0),
                     ),
                   ),
                   child: SelectableText(
@@ -304,7 +325,6 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
           ),
         ),
         const SizedBox(height: 16),
-
         Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -313,11 +333,15 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.map_rounded, color: AppColors.amber, size: 22),
+                    const Icon(Icons.map_rounded,
+                        color: AppColors.amber, size: 22),
                     const SizedBox(width: 10),
                     Text(
                       'Directivas Estratégicas por Cuadrante',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -331,22 +355,28 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                         color: isDark ? AppColors.darkSurface : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.border,
+                          color:
+                              isDark ? AppColors.darkBorder : AppColors.border,
                         ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _riskColor(item['riskLevel']?.toString() ?? '').withValues(alpha: 0.15),
+                              color: _riskColor(
+                                      item['riskLevel']?.toString() ?? '')
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              item['riskLevel']?.toString().toUpperCase() ?? 'MODERATE',
+                              item['riskLevel']?.toString().toUpperCase() ??
+                                  'MODERATE',
                               style: TextStyle(
-                                color: _riskColor(item['riskLevel']?.toString() ?? ''),
+                                color: _riskColor(
+                                    item['riskLevel']?.toString() ?? ''),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -359,14 +389,19 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                               children: [
                                 Text(
                                   item['name']?.toString() ?? 'Sector',
-                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  item['recommendation']?.toString() ?? 'Sin recomendación',
+                                  item['recommendation']?.toString() ??
+                                      'Sin recomendación',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : AppColors.muted,
                                   ),
                                 ),
                               ],
@@ -411,15 +446,20 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.local_police, color: AppColors.brightBlue, size: 24),
+                    const Icon(Icons.local_police,
+                        color: AppColors.brightBlue, size: 24),
                     const SizedBox(width: 10),
                     Text(
                       'Plan Táctico de Patrullaje Distrital',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: threat.contains('ELEVADO')
                             ? AppColors.red.withValues(alpha: 0.15)
@@ -429,7 +469,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                       child: Text(
                         threat,
                         style: TextStyle(
-                          color: threat.contains('ELEVADO') ? AppColors.red : AppColors.green,
+                          color: threat.contains('ELEVADO')
+                              ? AppColors.red
+                              : AppColors.green,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
@@ -467,7 +509,10 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               children: [
                 Text(
                   'Despliegue Operativo Sugerido por Sectores',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 16),
                 for (final item in assignments) ...[
@@ -479,7 +524,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                         color: isDark ? AppColors.darkSurface : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.border,
+                          color:
+                              isDark ? AppColors.darkBorder : AppColors.border,
                         ),
                       ),
                       child: Column(
@@ -489,15 +535,19 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                             children: [
                               Text(
                                 item['zoneName']?.toString() ?? 'Sector',
-                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800, fontSize: 15),
                               ),
                               const SizedBox(width: 8),
-                              _riskBadge(item['riskLevel']?.toString() ?? 'LOW'),
+                              _riskBadge(
+                                  item['riskLevel']?.toString() ?? 'LOW'),
                               const Spacer(),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.brightBlue.withValues(alpha: 0.12),
+                                  color: AppColors.brightBlue
+                                      .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -514,23 +564,28 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                           const SizedBox(height: 10),
                           Row(
                             children: [
-                              const Icon(Icons.schedule, size: 14, color: AppColors.amber),
+                              const Icon(Icons.schedule,
+                                  size: 14, color: AppColors.amber),
                               const SizedBox(width: 6),
                               Text(
                                 'Horario Crítico: ${item['priorityTimeWindow'] ?? '18:00 - 02:00'}',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.shield, size: 14, color: AppColors.green),
+                              const Icon(Icons.shield,
+                                  size: 14, color: AppColors.green),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   'Unidad: ${item['unitType'] ?? 'Patrulla de Cuadrante'}',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ),
                             ],
@@ -540,7 +595,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                             'Foco Operacional: ${item['focusArea'] ?? 'Vigilancia preventiva'}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.muted,
                             ),
                           ),
                         ],
@@ -564,11 +621,13 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.check_circle_outline, color: AppColors.green, size: 20),
+                      Icon(Icons.check_circle_outline,
+                          color: AppColors.green, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Directivas Tácticas Oficiales para Oficiales de Cuadrante',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14),
                       ),
                     ],
                   ),
@@ -579,7 +638,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.arrow_right, size: 20, color: AppColors.brightBlue),
+                          const Icon(Icons.arrow_right,
+                              size: 20, color: AppColors.brightBlue),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -611,7 +671,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
     int anomalyScore,
     String threatStatus,
   ) {
-    final diagnosis = anomaliesMap['systemDiagnosis']?.toString() ?? 'Monitoreo activo.';
+    final diagnosis =
+        anomaliesMap['systemDiagnosis']?.toString() ?? 'Monitoreo activo.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -629,13 +690,18 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                     const SizedBox(width: 10),
                     Text(
                       'Puntuación de Anomalía Distrital: $anomalyScore / 100',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: _scoreColor(anomalyScore).withValues(alpha: 0.15),
+                        color:
+                            _scoreColor(anomalyScore).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -656,7 +722,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                     value: anomalyScore / 100.0,
                     minHeight: 8,
                     backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                    valueColor: AlwaysStoppedAnimation<Color>(_scoreColor(anomalyScore)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        _scoreColor(anomalyScore)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -682,7 +749,10 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
               children: [
                 Text(
                   'Eventos Anómalos y Alertas Tempranas (${anomaliesList.length})',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 16),
                 if (anomaliesList.isEmpty) ...[
@@ -694,12 +764,14 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                     ),
                     child: Row(
                       children: const [
-                        Icon(Icons.check_circle, color: AppColors.green, size: 28),
+                        Icon(Icons.check_circle,
+                            color: AppColors.green, size: 28),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'No se detectan desviaciones anómalas en este momento. Todos los cuadrantes operan dentro de los parámetros estándar de seguridad.',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 13),
                           ),
                         ),
                       ],
@@ -715,7 +787,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                           color: isDark ? AppColors.darkSurface : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.border,
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.border,
                           ),
                         ),
                         child: Column(
@@ -723,12 +797,16 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                           children: [
                             Row(
                               children: [
-                                _severityBadge(item['severity']?.toString() ?? 'MEDIUM'),
+                                _severityBadge(
+                                    item['severity']?.toString() ?? 'MEDIUM'),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    item['anomalyType']?.toString() ?? 'Anomalía',
-                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                                    item['anomalyType']?.toString() ??
+                                        'Anomalía',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14),
                                   ),
                                 ),
                                 Text(
@@ -736,7 +814,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : AppColors.muted,
                                   ),
                                 ),
                               ],
@@ -750,13 +830,15 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.blue.withValues(alpha: isDark ? 0.2 : 0.08),
+                                color: AppColors.blue
+                                    .withValues(alpha: isDark ? 0.2 : 0.08),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.bolt, size: 16, color: AppColors.brightBlue),
+                                  const Icon(Icons.bolt,
+                                      size: 16, color: AppColors.brightBlue),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
@@ -764,7 +846,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: isDark ? AppColors.brightBlue : AppColors.navy,
+                                        color: isDark
+                                            ? AppColors.brightBlue
+                                            : AppColors.navy,
                                       ),
                                     ),
                                   ),
@@ -820,7 +904,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
       ),
       child: Text(
         s,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
+        style:
+            TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -835,7 +920,8 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
       ),
       child: Text(
         riskLevel.toUpperCase(),
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
+        style:
+            TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -862,7 +948,10 @@ class _AdminChat extends StatefulWidget {
 class _AdminChatState extends State<_AdminChat> {
   final _controller = TextEditingController();
   final _messages = <(bool, String)>[
-    (false, '¡Hola Oficial! Soy el asistente táctico de Cartagena Segura. Puedo responder consultas de cuadrantes, generar planes de patrullaje y auditar incidentes en tiempo real.'),
+    (
+      false,
+      '¡Hola Oficial! Soy el asistente táctico de Cartagena Segura. Puedo responder consultas de cuadrantes, generar planes de patrullaje y auditar incidentes en tiempo real.'
+    ),
   ];
   bool _sending = false;
 
@@ -917,11 +1006,15 @@ class _AdminChatState extends State<_AdminChat> {
           children: [
             Row(
               children: [
-                const Icon(Icons.smart_toy_outlined, color: AppColors.brightBlue, size: 22),
+                const Icon(Icons.smart_toy_outlined,
+                    color: AppColors.brightBlue, size: 22),
                 const SizedBox(width: 10),
                 Text(
                   'Copiloto Táctico y Asistente Administrativo IA',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const Spacer(),
                 IconButton(
@@ -930,7 +1023,10 @@ class _AdminChatState extends State<_AdminChat> {
                   onPressed: () {
                     setState(() {
                       _messages.clear();
-                      _messages.add((false, 'Conversación reiniciada. ¿Qué información operativa requieres?'));
+                      _messages.add((
+                        false,
+                        'Conversación reiniciada. ¿Qué información operativa requieres?'
+                      ));
                     });
                   },
                 ),
@@ -954,22 +1050,27 @@ class _AdminChatState extends State<_AdminChat> {
             // Historial de mensajes
             for (final message in _messages)
               Align(
-                alignment: message.$1
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
+                alignment:
+                    message.$1 ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 680),
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: message.$1
-                        ? (isDark ? AppColors.blue.withValues(alpha: 0.3) : AppColors.blue.withValues(alpha: 0.12))
-                        : (isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9)),
+                        ? (isDark
+                            ? AppColors.blue.withValues(alpha: 0.3)
+                            : AppColors.blue.withValues(alpha: 0.12))
+                        : (isDark
+                            ? AppColors.darkSurface
+                            : const Color(0xFFF1F5F9)),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: message.$1
                           ? AppColors.brightBlue.withValues(alpha: 0.3)
-                          : (isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
+                          : (isDark
+                              ? AppColors.darkBorder
+                              : const Color(0xFFE2E8F0)),
                     ),
                   ),
                   child: SelectableText(
@@ -992,8 +1093,10 @@ class _AdminChatState extends State<_AdminChat> {
                     enabled: !_sending,
                     onSubmitted: (_) => _send(),
                     decoration: const InputDecoration(
-                      labelText: 'Pregunta táctica sobre el sistema o cuadrantes',
-                      hintText: 'Ej: Recomendar patrullas para Centro Histórico...',
+                      labelText:
+                          'Pregunta táctica sobre el sistema o cuadrantes',
+                      hintText:
+                          'Ej: Recomendar patrullas para Centro Histórico...',
                     ),
                   ),
                 ),
@@ -1090,11 +1193,15 @@ class _AdminClassifierState extends State<_AdminClassifier> {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_fix_high, color: AppColors.brightBlue, size: 22),
+                const Icon(Icons.auto_fix_high,
+                    color: AppColors.brightBlue, size: 22),
                 const SizedBox(width: 10),
                 Text(
                   'Auto-Clasificador Neuronal de Incidentes',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -1107,7 +1214,6 @@ class _AdminClassifierState extends State<_AdminClassifier> {
               ),
             ),
             const SizedBox(height: 12),
-
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1118,7 +1224,6 @@ class _AdminClassifierState extends State<_AdminClassifier> {
               ],
             ),
             const SizedBox(height: 12),
-
             TextField(
               controller: _description,
               minLines: 2,
@@ -1133,7 +1238,8 @@ class _AdminClassifierState extends State<_AdminClassifier> {
               child: FilledButton.icon(
                 onPressed: _loading ? null : () => _classify(),
                 icon: const Icon(Icons.bolt, size: 16),
-                label: Text(_loading ? 'Clasificando con IA…' : 'Clasificar con IA'),
+                label: Text(
+                    _loading ? 'Clasificando con IA…' : 'Clasificar con IA'),
               ),
             ),
             if (_resultMap != null) ...[
@@ -1141,10 +1247,12 @@ class _AdminClassifierState extends State<_AdminClassifier> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
+                  color:
+                      isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                    color:
+                        isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Column(
@@ -1154,19 +1262,25 @@ class _AdminClassifierState extends State<_AdminClassifier> {
                       children: [
                         Text(
                           'Tipo detectado: ${_resultMap!['type'] ?? 'OTRO'}',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 14),
                         ),
                         const Spacer(),
-                        _priorityPill(_resultMap!['priority']?.toString() ?? 'MEDIUM'),
+                        _priorityPill(
+                            _resultMap!['priority']?.toString() ?? 'MEDIUM'),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Text('Confianza del modelo: ', style: TextStyle(fontSize: 12)),
+                        const Text('Confianza del modelo: ',
+                            style: TextStyle(fontSize: 12)),
                         Text(
                           '${((_resultMap!['confidence'] as num?)?.toDouble() ?? 0.92) * 100}%',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.brightBlue),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                              color: AppColors.brightBlue),
                         ),
                       ],
                     ),
@@ -1207,9 +1321,9 @@ class _AdminClassifierState extends State<_AdminClassifier> {
       ),
       child: Text(
         p,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
+        style:
+            TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
       ),
     );
   }
 }
-

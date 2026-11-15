@@ -90,8 +90,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         final allContacts = snapshot.data ?? const <EmergencyContact>[];
 
         final filtered = allContacts.where((contact) {
-          final matchesCategory =
-              _selectedCategory == 'ALL' ||
+          final matchesCategory = _selectedCategory == 'ALL' ||
               contact.type.toUpperCase() == _selectedCategory;
           if (!matchesCategory) return false;
 
@@ -148,7 +147,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                           children: [
                             Text(
                               '¿Peligro o Urgencia Inmediata?',
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
                                   ?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w900,
@@ -311,9 +312,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   child: Text(
                     'Contactos disponibles',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.darkText : AppColors.navy,
-                    ),
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? AppColors.darkText : AppColors.navy,
+                        ),
                   ),
                 ),
                 Text(
@@ -322,8 +323,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     fontSize: 12,
                     color: isDark
                         ? AppColors.darkTextMuted
-                        : Theme.of(context).colorScheme.onSurface
-                              .withValues(alpha: 0.6),
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -364,9 +367,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                       Text(
                         'No se encontraron entidades con ese criterio.',
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.darkTextMuted
-                              : Colors.black87,
+                          color:
+                              isDark ? AppColors.darkTextMuted : Colors.black87,
                         ),
                       ),
                     ],
@@ -611,43 +613,43 @@ class _ModernContactCard extends StatelessWidget {
   }
 
   (IconData, Color, String) _meta(String type) => switch (type.toUpperCase()) {
-    'POLICE' => (
-      Icons.local_police_rounded,
-      const Color(0xFF2563EB),
-      'Policía',
-    ),
-    'FIRE_STATION' => (
-      Icons.local_fire_department_rounded,
-      const Color(0xFFEA580C),
-      'Bomberos',
-    ),
-    'CIVIL_DEFENSE' => (
-      Icons.health_and_safety_rounded,
-      const Color(0xFFD97706),
-      'Socorro',
-    ),
-    'HOSPITAL' => (
-      Icons.local_hospital_rounded,
-      const Color(0xFF059669),
-      'Hospital',
-    ),
-    'AMBULANCE' => (
-      Icons.medical_services_rounded,
-      const Color(0xFFDC2626),
-      'Ambulancia',
-    ),
-    'COAST_GUARD' => (
-      Icons.directions_boat_rounded,
-      const Color(0xFF0284C7),
-      'Guardacostas',
-    ),
-    'MUNICIPALITY' => (
-      Icons.account_balance_rounded,
-      const Color(0xFF7C3AED),
-      'Distrital',
-    ),
-    _ => (Icons.phone_in_talk_rounded, const Color(0xFF64748B), 'Servicio'),
-  };
+        'POLICE' => (
+            Icons.local_police_rounded,
+            const Color(0xFF2563EB),
+            'Policía',
+          ),
+        'FIRE_STATION' => (
+            Icons.local_fire_department_rounded,
+            const Color(0xFFEA580C),
+            'Bomberos',
+          ),
+        'CIVIL_DEFENSE' => (
+            Icons.health_and_safety_rounded,
+            const Color(0xFFD97706),
+            'Socorro',
+          ),
+        'HOSPITAL' => (
+            Icons.local_hospital_rounded,
+            const Color(0xFF059669),
+            'Hospital',
+          ),
+        'AMBULANCE' => (
+            Icons.medical_services_rounded,
+            const Color(0xFFDC2626),
+            'Ambulancia',
+          ),
+        'COAST_GUARD' => (
+            Icons.directions_boat_rounded,
+            const Color(0xFF0284C7),
+            'Guardacostas',
+          ),
+        'MUNICIPALITY' => (
+            Icons.account_balance_rounded,
+            const Color(0xFF7C3AED),
+            'Distrital',
+          ),
+        _ => (Icons.phone_in_talk_rounded, const Color(0xFF64748B), 'Servicio'),
+      };
 }
 
 class _ContactsError extends StatelessWidget {
@@ -658,35 +660,35 @@ class _ContactsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.red,
-            size: 36,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.red,
+                size: 36,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'No se pudieron cargar los contactos',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Reintentar'),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'No se pudieron cargar los contactos',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Reintentar'),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

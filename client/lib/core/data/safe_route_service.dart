@@ -70,10 +70,10 @@ class SafeRoute {
   }
 
   String get safetyBadgeText => switch (safetyLevel) {
-    SafetyLevel.safe => 'Ruta Segura',
-    SafetyLevel.moderate => 'Precaución Moderada',
-    SafetyLevel.risky => 'Riesgo Alto',
-  };
+        SafetyLevel.safe => 'Ruta Segura',
+        SafetyLevel.moderate => 'Precaución Moderada',
+        SafetyLevel.risky => 'Riesgo Alto',
+      };
 }
 
 class SafeRouteService {
@@ -154,9 +154,8 @@ class SafeRouteService {
     List<Map<String, dynamic>> rawRoutes = [];
 
     try {
-      final response = await httpClient
-          .get(url)
-          .timeout(const Duration(seconds: 7));
+      final response =
+          await httpClient.get(url).timeout(const Duration(seconds: 7));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         if (data['code'] == 'Ok' && data['routes'] is List) {
@@ -185,8 +184,8 @@ class SafeRouteService {
     for (var i = 0; i < rawRoutes.length; i++) {
       final raw = rawRoutes[i];
       final geometry = raw['geometry'] as Map<String, dynamic>? ?? {};
-      final rawCoords = (geometry['coordinates'] as List? ?? const [])
-          .cast<List<dynamic>>();
+      final rawCoords =
+          (geometry['coordinates'] as List? ?? const []).cast<List<dynamic>>();
 
       final points = rawCoords.map((coord) {
         final lon = (coord[0] as num).toDouble();
@@ -198,10 +197,9 @@ class SafeRouteService {
         points.addAll([origin, destination]);
       }
 
-      final distanceMeters =
-          ((raw['distance'] as num?) ??
-                  _distance.as(LengthUnit.Meter, origin, destination))
-              .toDouble();
+      final distanceMeters = ((raw['distance'] as num?) ??
+              _distance.as(LengthUnit.Meter, origin, destination))
+          .toDouble();
       final durationSeconds =
           ((raw['duration'] as num?) ?? (distanceMeters / 8.5)).toDouble();
 
@@ -391,15 +389,12 @@ class SafeRouteService {
     );
 
     try {
-      final response = await httpClient
-          .get(
-            url,
-            headers: {
-              'User-Agent':
-                  'CartagenaSegura/1.0 (contacto@cartagenasegura.gov.co)',
-            },
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await httpClient.get(
+        url,
+        headers: {
+          'User-Agent': 'CartagenaSegura/1.0 (contacto@cartagenasegura.gov.co)',
+        },
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final list = jsonDecode(response.body) as List;

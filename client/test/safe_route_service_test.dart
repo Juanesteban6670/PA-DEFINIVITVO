@@ -62,7 +62,9 @@ void main() {
       },
     );
 
-    test('calculateRoutes penalizes route when critical incidents are in trajectory', () async {
+    test(
+        'calculateRoutes penalizes route when critical incidents are in trajectory',
+        () async {
       final mockClient = MockClient((request) async {
         return http.Response(
           jsonEncode({

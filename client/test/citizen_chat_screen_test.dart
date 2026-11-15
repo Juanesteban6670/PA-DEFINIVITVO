@@ -106,9 +106,8 @@ void main() {
       String? retrySessionId;
       final secondSession = await _createSession(
         MockClient((request) async {
-          retrySessionId =
-              (jsonDecode(request.body) as Map<String, dynamic>)['sessionId']
-                  as String;
+          retrySessionId = (jsonDecode(request.body)
+              as Map<String, dynamic>)['sessionId'] as String;
           return http.Response('{"reply":"Continuación"}', 200);
         }),
         storage: storage,

@@ -52,9 +52,8 @@ class AppStrings {
   String get sosHoldInstruction => isEnglish
       ? 'Hold for 2 seconds to trigger emergency'
       : 'Mantén presionado 2 segundos para activar';
-  String get sosEmergencyCall => isEnglish
-      ? 'Emergency Call 123'
-      : 'Llamada de Emergencia 123';
+  String get sosEmergencyCall =>
+      isEnglish ? 'Emergency Call 123' : 'Llamada de Emergencia 123';
   String get sosConnectingPolice => isEnglish
       ? 'Connecting immediately to Cartagena Metropolitan Police...'
       : 'Enlazando de inmediato con la Policía Metropolitana de Cartagena...';
@@ -66,16 +65,14 @@ class AppStrings {
       : 'Directorio de Emergencias Distritales';
   String get callButton => isEnglish ? 'Call' : 'Llamar';
 
-  String get contactPolice123 => isEnglish
-      ? 'National Police (123)'
-      : 'Policía Nacional (123)';
+  String get contactPolice123 =>
+      isEnglish ? 'National Police (123)' : 'Policía Nacional (123)';
   String get contactPoliceDesc => isEnglish
       ? 'Public safety, patrols and quadrant alerts'
       : 'Seguridad ciudadana, patrullas y cuadrantes';
 
-  String get contactFirefighters => isEnglish
-      ? 'Fire Department (119)'
-      : 'Cuerpo de Bomberos (119)';
+  String get contactFirefighters =>
+      isEnglish ? 'Fire Department (119)' : 'Cuerpo de Bomberos (119)';
   String get contactFirefightersDesc => isEnglish
       ? 'Fires, structural hazards, and rescue operations'
       : 'Incendios, rescate y emergencias estructurales';
@@ -87,16 +84,14 @@ class AppStrings {
       ? 'Urgent medical assistance and first response'
       : 'Atención prehospitalaria y urgencias médicas';
 
-  String get contactCivilDefense => isEnglish
-      ? 'Civil Defense (144)'
-      : 'Defensa Civil (144)';
+  String get contactCivilDefense =>
+      isEnglish ? 'Civil Defense (144)' : 'Defensa Civil (144)';
   String get contactCivilDefenseDesc => isEnglish
       ? 'Floods, weather events, and disaster relief'
       : 'Inundaciones, desastres y auxilio ciudadano';
 
-  String get contactCoastGuard => isEnglish
-      ? 'Navy Coast Guard (146)'
-      : 'Guardacostas Armada (146)';
+  String get contactCoastGuard =>
+      isEnglish ? 'Navy Coast Guard (146)' : 'Guardacostas Armada (146)';
   String get contactCoastGuardDesc => isEnglish
       ? 'Maritime safety, beach emergencies, and island support'
       : 'Seguridad marítima, emergencias en playas e islas';
@@ -104,57 +99,49 @@ class AppStrings {
   // ==========================================
   // RUTAS SEGURAS (WAZE COMUNITARIO)
   // ==========================================
-  String get safeRouteTitle => isEnglish
-      ? 'Safe Route Assistant'
-      : 'Asistente de Rutas Seguras';
+  String get safeRouteTitle =>
+      isEnglish ? 'Safe Route Assistant' : 'Asistente de Rutas Seguras';
   String get safeRouteSubtitle => isEnglish
       ? 'Avoid crime hotspots and high-risk zones'
       : 'Evita focos delictivos y polígonos de riesgo';
   String get searchDestinationHint => isEnglish
       ? 'Where are you going in Cartagena?...'
       : '¿A dónde te diriges en Cartagena?...';
-  String get calculateSafeRoute => isEnglish
-      ? 'Calculate Safe Route'
-      : 'Calcular Ruta Segura';
+  String get calculateSafeRoute =>
+      isEnglish ? 'Calculate Safe Route' : 'Calcular Ruta Segura';
   String get routeSafetyGuaranteed => isEnglish
       ? 'Path optimized for maximum safety over shortest distance'
       : 'Ruta ponderada priorizando seguridad física sobre distancia';
-  String get startNavigation => isEnglish
-      ? 'Start Navigation'
-      : 'Iniciar Navegación';
+  String get startNavigation =>
+      isEnglish ? 'Start Navigation' : 'Iniciar Navegación';
   String get closeRoute => isEnglish ? 'Close Route' : 'Cerrar Ruta';
 
   // ==========================================
   // REPORTE DE INCIDENTES
   // ==========================================
-  String get reportIncidentTitle => isEnglish
-      ? 'Report Incident'
-      : 'Reportar Incidente';
+  String get reportIncidentTitle =>
+      isEnglish ? 'Report Incident' : 'Reportar Incidente';
   String get reportIncidentSubtitle => isEnglish
       ? 'Capture GPS location and photo evidence'
       : 'Captura ubicación satelital y evidencia fotográfica';
   String get incidentCategory => isEnglish ? 'Category' : 'Categoría';
   String get incidentTitleLabel => isEnglish ? 'Brief Title' : 'Título breve';
-  String get incidentDescLabel => isEnglish
-      ? 'Detailed Description'
-      : 'Descripción detallada';
+  String get incidentDescLabel =>
+      isEnglish ? 'Detailed Description' : 'Descripción detallada';
   String get incidentDescHint => isEnglish
       ? 'Detail what is happening (people, vehicles, circumstances)...'
       : 'Detalla lo ocurrido (personas, vehículos, circunstancias)...';
-  String get attachPhotoEvidence => isEnglish
-      ? 'Attach Photo Evidence'
-      : 'Adjuntar Evidencia Fotográfica';
+  String get attachPhotoEvidence =>
+      isEnglish ? 'Attach Photo Evidence' : 'Adjuntar Evidencia Fotográfica';
   String get takePhotoCamera => isEnglish ? 'Take Photo' : 'Tomar Foto';
   String get pickFromGallery => isEnglish ? 'Gallery' : 'Galería';
   String get gpsLocationAcquired => isEnglish
       ? 'GPS satellite location fixed'
       : 'Coordenada satelital fijada';
-  String get gpsLocationWaiting => isEnglish
-      ? 'Acquiring GPS location...'
-      : 'Obteniendo coordenada GPS...';
-  String get submitReportButton => isEnglish
-      ? 'Submit Incident Report'
-      : 'Publicar Reporte Ciudadano';
+  String get gpsLocationWaiting =>
+      isEnglish ? 'Acquiring GPS location...' : 'Obteniendo coordenada GPS...';
+  String get submitReportButton =>
+      isEnglish ? 'Submit Incident Report' : 'Publicar Reporte Ciudadano';
   String get reportSubmittedSuccess => isEnglish
       ? 'Incident report submitted successfully'
       : 'Reporte ciudadano enviado con éxito';
@@ -164,19 +151,15 @@ class AppStrings {
 
   // Tipos de Incidente
   String get typeTheft => isEnglish ? 'Theft / Robbery' : 'Hurto / Robo';
-  String get typeAccident => isEnglish
-      ? 'Traffic Accident'
-      : 'Accidente de Tránsito';
-  String get typeDisturbance => isEnglish
-      ? 'Public Brawl / Disturbance'
-      : 'Riña / Alteración del Orden';
-  String get typeSuspicious => isEnglish
-      ? 'Suspicious Activity'
-      : 'Actividad Sospechosa';
+  String get typeAccident =>
+      isEnglish ? 'Traffic Accident' : 'Accidente de Tránsito';
+  String get typeDisturbance =>
+      isEnglish ? 'Public Brawl / Disturbance' : 'Riña / Alteración del Orden';
+  String get typeSuspicious =>
+      isEnglish ? 'Suspicious Activity' : 'Actividad Sospechosa';
   String get typeVandalism => isEnglish ? 'Vandalism' : 'Vandalismo';
-  String get typeFlooding => isEnglish
-      ? 'Flooding / Weather Hazard'
-      : 'Inundación / Alerta Climática';
+  String get typeFlooding =>
+      isEnglish ? 'Flooding / Weather Hazard' : 'Inundación / Alerta Climática';
   String get typeOther => isEnglish ? 'Other Hazard' : 'Otra Novedad';
 
   // ==========================================
@@ -214,13 +197,13 @@ class AppStrings {
   // AJUSTES, TEMA E IDIOMA
   // ==========================================
   String get settingsTitle => isEnglish ? 'Settings' : 'Ajustes';
-  String get languageTitle => isEnglish
-      ? 'Language & Region'
-      : 'Idioma y Región';
+  String get languageTitle =>
+      isEnglish ? 'Language & Region' : 'Idioma y Región';
   String get languageSubtitle => isEnglish
       ? 'Select English or Spanish for alerts and navigation'
       : 'Selecciona Español o Inglés para interfaz y alertas';
-  String get themeTitle => isEnglish ? 'Appearance & Theme' : 'Apariencia y Tema';
+  String get themeTitle =>
+      isEnglish ? 'Appearance & Theme' : 'Apariencia y Tema';
   String get themeSubtitle => isEnglish
       ? 'Toggle between Obsidian dark mode and daylight light mode'
       : 'Alterna entre modo oscuro Obsidian y modo claro diurno';
@@ -247,24 +230,25 @@ class AppStrings {
   String get landingHeroDesc => isEnglish
       ? 'Real-time incident reporting with GPS, verified photo evidence, smart safe routes, and emergency 123 dispatch.'
       : 'Reportes ciudadanos con GPS, evidencias fotográficas certificadas, rutas seguras tipo Waze y auxilio 123 en tiempo real.';
-  String get tryAppButton => isEnglish
-      ? 'Open Safety App'
-      : 'Entrar a la Plataforma';
-  String get viewLiveMapButton => isEnglish
-      ? 'View Live Map'
-      : 'Ver Mapa en Vivo';
-  String get officialDocumentation => isEnglish
-      ? 'API Documentation'
-      : 'Documentación API';
+  String get tryAppButton =>
+      isEnglish ? 'Open Safety App' : 'Entrar a la Plataforma';
+  String get viewLiveMapButton =>
+      isEnglish ? 'View Live Map' : 'Ver Mapa en Vivo';
+  String get officialDocumentation =>
+      isEnglish ? 'API Documentation' : 'Documentación API';
 
   // Quick helper for categories
   String getCategoryName(String raw) {
     final clean = raw.trim().toUpperCase();
-    if (clean.contains('ROBO') || clean.contains('HURTO') || clean.contains('THEFT')) {
+    if (clean.contains('ROBO') ||
+        clean.contains('HURTO') ||
+        clean.contains('THEFT')) {
       return typeTheft;
     }
     if (clean.contains('ACCIDENT')) return typeAccident;
-    if (clean.contains('RINA') || clean.contains('RIÑA') || clean.contains('DISTURB')) {
+    if (clean.contains('RINA') ||
+        clean.contains('RIÑA') ||
+        clean.contains('DISTURB')) {
       return typeDisturbance;
     }
     if (clean.contains('SOSPECH') || clean.contains('SUSPIC')) {

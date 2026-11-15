@@ -63,8 +63,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final greeting = now.hour < 12
         ? 'Buenos días'
         : now.hour < 18
-        ? 'Buenas tardes'
-        : 'Buenas noches';
+            ? 'Buenas tardes'
+            : 'Buenas noches';
     final name = user.fullName.isEmpty ? user.username : user.fullName;
     return FutureBuilder<List<Incident>>(
       future: _incidents,
@@ -111,8 +111,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         width: cardWidth,
                         child: _StatCard(
                           stat: stat,
-                          loading:
-                              snapshot.connectionState ==
+                          loading: snapshot.connectionState ==
                               ConnectionState.waiting,
                         ),
                       ),
@@ -349,14 +348,14 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    title.toUpperCase(),
-    style: const TextStyle(
-      color: AppColors.muted,
-      fontSize: 11,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 1,
-    ),
-  );
+        title.toUpperCase(),
+        style: const TextStyle(
+          color: AppColors.muted,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1,
+        ),
+      );
 }
 
 class _QuickAction extends StatelessWidget {
@@ -401,27 +400,27 @@ class _InlineError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'No se pudo cargar tu resumen',
-            style: TextStyle(fontWeight: FontWeight.w700),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'No se pudo cargar tu resumen',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 5),
+              Text(message, style: const TextStyle(color: AppColors.muted)),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reintentar'),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
-          Text(message, style: const TextStyle(color: AppColors.muted)),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Reintentar'),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

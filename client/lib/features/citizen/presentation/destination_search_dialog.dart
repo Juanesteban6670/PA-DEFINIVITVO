@@ -134,18 +134,17 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                           ),
                         )
                       : (_searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null),
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                          : null),
                   filled: true,
-                  fillColor: isDark
-                      ? AppColors.darkSurface
-                      : const Color(0xFFF1F5F9),
+                  fillColor:
+                      isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
@@ -208,9 +207,8 @@ class _DestinationSearchDialogState extends State<DestinationSearchDialog> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
-                              color: isDark
-                                  ? AppColors.darkText
-                                  : AppColors.navy,
+                              color:
+                                  isDark ? AppColors.darkText : AppColors.navy,
                             ),
                           ),
                           subtitle: Text(

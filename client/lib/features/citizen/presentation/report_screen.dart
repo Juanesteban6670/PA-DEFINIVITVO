@@ -176,16 +176,16 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   ReportDraft _currentDraft() => ReportDraft(
-    type: _type,
-    description: _description.text.trim(),
-    location: _location.text.trim(),
-    priority: _priority,
-    idempotencyKey: _idempotencyKey,
-    latitude: _latitude,
-    longitude: _longitude,
-    photoPaths: List.of(_photoPaths),
-    uploadedImageUrls: _uploadedImageUrls,
-  );
+        type: _type,
+        description: _description.text.trim(),
+        location: _location.text.trim(),
+        priority: _priority,
+        idempotencyKey: _idempotencyKey,
+        latitude: _latitude,
+        longitude: _longitude,
+        photoPaths: List.of(_photoPaths),
+        uploadedImageUrls: _uploadedImageUrls,
+      );
 
   Future<void> _restoreDraft() async {
     try {
@@ -484,10 +484,10 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Widget _brokenPhoto() => const SizedBox(
-    width: 76,
-    height: 76,
-    child: Icon(Icons.broken_image_outlined),
-  );
+        width: 76,
+        height: 76,
+        child: Icon(Icons.broken_image_outlined),
+      );
 
   void _showMessage(String message) {
     if (!mounted) return;
@@ -604,8 +604,8 @@ class _ReportScreenState extends State<ReportScreen> {
                           onChanged: (_) => _saveDraft(),
                           validator: (value) =>
                               value == null || value.trim().isEmpty
-                              ? 'Describe brevemente el incidente'
-                              : null,
+                                  ? 'Describe brevemente el incidente'
+                                  : null,
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -618,8 +618,8 @@ class _ReportScreenState extends State<ReportScreen> {
                           onChanged: (_) => _saveDraft(),
                           validator: (value) =>
                               value == null || value.trim().isEmpty
-                              ? 'Indica dónde ocurrió'
-                              : null,
+                                  ? 'Indica dónde ocurrió'
+                                  : null,
                         ),
                         const SizedBox(height: 10),
                         Wrap(
@@ -641,9 +641,9 @@ class _ReportScreenState extends State<ReportScreen> {
                                 _locating
                                     ? 'Obteniendo GPS…'
                                     : (_latitude == null || _longitude == null
-                                          ? 'Añadir ubicación GPS'
-                                          : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
-                                                '${_longitude!.toStringAsFixed(5)}'),
+                                        ? 'Añadir ubicación GPS'
+                                        : 'GPS: ${_latitude!.toStringAsFixed(5)}, '
+                                            '${_longitude!.toStringAsFixed(5)}'),
                               ),
                             ),
                             if (_latitude != null && _longitude != null)

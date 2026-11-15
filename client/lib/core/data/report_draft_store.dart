@@ -32,55 +32,58 @@ class ReportDraft {
   ReportDraft copyWith({
     List<String>? photoPaths,
     List<String>? uploadedImageUrls,
-  }) => ReportDraft(
-    type: type,
-    description: description,
-    location: location,
-    priority: priority,
-    idempotencyKey: idempotencyKey,
-    latitude: latitude,
-    longitude: longitude,
-    photoPaths: photoPaths ?? this.photoPaths,
-    uploadedImageUrls: uploadedImageUrls ?? this.uploadedImageUrls,
-  );
+  }) =>
+      ReportDraft(
+        type: type,
+        description: description,
+        location: location,
+        priority: priority,
+        idempotencyKey: idempotencyKey,
+        latitude: latitude,
+        longitude: longitude,
+        photoPaths: photoPaths ?? this.photoPaths,
+        uploadedImageUrls: uploadedImageUrls ?? this.uploadedImageUrls,
+      );
 
   factory ReportDraft.fromJson(Map<String, dynamic> json) => ReportDraft(
-    type: json['type']?.toString() ?? 'ROBO',
-    description: json['description']?.toString() ?? '',
-    location: json['location']?.toString() ?? '',
-    priority: json['priority']?.toString() ?? 'MEDIUM',
-    idempotencyKey: json['idempotencyKey']?.toString() ?? '',
-    latitude: (json['latitude'] as num?)?.toDouble(),
-    longitude: (json['longitude'] as num?)?.toDouble(),
-    photoPaths:
-        (json['photoPaths'] as List?)?.whereType<String>().toList() ?? const [],
-    uploadedImageUrls:
-        (json['uploadedImageUrls'] as List?)?.whereType<String>().toList() ??
-        const [],
-  );
+        type: json['type']?.toString() ?? 'ROBO',
+        description: json['description']?.toString() ?? '',
+        location: json['location']?.toString() ?? '',
+        priority: json['priority']?.toString() ?? 'MEDIUM',
+        idempotencyKey: json['idempotencyKey']?.toString() ?? '',
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
+        photoPaths:
+            (json['photoPaths'] as List?)?.whereType<String>().toList() ??
+                const [],
+        uploadedImageUrls: (json['uploadedImageUrls'] as List?)
+                ?.whereType<String>()
+                .toList() ??
+            const [],
+      );
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'description': description,
-    'location': location,
-    'priority': priority,
-    'idempotencyKey': idempotencyKey,
-    'latitude': latitude,
-    'longitude': longitude,
-    'photoPaths': photoPaths,
-    'uploadedImageUrls': uploadedImageUrls,
-  };
+        'type': type,
+        'description': description,
+        'location': location,
+        'priority': priority,
+        'idempotencyKey': idempotencyKey,
+        'latitude': latitude,
+        'longitude': longitude,
+        'photoPaths': photoPaths,
+        'uploadedImageUrls': uploadedImageUrls,
+      };
 
   Map<String, dynamic> toRequest(List<String> imageUrls) => {
-    'type': type,
-    'description': description,
-    'location': location,
-    'latitude': latitude,
-    'longitude': longitude,
-    'priority': priority,
-    'imageUrls': imageUrls,
-    'idempotencyKey': idempotencyKey,
-  };
+        'type': type,
+        'description': description,
+        'location': location,
+        'latitude': latitude,
+        'longitude': longitude,
+        'priority': priority,
+        'imageUrls': imageUrls,
+        'idempotencyKey': idempotencyKey,
+      };
 }
 
 class ReportDraftStore {
@@ -224,9 +227,8 @@ Future<void> submitReportDraft(
     if (response is! Map<String, dynamic> || response['urls'] is! List) {
       throw const FormatException('La API devolvió URLs de archivos inválidas');
     }
-    final uploadedUrls = (response['urls'] as List)
-        .whereType<String>()
-        .toList();
+    final uploadedUrls =
+        (response['urls'] as List).whereType<String>().toList();
     if (uploadedUrls.length != files.length) {
       throw const FormatException(
         'La API no confirmó la carga de todas las fotografías',

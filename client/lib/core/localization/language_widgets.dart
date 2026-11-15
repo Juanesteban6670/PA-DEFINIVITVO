@@ -42,7 +42,9 @@ class LanguageToggleButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDark
-                      ? (isEnglish ? AppColors.brightBlue : AppColors.darkBorder)
+                      ? (isEnglish
+                          ? AppColors.brightBlue
+                          : AppColors.darkBorder)
                       : (isEnglish ? AppColors.blue : AppColors.border),
                   width: isEnglish ? 1.5 : 1.0,
                 ),

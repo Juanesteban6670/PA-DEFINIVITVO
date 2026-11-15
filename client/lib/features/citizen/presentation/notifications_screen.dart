@@ -98,90 +98,90 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Notificaciones'),
-      actions: [
-        IconButton(
-          tooltip: 'Marcar todas como leídas',
-          onPressed: _updating ? null : _markAllRead,
-          icon: const Icon(Icons.done_all),
-        ),
-      ],
-    ),
-    body: FutureBuilder<List<AppNotification>>(
-      future: _notifications,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('No se pudieron cargar las notificaciones'),
-                  const SizedBox(height: 8),
-                  Text('${snapshot.error}', textAlign: TextAlign.center),
-                  TextButton.icon(
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reintentar'),
-                  ),
-                ],
-              ),
+        appBar: AppBar(
+          title: const Text('Notificaciones'),
+          actions: [
+            IconButton(
+              tooltip: 'Marcar todas como leídas',
+              onPressed: _updating ? null : _markAllRead,
+              icon: const Icon(Icons.done_all),
             ),
-          );
-        }
-        final notifications = snapshot.data ?? const <AppNotification>[];
-        if (notifications.isEmpty) {
-          return const Center(child: Text('No tienes notificaciones.'));
-        }
-        return RefreshIndicator(
-          onRefresh: () async => _reload(),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: notifications.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 6),
-            itemBuilder: (context, index) {
-              final notification = notifications[index];
-              return Card(
-                child: ListTile(
-                  onTap: () => _open(notification),
-                  leading: CircleAvatar(
-                    backgroundColor: notification.read
-                        ? AppColors.border
-                        : AppColors.blue.withValues(alpha: 0.1),
-                    child: Icon(
-                      notification.read
-                          ? Icons.notifications_none
-                          : Icons.notifications_active_outlined,
-                      color: notification.read
-                          ? AppColors.muted
-                          : AppColors.blue,
-                    ),
-                  ),
-                  title: Text(
-                    notification.title,
-                    style: TextStyle(
-                      fontWeight: notification.read
-                          ? FontWeight.w500
-                          : FontWeight.w800,
-                    ),
-                  ),
-                  subtitle: Text(notification.message),
-                  trailing: IconButton(
-                    tooltip: 'Eliminar notificación',
-                    onPressed: () => _delete(notification),
-                    icon: const Icon(Icons.delete_outline),
+          ],
+        ),
+        body: FutureBuilder<List<AppNotification>>(
+          future: _notifications,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('No se pudieron cargar las notificaciones'),
+                      const SizedBox(height: 8),
+                      Text('${snapshot.error}', textAlign: TextAlign.center),
+                      TextButton.icon(
+                        onPressed: _reload,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Reintentar'),
+                      ),
+                    ],
                   ),
                 ),
               );
-            },
-          ),
-        );
-      },
-    ),
-  );
+            }
+            final notifications = snapshot.data ?? const <AppNotification>[];
+            if (notifications.isEmpty) {
+              return const Center(child: Text('No tienes notificaciones.'));
+            }
+            return RefreshIndicator(
+              onRefresh: () async => _reload(),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: notifications.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 6),
+                itemBuilder: (context, index) {
+                  final notification = notifications[index];
+                  return Card(
+                    child: ListTile(
+                      onTap: () => _open(notification),
+                      leading: CircleAvatar(
+                        backgroundColor: notification.read
+                            ? AppColors.border
+                            : AppColors.blue.withValues(alpha: 0.1),
+                        child: Icon(
+                          notification.read
+                              ? Icons.notifications_none
+                              : Icons.notifications_active_outlined,
+                          color: notification.read
+                              ? AppColors.muted
+                              : AppColors.blue,
+                        ),
+                      ),
+                      title: Text(
+                        notification.title,
+                        style: TextStyle(
+                          fontWeight: notification.read
+                              ? FontWeight.w500
+                              : FontWeight.w800,
+                        ),
+                      ),
+                      subtitle: Text(notification.message),
+                      trailing: IconButton(
+                        tooltip: 'Eliminar notificación',
+                        onPressed: () => _delete(notification),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
 }

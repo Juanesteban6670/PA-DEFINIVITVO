@@ -78,103 +78,106 @@ class LandingScreen extends StatelessWidget {
   }
 
   Widget _hero(BuildContext context, bool wide) => Container(
-    width: double.infinity,
-    padding: EdgeInsets.symmetric(
-      horizontal: wide ? 48 : 24,
-      vertical: wide ? 96 : 56,
-    ),
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [AppColors.navy, AppColors.navyBlue, AppColors.blue],
-      ),
-    ),
-    child: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1120),
-        child: Wrap(
-          spacing: 48,
-          runSpacing: 32,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            SizedBox(
-              width: wide ? 520 : 700,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Chip(
-                    avatar: Icon(Icons.shield_outlined, size: 18),
-                    label: Text('Seguridad ciudadana'),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Una ciudad más segura empieza contigo',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      height: 1.08,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Reporta incidentes, consulta información y encuentra ayuda de emergencia en Cartagena.',
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(color: Colors.white70, height: 1.55),
-                  ),
-                  const SizedBox(height: 26),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: wide ? 48 : 24,
+          vertical: wide ? 96 : 56,
+        ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.navy, AppColors.navyBlue, AppColors.blue],
+          ),
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Wrap(
+              spacing: 48,
+              runSpacing: 32,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: wide ? 520 : 700,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FilledButton.icon(
-                        onPressed: () => context.go('/Register'),
-                        icon: const Icon(Icons.person_add_alt_1),
-                        label: const Text('Crear cuenta'),
+                      const Chip(
+                        avatar: Icon(Icons.shield_outlined, size: 18),
+                        label: Text('Seguridad ciudadana'),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: () => context.go('/Login'),
-                        icon: const Icon(Icons.login),
-                        label: const Text('Iniciar sesión'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white54),
-                        ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Una ciudad más segura empieza contigo',
+                        style:
+                            Theme.of(context).textTheme.displaySmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.08,
+                                ),
                       ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Reporta incidentes, consulta información y encuentra ayuda de emergencia en Cartagena.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(color: Colors.white70, height: 1.55),
+                      ),
+                      const SizedBox(height: 26),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => context.go('/Register'),
+                            icon: const Icon(Icons.person_add_alt_1),
+                            label: const Text('Crear cuenta'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => context.go('/Login'),
+                            icon: const Icon(Icons.login),
+                            label: const Text('Iniciar sesión'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white54),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      const _AnimatedHeroStats(),
                     ],
                   ),
-                  const SizedBox(height: 36),
-                  const _AnimatedHeroStats(),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: wide ? 460 : 700,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: Image.asset(
-                  'assets/brand/login-background.png',
-                  height: wide ? 320 : 220,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 250,
-                    color: Colors.white12,
-                    child: const Center(
-                      child: Icon(
-                        Icons.location_city,
-                        color: Colors.white,
-                        size: 96,
+                ),
+                SizedBox(
+                  width: wide ? 460 : 700,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: Image.asset(
+                      'assets/brand/login-background.png',
+                      height: wide ? 320 : 220,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 250,
+                        color: Colors.white12,
+                        child: const Center(
+                          child: Icon(
+                            Icons.location_city,
+                            color: Colors.white,
+                            size: 96,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _features(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -182,7 +185,8 @@ class LandingScreen extends StatelessWidget {
       context,
       sectionKey: _featuresKey,
       title: 'Herramientas para cuidarnos entre todos',
-      subtitle: 'Información clara, inteligencia artificial y canales de atención para actuar a tiempo.',
+      subtitle:
+          'Información clara, inteligencia artificial y canales de atención para actuar a tiempo.',
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 840;
@@ -199,7 +203,8 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.brightBlue,
                         badge: 'Tiempo Real',
                         title: 'Mapa Geoespacial Interactivo',
-                        description: 'Visualiza incidentes reportados, cuadrantes policiales, sectores de riesgo distritales y cálculo de rutas seguras tipo Waze.',
+                        description:
+                            'Visualiza incidentes reportados, cuadrantes policiales, sectores de riesgo distritales y cálculo de rutas seguras tipo Waze.',
                         isDark: isDark,
                       ),
                     ),
@@ -211,7 +216,8 @@ class LandingScreen extends StatelessWidget {
                         accentColor: const Color(0xFF8B5CF6),
                         badge: 'IA Contextual',
                         title: 'Asistente Ciudadano IA',
-                        description: 'Orientación inmediata 24/7 sobre números de emergencia, rutas preventivas y protocolos distritales.',
+                        description:
+                            'Orientación inmediata 24/7 sobre números de emergencia, rutas preventivas y protocolos distritales.',
                         isDark: isDark,
                       ),
                     ),
@@ -228,7 +234,8 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.red,
                         badge: 'Respuesta Rápida',
                         title: 'SOS 123 y Directorio',
-                        description: 'Llamada rápida y copia instantánea de coordenadas GPS exactas para compartir con autoridades o familiares.',
+                        description:
+                            'Llamada rápida y copia instantánea de coordenadas GPS exactas para compartir con autoridades o familiares.',
                         isDark: isDark,
                       ),
                     ),
@@ -240,7 +247,8 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.amber,
                         badge: 'Participación Activa',
                         title: 'Reporte y Alertas Ciudadanas',
-                        description: 'Crea reportes geolocalizados con evidencia fotográfica. La comunidad y las autoridades reciben alertas prioritarias.',
+                        description:
+                            'Crea reportes geolocalizados con evidencia fotográfica. La comunidad y las autoridades reciben alertas prioritarias.',
                         isDark: isDark,
                       ),
                     ),
@@ -252,7 +260,8 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.brightBlue,
                   badge: 'Tiempo Real',
                   title: 'Mapa Geoespacial Interactivo',
-                  description: 'Visualiza incidentes reportados, cuadrantes policiales y rutas seguras tipo Waze.',
+                  description:
+                      'Visualiza incidentes reportados, cuadrantes policiales y rutas seguras tipo Waze.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 14),
@@ -261,7 +270,8 @@ class LandingScreen extends StatelessWidget {
                   accentColor: const Color(0xFF8B5CF6),
                   badge: 'IA Contextual',
                   title: 'Asistente Ciudadano IA',
-                  description: 'Orientación inmediata 24/7 sobre cuadrantes y protocolos distritales.',
+                  description:
+                      'Orientación inmediata 24/7 sobre cuadrantes y protocolos distritales.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 14),
@@ -270,7 +280,8 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.red,
                   badge: 'Respuesta Rápida',
                   title: 'SOS 123 y Directorio',
-                  description: 'Llamada rápida y copia instantánea de coordenadas GPS exactas.',
+                  description:
+                      'Llamada rápida y copia instantánea de coordenadas GPS exactas.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 14),
@@ -279,7 +290,8 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.amber,
                   badge: 'Participación Activa',
                   title: 'Reporte y Alertas Ciudadanas',
-                  description: 'Crea reportes geolocalizados con evidencia fotográfica y seguimiento oficial.',
+                  description:
+                      'Crea reportes geolocalizados con evidencia fotográfica y seguimiento oficial.',
                   isDark: isDark,
                 ),
               ],
@@ -291,12 +303,13 @@ class LandingScreen extends StatelessWidget {
   }
 
   Widget _dynamicCharts(BuildContext context) => _section(
-    context,
-    sectionKey: _chartsKey,
-    title: 'Métricas de Impacto y Seguridad Distrital',
-    subtitle: 'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
-    child: const _DynamicAnalyticsDashboard(),
-  );
+        context,
+        sectionKey: _chartsKey,
+        title: 'Métricas de Impacto y Seguridad Distrital',
+        subtitle:
+            'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
+        child: const _DynamicAnalyticsDashboard(),
+      );
 
   Widget _mission(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -307,80 +320,81 @@ class LandingScreen extends StatelessWidget {
         context,
         sectionKey: _missionKey,
         title: 'Una comunidad conectada',
-        subtitle: 'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
+        subtitle:
+            'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
         child: const SizedBox.shrink(),
       ),
     );
   }
 
   Widget _howItWorks(BuildContext context) => _section(
-    context,
-    title: '¿Cómo empezar?',
-    subtitle: 'Tres pasos sencillos para participar.',
-    child: const Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ListTile(
-          leading: CircleAvatar(child: Text('1')),
-          title: Text('Crea tu cuenta'),
-          subtitle: Text('Regístrate con tus datos de contacto.'),
+        context,
+        title: '¿Cómo empezar?',
+        subtitle: 'Tres pasos sencillos para participar.',
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListTile(
+              leading: CircleAvatar(child: Text('1')),
+              title: Text('Crea tu cuenta'),
+              subtitle: Text('Regístrate con tus datos de contacto.'),
+            ),
+            ListTile(
+              leading: CircleAvatar(child: Text('2')),
+              title: Text('Consulta o reporta'),
+              subtitle: Text('Describe la situación y su ubicación.'),
+            ),
+            ListTile(
+              leading: CircleAvatar(child: Text('3')),
+              title: Text('Sigue la información'),
+              subtitle: Text('Consulta el estado de tus reportes.'),
+            ),
+          ],
         ),
-        ListTile(
-          leading: CircleAvatar(child: Text('2')),
-          title: Text('Consulta o reporta'),
-          subtitle: Text('Describe la situación y su ubicación.'),
-        ),
-        ListTile(
-          leading: CircleAvatar(child: Text('3')),
-          title: Text('Sigue la información'),
-          subtitle: Text('Consulta el estado de tus reportes.'),
-        ),
-      ],
-    ),
-  );
+      );
 
   Widget _faq(BuildContext context) => _section(
-    context,
-    title: 'Preguntas frecuentes',
-    subtitle: 'Información para usar la plataforma.',
-    child: const Column(
-      children: [
-        ExpansionTile(
-          title: Text('¿Necesito permitir mi ubicación?'),
+        context,
+        title: 'Preguntas frecuentes',
+        subtitle: 'Información para usar la plataforma.',
+        child: const Column(
           children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'No. Puedes escribir una dirección o referencia; compartir GPS es opcional.',
-              ),
+            ExpansionTile(
+              title: Text('¿Necesito permitir mi ubicación?'),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'No. Puedes escribir una dirección o referencia; compartir GPS es opcional.',
+                  ),
+                ),
+              ],
+            ),
+            ExpansionTile(
+              title: Text('¿Qué hago ante una emergencia inmediata?'),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Comunícate directamente con los servicios de emergencia de tu zona.',
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        ExpansionTile(
-          title: Text('¿Qué hago ante una emergencia inmediata?'),
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Comunícate directamente con los servicios de emergencia de tu zona.',
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+      );
 
   Widget _footer(BuildContext context) => Container(
-    width: double.infinity,
-    color: AppColors.navy,
-    padding: const EdgeInsets.all(28),
-    child: const Text(
-      'Cartagena Segura · Participación ciudadana',
-      textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.white70),
-    ),
-  );
+        width: double.infinity,
+        color: AppColors.navy,
+        padding: const EdgeInsets.all(28),
+        child: const Text(
+          'Cartagena Segura · Participación ciudadana',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
 
   Widget _section(
     BuildContext context, {
@@ -388,25 +402,26 @@ class LandingScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required Widget child,
-  }) => Padding(
-    key: sectionKey,
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-    child: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1120),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 20),
-            child,
-          ],
+  }) =>
+      Padding(
+        key: sectionKey,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: 8),
+                Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 20),
+                child,
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   void _scrollTo(GlobalKey key) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -641,11 +656,13 @@ class _DynamicAnalyticsDashboardState
   List<Map<String, dynamic>> _incidents = [];
   List<Map<String, dynamic>> _zones = [];
 
-  int _selectedView = 0; // 0: Gráficas Analíticas, 1: Boletín de Incidentes, 2: Matriz de Cuadrantes, 3: Eficiencia Operativa
+  int _selectedView =
+      0; // 0: Gráficas Analíticas, 1: Boletín de Incidentes, 2: Matriz de Cuadrantes, 3: Eficiencia Operativa
   int _selectedPeriod = 0; // 0: 7 Días, 1: 30 Días, 2: Histórico 2026
   int _selectedChart = 0; // 0: Tendencia, 1: Sectores, 2: Tipología
   int _touchedPieIndex = -1;
-  String _incidentFilter = 'TODOS'; // 'TODOS', 'CRITICAL', 'PENDING', 'RESOLVED'
+  String _incidentFilter =
+      'TODOS'; // 'TODOS', 'CRITICAL', 'PENDING', 'RESOLVED'
 
   @override
   void initState() {
@@ -720,20 +737,21 @@ class _DynamicAnalyticsDashboardState
 
     // Métricas calculadas dinámicamente con base en datos reales
     final totalCount = _incidents.length;
-    final resolvedCount = _incidents.where((i) =>
-        i['status'] == 'RESOLVED' || i['status'] == 'CLOSED').length;
-    final pendingCount = _incidents.where((i) =>
-        i['status'] == 'PENDING' || i['status'] == 'IN_PROGRESS').length;
-    final criticalCount = _incidents.where((i) =>
-        i['priority'] == 'CRITICAL' || i['priority'] == 'HIGH').length;
+    final resolvedCount = _incidents
+        .where((i) => i['status'] == 'RESOLVED' || i['status'] == 'CLOSED')
+        .length;
+    final pendingCount = _incidents
+        .where((i) => i['status'] == 'PENDING' || i['status'] == 'IN_PROGRESS')
+        .length;
+    final criticalCount = _incidents
+        .where((i) => i['priority'] == 'CRITICAL' || i['priority'] == 'HIGH')
+        .length;
 
-    final double resolutionRate = totalCount > 0
-        ? (resolvedCount * 100.0 / totalCount)
-        : 97.4;
+    final double resolutionRate =
+        totalCount > 0 ? (resolvedCount * 100.0 / totalCount) : 97.4;
 
-    final activeZonesDisplay = _zones.isNotEmpty
-        ? '${_zones.length} / ${_zones.length}'
-        : '14 / 14';
+    final activeZonesDisplay =
+        _zones.isNotEmpty ? '${_zones.length} / ${_zones.length}' : '14 / 14';
 
     final totalDisplay = totalCount > 0 ? '$totalCount' : '+1,280';
     final resolvedDisplay = '${resolutionRate.toStringAsFixed(1)}%';
@@ -756,7 +774,8 @@ class _DynamicAnalyticsDashboardState
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.fiber_manual_record, color: AppColors.green, size: 10),
+                  Icon(Icons.fiber_manual_record,
+                      color: AppColors.green, size: 10),
                   SizedBox(width: 6),
                   Text(
                     'Monitoreo Distrital en Vivo',
@@ -934,7 +953,9 @@ class _DynamicAnalyticsDashboardState
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: active
-              ? (isDark ? AppColors.blue.withValues(alpha: 0.35) : AppColors.blue)
+              ? (isDark
+                  ? AppColors.blue.withValues(alpha: 0.35)
+                  : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -951,7 +972,9 @@ class _DynamicAnalyticsDashboardState
               size: 16,
               color: active
                   ? Colors.white
-                  : (highlight ? AppColors.brightBlue : (isDark ? AppColors.darkTextMuted : AppColors.navy)),
+                  : (highlight
+                      ? AppColors.brightBlue
+                      : (isDark ? AppColors.darkTextMuted : AppColors.navy)),
             ),
             const SizedBox(width: 8),
             Text(
@@ -1032,7 +1055,8 @@ class _DynamicAnalyticsDashboardState
                 },
                 style: SegmentedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -1114,7 +1138,8 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.flash_on_rounded, color: AppColors.amber, size: 20),
+                      const Icon(Icons.flash_on_rounded,
+                          color: AppColors.amber, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Boletín Distrital de Incidentes en Vivo',
@@ -1139,14 +1164,16 @@ class _DynamicAnalyticsDashboardState
               const Spacer(),
               if (!isMobile)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.green.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.sync_rounded, color: AppColors.green, size: 14),
+                      const Icon(Icons.sync_rounded,
+                          color: AppColors.green, size: 14),
                       const SizedBox(width: 6),
                       Text(
                         'Auto-actualiza cada 8s',
@@ -1192,7 +1219,8 @@ class _DynamicAnalyticsDashboardState
                     Text(
                       'No hay reportes bajo este filtro.',
                       style: TextStyle(
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color:
+                            isDark ? AppColors.darkTextMuted : AppColors.muted,
                       ),
                     ),
                   ],
@@ -1213,12 +1241,30 @@ class _DynamicAnalyticsDashboardState
                         : const Color(0xFFF8FAFC),
                   ),
                   columns: const [
-                    DataColumn(label: Text('CÓDIGO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                    DataColumn(label: Text('TIPOLOGÍA', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                    DataColumn(label: Text('SECTOR / UBICACIÓN', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                    DataColumn(label: Text('PRIORIDAD', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                    DataColumn(label: Text('ESTADO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                    DataColumn(label: Text('REGISTRO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('CÓDIGO',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('TIPOLOGÍA',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('SECTOR / UBICACIÓN',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('PRIORIDAD',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('ESTADO',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
+                    DataColumn(
+                        label: Text('REGISTRO',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 11))),
                   ],
                   rows: [
                     for (final inc in filtered.take(15))
@@ -1244,7 +1290,9 @@ class _DynamicAnalyticsDashboardState
                                 const SizedBox(width: 8),
                                 Text(
                                   _formatType(inc['type']),
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12),
                                 ),
                               ],
                             ),
@@ -1254,7 +1302,8 @@ class _DynamicAnalyticsDashboardState
                             ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 220),
                               child: Text(
-                                inc['location']?.toString() ?? 'Cartagena D.T. y C.',
+                                inc['location']?.toString() ??
+                                    'Cartagena D.T. y C.',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 12),
@@ -1262,16 +1311,20 @@ class _DynamicAnalyticsDashboardState
                             ),
                           ),
                           // Prioridad
-                          DataCell(_priorityBadge(inc['priority']?.toString() ?? 'MEDIUM')),
+                          DataCell(_priorityBadge(
+                              inc['priority']?.toString() ?? 'MEDIUM')),
                           // Estado
-                          DataCell(_statusBadge(inc['status']?.toString() ?? 'PENDING')),
+                          DataCell(_statusBadge(
+                              inc['status']?.toString() ?? 'PENDING')),
                           // Fecha
                           DataCell(
                             Text(
                               _formatRelativeDate(inc['createdAt']),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : AppColors.muted,
                               ),
                             ),
                           ),
@@ -1292,9 +1345,12 @@ class _DynamicAnalyticsDashboardState
       label: Text(label),
       selected: active,
       onSelected: (_) => setState(() => _incidentFilter = key),
-      selectedColor: isDark ? AppColors.blue.withValues(alpha: 0.4) : AppColors.blue,
+      selectedColor:
+          isDark ? AppColors.blue.withValues(alpha: 0.4) : AppColors.blue,
       labelStyle: TextStyle(
-        color: active ? Colors.white : (isDark ? AppColors.darkText : AppColors.navy),
+        color: active
+            ? Colors.white
+            : (isDark ? AppColors.darkText : AppColors.navy),
         fontSize: 12,
         fontWeight: active ? FontWeight.w700 : FontWeight.w500,
       ),
@@ -1309,12 +1365,36 @@ class _DynamicAnalyticsDashboardState
     final zonesList = _zones.isNotEmpty
         ? _zones
         : [
-            {'name': 'Centro Histórico', 'riskLevel': 'MODERATE', 'description': 'Zona turística y amurallada'},
-            {'name': 'Bocagrande', 'riskLevel': 'LOW', 'description': 'Zona hotelera y comercial'},
-            {'name': 'Getsemaní', 'riskLevel': 'MODERATE', 'description': 'Vida nocturna y plazas'},
-            {'name': 'Manga', 'riskLevel': 'LOW', 'description': 'Sector residencial y puerto'},
-            {'name': 'Olaya Herrera', 'riskLevel': 'HIGH', 'description': 'Comuna residencial prioritaria'},
-            {'name': 'El Pozón', 'riskLevel': 'HIGH', 'description': 'Cuadrante suroriental'},
+            {
+              'name': 'Centro Histórico',
+              'riskLevel': 'MODERATE',
+              'description': 'Zona turística y amurallada'
+            },
+            {
+              'name': 'Bocagrande',
+              'riskLevel': 'LOW',
+              'description': 'Zona hotelera y comercial'
+            },
+            {
+              'name': 'Getsemaní',
+              'riskLevel': 'MODERATE',
+              'description': 'Vida nocturna y plazas'
+            },
+            {
+              'name': 'Manga',
+              'riskLevel': 'LOW',
+              'description': 'Sector residencial y puerto'
+            },
+            {
+              'name': 'Olaya Herrera',
+              'riskLevel': 'HIGH',
+              'description': 'Comuna residencial prioritaria'
+            },
+            {
+              'name': 'El Pozón',
+              'riskLevel': 'HIGH',
+              'description': 'Cuadrante suroriental'
+            },
           ];
 
     return Container(
@@ -1343,7 +1423,8 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.shield_outlined, color: AppColors.brightBlue, size: 20),
+                      const Icon(Icons.shield_outlined,
+                          color: AppColors.brightBlue, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Matriz de Seguridad Distrital por Cuadrantes',
@@ -1368,7 +1449,6 @@ class _DynamicAnalyticsDashboardState
             ],
           ),
           const SizedBox(height: 20),
-
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
@@ -1382,11 +1462,26 @@ class _DynamicAnalyticsDashboardState
                       : const Color(0xFFF8FAFC),
                 ),
                 columns: const [
-                  DataColumn(label: Text('CUADRANTE / SECTOR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('NIVEL DE RIESGO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('INCIDENTES ACTIVOS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('TASA DE RESOLUCIÓN', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('ESTATUS OPERATIVO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('CUADRANTE / SECTOR',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('NIVEL DE RIESGO',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('INCIDENTES ACTIVOS',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('TASA DE RESOLUCIÓN',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('ESTATUS OPERATIVO',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
                 ],
                 rows: [
                   for (final zone in zonesList) ...[
@@ -1442,7 +1537,8 @@ class _DynamicAnalyticsDashboardState
                   color: _riskColor(riskLevel).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.location_on_outlined, size: 16, color: _riskColor(riskLevel)),
+                child: Icon(Icons.location_on_outlined,
+                    size: 16, color: _riskColor(riskLevel)),
               ),
               const SizedBox(width: 10),
               Column(
@@ -1451,10 +1547,12 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Text(
                     zoneName,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 13),
                   ),
                   Text(
-                    zone['description']?.toString() ?? 'Cuadrante Policial Metropolitano',
+                    zone['description']?.toString() ??
+                        'Cuadrante Policial Metropolitano',
                     style: TextStyle(
                       fontSize: 10,
                       color: isDark ? AppColors.darkTextMuted : AppColors.muted,
@@ -1502,7 +1600,8 @@ class _DynamicAnalyticsDashboardState
               const SizedBox(width: 8),
               Text(
                 '${rate.toStringAsFixed(1)}%',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
               ),
             ],
           ),
@@ -1608,7 +1707,8 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.timer_outlined, color: AppColors.green, size: 20),
+                      const Icon(Icons.timer_outlined,
+                          color: AppColors.green, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Desempeño Operativo y Tiempos de Respuesta',
@@ -1633,7 +1733,6 @@ class _DynamicAnalyticsDashboardState
             ],
           ),
           const SizedBox(height: 20),
-
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
@@ -1647,11 +1746,26 @@ class _DynamicAnalyticsDashboardState
                       : const Color(0xFFF8FAFC),
                 ),
                 columns: const [
-                  DataColumn(label: Text('TIPOLOGÍA DE EMERGENCIA', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('CASOS REGISTRADOS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('TIEMPO MEDIO RESPUESTA', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('TASA DE EFECTIVIDAD', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
-                  DataColumn(label: Text('TENDENCIA DISTRITAL', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('TIPOLOGÍA DE EMERGENCIA',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('CASOS REGISTRADOS',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('TIEMPO MEDIO RESPUESTA',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('TASA DE EFECTIVIDAD',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
+                  DataColumn(
+                      label: Text('TENDENCIA DISTRITAL',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 11))),
                 ],
                 rows: [
                   for (final item in categories) ...[
@@ -1661,11 +1775,13 @@ class _DynamicAnalyticsDashboardState
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(item['icon'] as IconData, size: 18, color: AppColors.brightBlue),
+                              Icon(item['icon'] as IconData,
+                                  size: 18, color: AppColors.brightBlue),
                               const SizedBox(width: 10),
                               Text(
                                 item['type'] as String,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                             ],
                           ),
@@ -1673,12 +1789,14 @@ class _DynamicAnalyticsDashboardState
                         DataCell(
                           Text(
                             _countForType(item['key'] as String),
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 12),
                           ),
                         ),
                         DataCell(
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.green.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
@@ -1704,13 +1822,17 @@ class _DynamicAnalyticsDashboardState
                                   child: const LinearProgressIndicator(
                                     value: 0.94,
                                     backgroundColor: Colors.black12,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.green),
                                     minHeight: 5,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Text('94.2%', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                              const Text('94.2%',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12)),
                             ],
                           ),
                         ),
@@ -1718,7 +1840,9 @@ class _DynamicAnalyticsDashboardState
                           Text(
                             item['trend'] as String,
                             style: TextStyle(
-                              color: (item['trendGood'] as bool) ? AppColors.green : AppColors.amber,
+                              color: (item['trendGood'] as bool)
+                                  ? AppColors.green
+                                  : AppColors.amber,
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -1737,10 +1861,13 @@ class _DynamicAnalyticsDashboardState
   }
 
   String _countForType(String key) {
-    int count = _incidents.where((i) =>
-        (i['type']?.toString().toUpperCase() ?? '').contains(key)).length;
+    int count = _incidents
+        .where((i) => (i['type']?.toString().toUpperCase() ?? '').contains(key))
+        .length;
     if (count == 0) {
-      return key == 'ROBO' ? '42 reportes' : (key == 'ACCIDENTE' ? '28 reportes' : '19 reportes');
+      return key == 'ROBO'
+          ? '42 reportes'
+          : (key == 'ACCIDENTE' ? '28 reportes' : '19 reportes');
     }
     return '$count reportes';
   }
@@ -1751,7 +1878,9 @@ class _DynamicAnalyticsDashboardState
   String _shortId(dynamic id) {
     if (id == null) return '001';
     final str = id.toString();
-    return str.length > 6 ? str.substring(str.length - 6).toUpperCase() : str.toUpperCase();
+    return str.length > 6
+        ? str.substring(str.length - 6).toUpperCase()
+        : str.toUpperCase();
   }
 
   String _formatType(dynamic type) {
@@ -1903,7 +2032,9 @@ class _DynamicAnalyticsDashboardState
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: active
-              ? (isDark ? AppColors.blue.withValues(alpha: 0.3) : AppColors.blue)
+              ? (isDark
+                  ? AppColors.blue.withValues(alpha: 0.3)
+                  : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
@@ -2112,7 +2243,9 @@ class _DynamicAnalyticsDashboardState
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                horizontalInterval: _selectedPeriod == 0 ? 5 : (_selectedPeriod == 1 ? 40 : 100),
+                horizontalInterval: _selectedPeriod == 0
+                    ? 5
+                    : (_selectedPeriod == 1 ? 40 : 100),
                 getDrawingHorizontalLine: (value) => FlLine(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.06)
@@ -2121,8 +2254,10 @@ class _DynamicAnalyticsDashboardState
                 ),
               ),
               titlesData: FlTitlesData(
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -2131,7 +2266,8 @@ class _DynamicAnalyticsDashboardState
                       val.toInt().toString(),
                       style: TextStyle(
                         fontSize: 10,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color:
+                            isDark ? AppColors.darkTextMuted : AppColors.muted,
                       ),
                     ),
                   ),
@@ -2149,7 +2285,9 @@ class _DynamicAnalyticsDashboardState
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.navy,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.navy,
                             ),
                           ),
                         );
@@ -2209,7 +2347,14 @@ class _DynamicAnalyticsDashboardState
 
   // 2. Bar Chart (Sectores y Cuadrantes)
   Widget _buildBarChart(bool isDark, bool isMobile) {
-    final sectors = ['Centro', 'Bocagrande', 'Getsemaní', 'Manga', 'Olaya H.', 'El Pozón'];
+    final sectors = [
+      'Centro',
+      'Bocagrande',
+      'Getsemaní',
+      'Manga',
+      'Olaya H.',
+      'El Pozón'
+    ];
     final counts = _selectedPeriod == 0
         ? [28.0, 22.0, 18.0, 14.0, 34.0, 39.0]
         : _selectedPeriod == 1
@@ -2268,8 +2413,10 @@ class _DynamicAnalyticsDashboardState
                 ),
               ),
               titlesData: FlTitlesData(
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -2278,7 +2425,8 @@ class _DynamicAnalyticsDashboardState
                       val.toInt().toString(),
                       style: TextStyle(
                         fontSize: 10,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color:
+                            isDark ? AppColors.darkTextMuted : AppColors.muted,
                       ),
                     ),
                   ),
@@ -2296,7 +2444,9 @@ class _DynamicAnalyticsDashboardState
                             style: TextStyle(
                               fontSize: isMobile ? 9 : 11,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.navy,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.navy,
                             ),
                           ),
                         );
@@ -2316,7 +2466,8 @@ class _DynamicAnalyticsDashboardState
                         toY: counts[i],
                         color: colors[i],
                         width: isMobile ? 16 : 28,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(6)),
                       ),
                     ],
                   ),
@@ -2331,10 +2482,30 @@ class _DynamicAnalyticsDashboardState
   // 3. Pie Chart (Tipología de Alertas)
   Widget _buildPieChart(bool isDark, bool isMobile) {
     final categories = [
-      {'name': 'Seguridad y Vigilancia', 'pct': 38, 'color': AppColors.brightBlue, 'icon': Icons.shield_outlined},
-      {'name': 'Alumbrado y Vías', 'pct': 26, 'color': AppColors.amber, 'icon': Icons.lightbulb_outline},
-      {'name': 'Convivencia y Ruido', 'pct': 20, 'color': const Color(0xFF8B5CF6), 'icon': Icons.volume_up_outlined},
-      {'name': 'Emergencias SOS', 'pct': 16, 'color': AppColors.red, 'icon': Icons.emergency_outlined},
+      {
+        'name': 'Seguridad y Vigilancia',
+        'pct': 38,
+        'color': AppColors.brightBlue,
+        'icon': Icons.shield_outlined
+      },
+      {
+        'name': 'Alumbrado y Vías',
+        'pct': 26,
+        'color': AppColors.amber,
+        'icon': Icons.lightbulb_outline
+      },
+      {
+        'name': 'Convivencia y Ruido',
+        'pct': 20,
+        'color': const Color(0xFF8B5CF6),
+        'icon': Icons.volume_up_outlined
+      },
+      {
+        'name': 'Emergencias SOS',
+        'pct': 16,
+        'color': AppColors.red,
+        'icon': Icons.emergency_outlined
+      },
     ];
 
     return Column(
@@ -2382,7 +2553,8 @@ class _DynamicAnalyticsDashboardState
                             _touchedPieIndex = -1;
                             return;
                           }
-                          _touchedPieIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                          _touchedPieIndex = pieTouchResponse
+                              .touchedSection!.touchedSectionIndex;
                         });
                       },
                     ),
@@ -2395,7 +2567,9 @@ class _DynamicAnalyticsDashboardState
                           color: categories[i]['color'] as Color,
                           value: (categories[i]['pct'] as int).toDouble(),
                           title: '${categories[i]['pct']}%',
-                          radius: (_touchedPieIndex == i) ? (isMobile ? 55 : 68) : (isMobile ? 42 : 54),
+                          radius: (_touchedPieIndex == i)
+                              ? (isMobile ? 55 : 68)
+                              : (isMobile ? 42 : 54),
                           titleStyle: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -2436,7 +2610,9 @@ class _DynamicAnalyticsDashboardState
                                   fontWeight: _touchedPieIndex == i
                                       ? FontWeight.w800
                                       : FontWeight.w500,
-                                  color: isDark ? AppColors.darkText : AppColors.navy,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.navy,
                                 ),
                               ),
                             ),

@@ -49,11 +49,14 @@ void main() {
       expect(en.reportIncidentTitle, 'Report Incident');
     });
 
-    test('getCategoryName maps incident categories appropriately in English and Spanish', () {
+    test(
+        'getCategoryName maps incident categories appropriately in English and Spanish',
+        () {
       expect(AppStrings.es.getCategoryName('HURTO_CELULAR'), 'Hurto / Robo');
       expect(AppStrings.en.getCategoryName('HURTO_CELULAR'), 'Theft / Robbery');
 
-      expect(AppStrings.es.getCategoryName('ACCIDENTE'), 'Accidente de Tránsito');
+      expect(
+          AppStrings.es.getCategoryName('ACCIDENTE'), 'Accidente de Tránsito');
       expect(AppStrings.en.getCategoryName('ACCIDENTE'), 'Traffic Accident');
     });
   });
