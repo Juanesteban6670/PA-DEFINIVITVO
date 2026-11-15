@@ -302,97 +302,430 @@ class LandingScreen extends StatelessWidget {
     );
   }
 
-  Widget _dynamicCharts(BuildContext context) => _section(
-        context,
-        sectionKey: _chartsKey,
-        title: 'Métricas de Impacto y Seguridad Distrital',
-        subtitle:
-            'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
-        child: const _DynamicAnalyticsDashboard(),
-      );
-
-  Widget _mission(BuildContext context) {
+  Widget _dynamicCharts(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       color: isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9),
       child: _section(
         context,
-        sectionKey: _missionKey,
-        title: 'Una comunidad conectada',
+        sectionKey: _chartsKey,
+        title: 'Métricas de Impacto y Seguridad Distrital',
         subtitle:
-            'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
-        child: const SizedBox.shrink(),
+            'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
+        child: const _DynamicAnalyticsDashboard(),
       ),
     );
   }
 
-  Widget _howItWorks(BuildContext context) => _section(
+  Widget _mission(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return _section(
+      context,
+      sectionKey: _missionKey,
+      title: 'Una comunidad conectada',
+      subtitle:
+          'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 768;
+          final pillars = [
+            (
+              icon: Icons.visibility_rounded,
+              color: AppColors.brightBlue,
+              title: 'Transparencia Distrital',
+              desc:
+                  'Métricas públicas y mapa en vivo de incidentes para que cada cartagenero conozca el estado real de seguridad de su barrio.',
+            ),
+            (
+              icon: Icons.shield_rounded,
+              color: AppColors.green,
+              title: 'Respuesta Coordinada',
+              desc:
+                  'Enlace directo con cuadrantes de la Policía, Bomberos y centros de salud con trazabilidad en tiempo real.',
+            ),
+            (
+              icon: Icons.groups_rounded,
+              color: AppColors.amber,
+              title: 'Participación Ciudadana',
+              desc:
+                  'Reportes comunitarios georreferenciados con evidencia y validación colectiva para transformar el entorno urbano.',
+            ),
+          ];
+
+          if (wide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < pillars.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 16),
+                  Expanded(
+                    child: _missionPillarCard(
+                      icon: pillars[i].icon,
+                      color: pillars[i].color,
+                      title: pillars[i].title,
+                      desc: pillars[i].desc,
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }
+
+          return Column(
+            children: [
+              for (int i = 0; i < pillars.length; i++) ...[
+                if (i > 0) const SizedBox(height: 14),
+                _missionPillarCard(
+                  icon: pillars[i].icon,
+                  color: pillars[i].color,
+                  title: pillars[i].title,
+                  desc: pillars[i].desc,
+                  isDark: isDark,
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _missionPillarCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String desc,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: isDark ? AppColors.darkText : AppColors.navy,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _howItWorks(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      color: isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9),
+      child: _section(
         context,
         title: '¿Cómo empezar?',
-        subtitle: 'Tres pasos sencillos para participar.',
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ListTile(
-              leading: CircleAvatar(child: Text('1')),
-              title: Text('Crea tu cuenta'),
-              subtitle: Text('Regístrate con tus datos de contacto.'),
-            ),
-            ListTile(
-              leading: CircleAvatar(child: Text('2')),
-              title: Text('Consulta o reporta'),
-              subtitle: Text('Describe la situación y su ubicación.'),
-            ),
-            ListTile(
-              leading: CircleAvatar(child: Text('3')),
-              title: Text('Sigue la información'),
-              subtitle: Text('Consulta el estado de tus reportes.'),
-            ),
-          ],
-        ),
-      );
+        subtitle:
+            'Tres pasos sencillos para participar y cuidar Cartagena juntos.',
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 768;
+            final steps = [
+              (
+                num: '1',
+                title: 'Crea tu cuenta',
+                desc:
+                    'Regístrate en segundos como ciudadano con tus datos de contacto básicos y accede al portal.',
+                icon: Icons.person_add_alt_1_rounded,
+              ),
+              (
+                num: '2',
+                title: 'Reporta o consulta',
+                desc:
+                    'Reporta anomalías con ubicación exacta y fotografía, o navega el mapa en vivo de alertas.',
+                icon: Icons.add_location_alt_rounded,
+              ),
+              (
+                num: '3',
+                title: 'Sigue el avance',
+                desc:
+                    'Monitorea la respuesta de las autoridades y cuadrantes distritales hasta la solución del caso.',
+                icon: Icons.track_changes_rounded,
+              ),
+            ];
 
-  Widget _faq(BuildContext context) => _section(
-        context,
-        title: 'Preguntas frecuentes',
-        subtitle: 'Información para usar la plataforma.',
-        child: const Column(
-          children: [
-            ExpansionTile(
-              title: Text('¿Necesito permitir mi ubicación?'),
+            if (wide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int i = 0; i < steps.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 16),
+                    Expanded(
+                      child: _stepCard(
+                        num: steps[i].num,
+                        title: steps[i].title,
+                        desc: steps[i].desc,
+                        icon: steps[i].icon,
+                        isDark: isDark,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            }
+
+            return Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'No. Puedes escribir una dirección o referencia; compartir GPS es opcional.',
+                for (int i = 0; i < steps.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 14),
+                  _stepCard(
+                    num: steps[i].num,
+                    title: steps[i].title,
+                    desc: steps[i].desc,
+                    icon: steps[i].icon,
+                    isDark: isDark,
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _stepCard({
+    required String num,
+    required String title,
+    required String desc,
+    required IconData icon,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: isDark
+                    ? AppColors.brightBlue.withValues(alpha: 0.2)
+                    : AppColors.blue.withValues(alpha: 0.1),
+                child: Text(
+                  num,
+                  style: TextStyle(
+                    color: isDark ? AppColors.brightBlue : AppColors.blue,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
                   ),
                 ),
-              ],
+              ),
+              Icon(
+                icon,
+                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                size: 24,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: isDark ? AppColors.darkText : AppColors.navy,
             ),
-            ExpansionTile(
-              title: Text('¿Qué hago ante una emergencia inmediata?'),
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'Comunícate directamente con los servicios de emergencia de tu zona.',
+          ),
+          const SizedBox(height: 8),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _faq(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final faqs = [
+      (
+        q: '¿Necesito permitir mi ubicación GPS para reportar?',
+        a: 'No es obligatorio. Puedes seleccionar manualmente una dirección o sector de referencia en Cartagena, aunque compartir el GPS permite ubicar con mayor exactitud a los cuadrantes.',
+      ),
+      (
+        q: '¿Quién atiende y gestiona las alertas reportadas?',
+        a: 'Los reportes son clasificados y canalizados al Centro Automático de Despacho (CAD), cuadrantes distritales de la Policía y entidades de servicios públicos según la tipología.',
+      ),
+      (
+        q: '¿Mis datos personales se muestran a otros ciudadanos?',
+        a: 'No. La plataforma protege tu privacidad. Los reportes públicos únicamente muestran la tipología, sector aproximado y estado de atención, manteniendo anónima la identidad.',
+      ),
+      (
+        q: '¿Cómo funciona la línea SOS de emergencias?',
+        a: 'El botón SOS te conecta inmediatamente con la línea distrital 123 y genera de forma automática tus coordenadas GPS exactas para compartirlas de inmediato.',
+      ),
+    ];
+
+    return _section(
+      context,
+      title: 'Preguntas frecuentes',
+      subtitle: 'Todo lo que necesitas saber para utilizar la plataforma.',
+      child: Column(
+        children: [
+            for (final faq in faqs)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
                   ),
                 ),
-              ],
-            ),
+                child: ExpansionTile(
+                  shape: const RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.transparent),
+                  ),
+                  collapsedShape: const RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.transparent),
+                  ),
+                  iconColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  collapsedIconColor:
+                      isDark ? AppColors.darkTextMuted : AppColors.muted,
+                  title: Text(
+                    faq.q,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: isDark ? AppColors.darkText : AppColors.navy,
+                    ),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Text(
+                        faq.a,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.muted,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       );
+  }
 
   Widget _footer(BuildContext context) => Container(
         width: double.infinity,
         color: AppColors.navy,
-        padding: const EdgeInsets.all(28),
-        child: const Text(
-          'Cartagena Segura · Participación ciudadana',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Image.asset('assets/brand/app-icon.png'),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Cartagena Segura',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Plataforma Distrital de Seguridad Ciudadana, Convivencia y Prevención Comunitaria.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                const Divider(color: Colors.white12),
+                const SizedBox(height: 12),
+                const Text(
+                  '© 2026 Cartagena de Indias, Bolívar · Todos los derechos reservados',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -2225,7 +2558,8 @@ class _DynamicAnalyticsDashboardState
           ],
         ),
         const SizedBox(height: 20),
-        Expanded(
+        SizedBox(
+          height: isMobile ? 260 : 310,
           child: LineChart(
             LineChartData(
               gridData: FlGridData(
@@ -2387,7 +2721,8 @@ class _DynamicAnalyticsDashboardState
           ],
         ),
         const SizedBox(height: 20),
-        Expanded(
+        SizedBox(
+          height: isMobile ? 260 : 310,
           child: BarChart(
             BarChartData(
               gridData: FlGridData(
@@ -2525,7 +2860,8 @@ class _DynamicAnalyticsDashboardState
           ],
         ),
         const SizedBox(height: 16),
-        Expanded(
+        SizedBox(
+          height: isMobile ? 260 : 310,
           child: Row(
             children: [
               Expanded(

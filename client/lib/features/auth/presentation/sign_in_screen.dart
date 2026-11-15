@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -137,33 +135,37 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
-                              borderRadius: BorderRadius.circular(24),
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xE61E293B),
+                          border: Border.all(
+                            color: const Color(0x33FFFFFF),
+                            width: 1.2,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
                             ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    _registering
-                                        ? 'Crear cuenta ciudadana'
-                                        : 'Iniciar sesión',
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
+                          ],
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                _registering
+                                    ? 'Crear cuenta ciudadana'
+                                    : 'Iniciar sesión',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                                   const SizedBox(height: 18),
                                   if (_registering) ...[
                                     _field(
@@ -231,8 +233,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                     const SizedBox(height: 8),
                                     Text(
                                       _error ?? widget.session.sessionNotice!,
-                                      style: TextStyle(
-                                        color: theme.colorScheme.errorContainer,
+                                      style: const TextStyle(
+                                        color: Color(0xFFFCA5A5),
+                                        fontWeight: FontWeight.w600,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -294,9 +297,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
                   ),
                 ),
               ),
@@ -333,7 +334,7 @@ class _SignInScreenState extends State<SignInScreen> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.08),
+        fillColor: const Color(0x14FFFFFF),
         prefixIcon: Icon(
           password
               ? Icons.lock_outline
@@ -344,11 +345,11 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: const BorderSide(color: Color(0x33FFFFFF)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: const BorderSide(color: Color(0x33FFFFFF)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
