@@ -7,6 +7,10 @@ import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/realtime_service.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
+import 'package:cartagena_segura/core/localization/app_strings.dart';
+import 'package:cartagena_segura/core/localization/language_widgets.dart';
+import 'package:cartagena_segura/core/localization/locale_controller.dart';
+import 'package:cartagena_segura/shared/live_status_badge.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
@@ -112,29 +116,33 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final api = widget.session.api;
-    final wideLayout = MediaQuery.sizeOf(context).width >= 700;
-    final pages = [
-      WelcomeScreen(
-        session: widget.session,
-        incidentRefresh: _incidentRefresh,
-        onSelectTab: _selectTab,
-      ),
-      MyReportsScreen(
-        api: api,
-        drafts: _drafts,
-        incidentRefresh: _incidentRefresh,
-        onReportSubmitted: () => _incidentRefresh.value++,
-        initialIncidentId: widget.initialIncidentId,
-      ),
-      IncidentsMapScreen(api: api, incidentRefresh: _incidentRefresh),
-      EmergencyScreen(api: api),
-      ProfileScreen(session: widget.session),
-    ];
+    return ListenableBuilder(
+      listenable: LocaleController.instance,
+      builder: (context, _) {
+        final strings = LocaleController.instance.strings;
+        final api = widget.session.api;
+        final wideLayout = MediaQuery.sizeOf(context).width >= 700;
+        final pages = [
+          WelcomeScreen(
+            session: widget.session,
+            incidentRefresh: _incidentRefresh,
+            onSelectTab: _selectTab,
+          ),
+          MyReportsScreen(
+            api: api,
+            drafts: _drafts,
+            incidentRefresh: _incidentRefresh,
+            onReportSubmitted: () => _incidentRefresh.value++,
+            initialIncidentId: widget.initialIncidentId,
+          ),
+          IncidentsMapScreen(api: api, incidentRefresh: _incidentRefresh),
+          EmergencyScreen(api: api),
+          ProfileScreen(session: widget.session),
+        ];
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 16,
+        return Scaffold(
+          appBar: AppBar(
+            titleSpacing: 16,
         title: Row(
           children: [
             Container(
@@ -182,6 +190,8 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
+          LiveStatusBadge(realtimeService: _realtimeService, compact: true),
+          const SizedBox(width: 4),
           // Botón SOS de Pánico
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -204,6 +214,8 @@ class _HomeShellState extends State<HomeShell> {
               ),
             ),
           ),
+          const SizedBox(width: 4),
+          const LanguageToggleButton(),
           const SizedBox(width: 4),
           const ThemeToggleButton(),
           NotificationsBell(
@@ -251,7 +263,7 @@ class _HomeShellState extends State<HomeShell> {
                   labelType: MediaQuery.sizeOf(context).width >= 1000
                       ? null
                       : NavigationRailLabelType.all,
-                  destinations: _railDestinations,
+                  destinations: _buildRailDestinations(strings),
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
@@ -273,66 +285,68 @@ class _HomeShellState extends State<HomeShell> {
           : NavigationBar(
               selectedIndex: _selectedIndex,
               onDestinationSelected: _selectTab,
-              destinations: _navigationDestinations,
+              destinations: _buildNavDestinations(strings),
             ),
+    );
+      },
     );
   }
 
-  static const _navigationDestinations = [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Inicio',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.assignment_outlined),
-      selectedIcon: Icon(Icons.assignment),
-      label: 'Reportes',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.map_outlined),
-      selectedIcon: Icon(Icons.map),
-      label: 'Mapa',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.phone_outlined),
-      selectedIcon: Icon(Icons.phone),
-      label: 'Emergencias',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: 'Perfil',
-    ),
-  ];
+  List<NavigationDestination> _buildNavDestinations(AppStrings strings) => [
+        NavigationDestination(
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: const Icon(Icons.home),
+          label: strings.navHome,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.assignment_outlined),
+          selectedIcon: const Icon(Icons.assignment),
+          label: strings.navReports,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.map_outlined),
+          selectedIcon: const Icon(Icons.map),
+          label: strings.navMap,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.phone_outlined),
+          selectedIcon: const Icon(Icons.phone),
+          label: strings.navEmergency,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.person_outline),
+          selectedIcon: const Icon(Icons.person),
+          label: strings.navProfile,
+        ),
+      ];
 
-  static const _railDestinations = [
-    NavigationRailDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: Text('Inicio'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.assignment_outlined),
-      selectedIcon: Icon(Icons.assignment),
-      label: Text('Reportes'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.map_outlined),
-      selectedIcon: Icon(Icons.map),
-      label: Text('Mapa'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.phone_outlined),
-      selectedIcon: Icon(Icons.phone),
-      label: Text('Emergencias'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: Text('Perfil'),
-    ),
-  ];
+  List<NavigationRailDestination> _buildRailDestinations(AppStrings strings) => [
+        NavigationRailDestination(
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: const Icon(Icons.home),
+          label: Text(strings.navHome),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.assignment_outlined),
+          selectedIcon: const Icon(Icons.assignment),
+          label: Text(strings.navReports),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.map_outlined),
+          selectedIcon: const Icon(Icons.map),
+          label: Text(strings.navMap),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.phone_outlined),
+          selectedIcon: const Icon(Icons.phone),
+          label: Text(strings.navEmergency),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.person_outline),
+          selectedIcon: const Icon(Icons.person),
+          label: Text(strings.navProfile),
+        ),
+      ];
 
   void _showSosDialog(BuildContext context) {
     showDialog<void>(

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
+import 'package:cartagena_segura/core/localization/language_widgets.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -46,6 +47,8 @@ class LandingScreen extends StatelessWidget {
                   child: const Text('Nuestra misión'),
                 ),
               ],
+              const LanguageToggleButton(),
+              const SizedBox(width: 4),
               const ThemeToggleButton(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/session_controller.dart';
+import 'package:cartagena_segura/core/localization/language_widgets.dart';
+import 'package:cartagena_segura/core/localization/locale_controller.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -226,6 +228,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Center(child: ThemeModeSelector()),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.translate_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    ListenableBuilder(
+                      listenable: LocaleController.instance,
+                      builder: (context, _) => Text(
+                        LocaleController.instance.strings.languageTitle,
+                        style: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Center(child: LanguageSelector()),
               ],
             ),
           ),

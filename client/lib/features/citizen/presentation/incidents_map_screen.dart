@@ -93,17 +93,28 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   void _onIncidentRefresh() => _reload();
 
+  static List<Incident> _cachedIncidents = [];
+
   Future<List<Incident>> _loadIncidents() async {
-    final response = await widget.api.get('Incidents');
-    if (response is! List) {
-      throw const FormatException(
-        'La API devolvió una lista de incidentes inválida',
-      );
+    try {
+      final response = await widget.api.get('Incidents');
+      if (response is! List) {
+        throw const FormatException(
+          'La API devolvió una lista de incidentes inválida',
+        );
+      }
+      final list = response
+          .whereType<Map<String, dynamic>>()
+          .map(Incident.fromJson)
+          .toList();
+      _cachedIncidents = list;
+      return list;
+    } catch (_) {
+      if (_cachedIncidents.isNotEmpty) {
+        return _cachedIncidents;
+      }
+      rethrow;
     }
-    return response
-        .whereType<Map<String, dynamic>>()
-        .map(Incident.fromJson)
-        .toList();
   }
 
   void _reload() {
@@ -412,6 +423,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                     context,
                     TileLayer(
                       urlTemplate: urlTemplate,
+                      panBuffer: 2,
+                      evictErrorTileStrategy: EvictErrorTileStrategy.none,
                       userAgentPackageName:
                           'com.cartagenasegura.cartagena_segura',
                     ),
@@ -419,6 +432,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 else
                   TileLayer(
                     urlTemplate: urlTemplate,
+                    panBuffer: 2,
+                    evictErrorTileStrategy: EvictErrorTileStrategy.none,
                     userAgentPackageName:
                         'com.cartagenasegura.cartagena_segura',
                   ),

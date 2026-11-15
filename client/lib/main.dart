@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/providers.dart';
 import 'app/router.dart';
+import 'core/localization/locale_controller.dart';
 import 'shared/theme.dart';
 
 void main() {
@@ -18,6 +19,7 @@ class CartagenaApp extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final themeController = ref.watch(themeModeProvider);
     final themeMode = themeController.mode;
+    final localeController = ref.watch(localeProvider);
 
     if (!session.initialized) {
       return MaterialApp(
@@ -26,6 +28,8 @@ class CartagenaApp extends ConsumerWidget {
         theme: buildAppTheme(),
         darkTheme: buildDarkAppTheme(),
         themeMode: themeMode,
+        locale: localeController.locale,
+        supportedLocales: const [Locale('es'), Locale('en')],
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
@@ -36,6 +40,8 @@ class CartagenaApp extends ConsumerWidget {
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
       themeMode: themeMode,
+      locale: localeController.locale,
+      supportedLocales: const [Locale('es'), Locale('en')],
       routerConfig: ref.watch(routerProvider),
     );
   }
