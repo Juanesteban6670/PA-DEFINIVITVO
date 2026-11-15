@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393 852" width="393" height="852">
+  <defs>
+    <style>
+      .font-sans { font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; }
+      .shadow { filter: drop-shadow(0px 3px 8px rgba(15, 23, 42, 0.05)); }
+      .shadow-md { filter: drop-shadow(0px 4px 12px rgba(15, 76, 129, 0.12)); }
+    </style>
+    <linearGradient id="grad-primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F4C81" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+    <linearGradient id="grad-green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="393" height="852" fill="#F8FAFC" />
+
+  <!-- STATUS BAR (iOS standard 393px) -->
+  <g id="status-bar">
+    <text x="34" y="30" class="font-sans" font-size="14" font-weight="600" fill="#0F172A">9:41</text>
+    <!-- Cellular Signal -->
+    <rect x="316" y="22" width="3" height="4" rx="0.8" fill="#0F172A" />
+    <rect x="321" y="20" width="3" height="6" rx="0.8" fill="#0F172A" />
+    <rect x="326" y="18" width="3" height="8" rx="0.8" fill="#0F172A" />
+    <rect x="331" y="15" width="3" height="11" rx="0.8" fill="#0F172A" />
+    <!-- Wifi -->
+    <path d="M343 16 A 8 8 0 0 1 355 16 M345 19 A 5 5 0 0 1 353 19 M348 22 A 2 2 0 0 1 350 22" fill="none" stroke="#0F172A" stroke-width="1.8" stroke-linecap="round" />
+    <!-- Battery -->
+    <rect x="360" y="17" width="22" height="11" rx="3" fill="none" stroke="#0F172A" stroke-width="1.8" />
+    <rect x="362" y="19" width="15" height="7" rx="1.5" fill="#0F172A" />
+    <path d="M383 20 C383.5 20.5, 384 21, 384 22.5 C384 24, 383.5 24.5, 383 25" fill="none" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- 1. ENCABEZADO Y FILTROS -->
+  <g id="header">
+    <text x="20" y="72" class="font-sans" font-size="22" font-weight="800" fill="#0F172A">Estadísticas Ciudadanas</text>
+    <text x="20" y="92" class="font-sans" font-size="13" font-weight="500" fill="#64748B">Panorama de seguridad y movilidad</text>
+    
+    <!-- Refresh Button -->
+    <circle cx="353" cy="78" r="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" class="shadow" />
+    <path d="M348 78 A 5 5 0 1 1 353 83 M353 80 L353 83 L350 83" fill="none" stroke="#0F4C81" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <!-- Segmented Control (Hoy / Esta semana / Este mes) -->
+  <g id="segmented-control">
+    <rect x="20" y="110" width="353" height="38" rx="12" fill="#E2E8F0" />
+    <!-- Option 1: Hoy -->
+    <rect x="22" y="112" width="112" height="34" rx="10" fill="transparent" />
+    <text x="78" y="134" class="font-sans" font-size="12.5" font-weight="600" fill="#64748B" text-anchor="middle">Hoy</text>
+    <!-- Option 2: Esta semana (Activo) -->
+    <rect x="138" y="112" width="117" height="34" rx="10" fill="#0F4C81" class="shadow-md" />
+    <text x="196" y="134" class="font-sans" font-size="12.5" font-weight="700" fill="#FFFFFF" text-anchor="middle">Esta semana</text>
+    <!-- Option 3: Este mes -->
+    <rect x="259" y="112" width="112" height="34" rx="10" fill="transparent" />
+    <text x="315" y="134" class="font-sans" font-size="12.5" font-weight="600" fill="#64748B" text-anchor="middle">Este mes</text>
+  </g>
+
+  <!-- 2. TARJETAS DE KPI -->
+  <g id="kpi-cards">
+    <!-- Tarjeta 1: Total Reportes -->
+    <g class="shadow">
+      <rect x="20" y="160" width="170" height="98" rx="16" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1" />
+      <!-- Icon Doc -->
+      <circle cx="42" cy="182" r="14" fill="#E0F2FE" />
+      <path d="M38 177 H44 L47 180 V188 H38 Z M43 177 V180 H47" fill="none" stroke="#0F4C81" stroke-width="1.5" stroke-linejoin="round" />
+      <text x="64" y="186" class="font-sans" font-size="12" font-weight="600" fill="#64748B">Total Reportes</text>
+      <!-- Big Number -->
+      <text x="34" y="222" class="font-sans" font-size="28" font-weight="800" fill="#0F172A">142</text>
+      <!-- Green badge -->
+      <rect x="34" y="232" width="138" height="18" rx="9" fill="#DCFCE7" />
+      <path d="M42 241 L45 238 L48 241 M45 244 L45 238" fill="none" stroke="#10B981" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="52" y="245" class="font-sans" font-size="9.5" font-weight="700" fill="#047857">+12% vs sem. anterior</text>
+    </g>
+
+    <!-- Tarjeta 2: Tasa de Resolucion -->
+    <g class="shadow">
+      <rect x="202" y="160" width="171" height="98" rx="16" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1" />
+      <!-- Icon Check Shield -->
+      <circle cx="224" cy="182" r="14" fill="#DCFCE7" />
+      <path d="M220 182 L223 185 L229 179" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="246" y="186" class="font-sans" font-size="12" font-weight="600" fill="#64748B">Tasa Resolución</text>
+      <!-- Big Number -->
+      <text x="216" y="222" class="font-sans" font-size="28" font-weight="800" fill="#0F172A">78%</text>
+      <!-- Progress Bar Track -->
+      <rect x="216" y="236" width="143" height="8" rx="4" fill="#F1F5F9" />
+      <!-- Progress Bar Fill (78% of 143 = 111px) -->
+      <rect x="216" y="236" width="111" height="8" rx="4" fill="url(#grad-green)" />
+    </g>
+  </g>
+
+  <!-- 3. GRAFICA DE BARRAS VERTICALES -->
+  <g id="bar-chart" class="shadow">
+    <rect x="20" y="270" width="353" height="164" rx="16" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1" />
+    <text x="36" y="294" class="font-sans" font-size="13.5" font-weight="700" fill="#0F172A">Actividad de reportes (Últimos 7 días)</text>
+    <text x="36" y="308" class="font-sans" font-size="11" font-weight="500" fill="#94A3B8">Promedio: 20 reportes/día</text>
+
+    <!-- Grid lines -->
+    <line x1="36" y1="330" x2="355" y2="330" stroke="#F8FAFC" stroke-width="1.5" />
+    <line x1="36" y1="360" x2="355" y2="360" stroke="#F8FAFC" stroke-width="1.5" />
+    <line x1="36" y1="390" x2="355" y2="390" stroke="#F8FAFC" stroke-width="1.5" />
+    <line x1="36" y1="408" x2="355" y2="408" stroke="#E2E8F0" stroke-width="1" />
+
+    <!-- L (val 18, h=40, y=368) -->
+    <rect x="52" y="368" width="24" height="40" rx="5" fill="#BAE6FD" />
+    <text x="64" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">L</text>
+
+    <!-- M (val 22, h=50, y=358) -->
+    <rect x="94" y="358" width="24" height="50" rx="5" fill="#BAE6FD" />
+    <text x="106" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">M</text>
+
+    <!-- X (val 15, h=34, y=374) -->
+    <rect x="136" y="374" width="24" height="34" rx="5" fill="#BAE6FD" />
+    <text x="148" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">X</text>
+
+    <!-- J (val 28, h=64, y=344) -->
+    <rect x="178" y="344" width="24" height="64" rx="5" fill="#BAE6FD" />
+    <text x="190" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">J</text>
+
+    <!-- V (val 34, h=78, y=330 - HIGHLIGHTED) -->
+    <rect x="220" y="330" width="24" height="78" rx="5" fill="#0F4C81" />
+    <text x="232" y="422" class="font-sans" font-size="11" font-weight="700" fill="#0F4C81" text-anchor="middle">V</text>
+
+    <!-- Floating Tooltip on Friday -->
+    <g class="shadow-md">
+      <rect x="198" y="298" width="68" height="22" rx="6" fill="#0F172A" />
+      <polygon points="228,320 236,320 232,324" fill="#0F172A" />
+      <text x="232" y="313" class="font-sans" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">34 reportes</text>
+    </g>
+
+    <!-- S (val 19, h=44, y=364) -->
+    <rect x="262" y="364" width="24" height="44" rx="5" fill="#BAE6FD" />
+    <text x="274" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">S</text>
+
+    <!-- D (val 8, h=18, y=390) -->
+    <rect x="304" y="390" width="24" height="18" rx="5" fill="#BAE6FD" />
+    <text x="316" y="422" class="font-sans" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle">D</text>
+  </g>
+
+  <!-- 4. GRAFICA DE DONA (DISTRIBUCION POR CATEGORIA) -->
+  <g id="donut-chart" class="shadow">
+    <rect x="20" y="446" width="353" height="144" rx="16" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1" />
+    <text x="36" y="470" class="font-sans" font-size="13.5" font-weight="700" fill="#0F172A">Incidentes por categoría</text>
+
+    <!-- Donut Center: cx=88, cy=526, r=36 (stroke-width=14) circumference = 226.2 -->
+    <!-- 45% = 101.8, 30% = 67.8, 15% = 33.9, 10% = 22.6 -->
+    <g transform="rotate(-90 88 526)">
+      <!-- Movilidad 45% (#0F4C81) -->
+      <circle cx="88" cy="526" r="36" fill="none" stroke="#0F4C81" stroke-width="14" stroke-dasharray="101.8 226.2" stroke-dashoffset="0" />
+      <!-- Seguridad 30% (#EF4444) -->
+      <circle cx="88" cy="526" r="36" fill="none" stroke="#EF4444" stroke-width="14" stroke-dasharray="67.8 226.2" stroke-dashoffset="-101.8" />
+      <!-- Infraestructura 15% (#F59E0B) -->
+      <circle cx="88" cy="526" r="36" fill="none" stroke="#F59E0B" stroke-width="14" stroke-dasharray="33.9 226.2" stroke-dashoffset="-169.6" />
+      <!-- Otros 10% (#10B981) -->
+      <circle cx="88" cy="526" r="36" fill="none" stroke="#10B981" stroke-width="14" stroke-dasharray="22.6 226.2" stroke-dashoffset="-203.5" />
+    </g>
+
+    <!-- Center Text -->
+    <text x="88" y="523" class="font-sans" font-size="16" font-weight="800" fill="#0F172A" text-anchor="middle">142</text>
+    <text x="88" y="535" class="font-sans" font-size="9.5" font-weight="600" fill="#64748B" text-anchor="middle">Total</text>
+
+    <!-- Legend (Right side: x=165) -->
+    <!-- Item 1: Movilidad (45%) -->
+    <circle cx="170" cy="494" r="4.5" fill="#0F4C81" />
+    <text x="182" y="497" class="font-sans" font-size="11" font-weight="500" fill="#334155">Movilidad y tráfico</text>
+    <text x="345" y="497" class="font-sans" font-size="11" font-weight="700" fill="#0F4C81" text-anchor="end">45%</text>
+
+    <!-- Item 2: Seguridad (30%) -->
+    <circle cx="170" cy="516" r="4.5" fill="#EF4444" />
+    <text x="182" y="519" class="font-sans" font-size="11" font-weight="500" fill="#334155">Seguridad ciudadana</text>
+    <text x="345" y="519" class="font-sans" font-size="11" font-weight="700" fill="#EF4444" text-anchor="end">30%</text>
+
+    <!-- Item 3: Infraestructura (15%) -->
+    <circle cx="170" cy="538" r="4.5" fill="#F59E0B" />
+    <text x="182" y="541" class="font-sans" font-size="11" font-weight="500" fill="#334155">Infraestructura y vías</text>
+    <text x="345" y="541" class="font-sans" font-size="11" font-weight="700" fill="#F59E0B" text-anchor="end">15%</text>
+
+    <!-- Item 4: Otros (10%) -->
+    <circle cx="170" cy="560" r="4.5" fill="#10B981" />
+    <text x="182" y="563" class="font-sans" font-size="11" font-weight="500" fill="#334155">Otros servicios</text>
+    <text x="345" y="563" class="font-sans" font-size="11" font-weight="700" fill="#10B981" text-anchor="end">10%</text>
+  </g>
+
+  <!-- 5. RANKING DE SECTORES -->
+  <g id="sectors-ranking" class="shadow">
+    <rect x="20" y="602" width="353" height="154" rx="16" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1" />
+    <text x="36" y="626" class="font-sans" font-size="13.5" font-weight="700" fill="#0F172A">Sectores con mayor reporte</text>
+    <rect x="316" y="614" width="42" height="18" rx="9" fill="#F1F5F9" />
+    <text x="337" y="627" class="font-sans" font-size="10" font-weight="700" fill="#64748B" text-anchor="middle">Top 4</text>
+
+    <!-- Sector 1: Bocagrande (52) -->
+    <text x="36" y="654" class="font-sans" font-size="11.5" font-weight="800" fill="#0F4C81">1</text>
+    <text x="52" y="654" class="font-sans" font-size="11.5" font-weight="600" fill="#1E293B">Bocagrande</text>
+    <rect x="170" y="646" width="125" height="7" rx="3.5" fill="#F1F5F9" />
+    <rect x="170" y="646" width="125" height="7" rx="3.5" fill="#0F4C81" />
+    <text x="345" y="654" class="font-sans" font-size="11" font-weight="700" fill="#0F172A" text-anchor="end">52 rep.</text>
+
+    <!-- Sector 2: Centro Historico (38) -->
+    <text x="36" y="680" class="font-sans" font-size="11.5" font-weight="700" fill="#64748B">2</text>
+    <text x="52" y="680" class="font-sans" font-size="11.5" font-weight="600" fill="#1E293B">Centro Histórico</text>
+    <rect x="170" y="672" width="125" height="7" rx="3.5" fill="#F1F5F9" />
+    <rect x="170" y="672" width="91" height="7" rx="3.5" fill="#2563EB" />
+    <text x="345" y="680" class="font-sans" font-size="11" font-weight="700" fill="#0F172A" text-anchor="end">38 rep.</text>
+
+    <!-- Sector 3: Bazurto (29) -->
+    <text x="36" y="706" class="font-sans" font-size="11.5" font-weight="700" fill="#64748B">3</text>
+    <text x="52" y="706" class="font-sans" font-size="11.5" font-weight="600" fill="#1E293B">Bazurto</text>
+    <rect x="170" y="698" width="125" height="7" rx="3.5" fill="#F1F5F9" />
+    <rect x="170" y="698" width="70" height="7" rx="3.5" fill="#F59E0B" />
+    <text x="345" y="706" class="font-sans" font-size="11" font-weight="700" fill="#0F172A" text-anchor="end">29 rep.</text>
+
+    <!-- Sector 4: Manga (23) -->
+    <text x="36" y="732" class="font-sans" font-size="11.5" font-weight="700" fill="#64748B">4</text>
+    <text x="52" y="732" class="font-sans" font-size="11.5" font-weight="600" fill="#1E293B">Manga</text>
+    <rect x="170" y="724" width="125" height="7" rx="3.5" fill="#F1F5F9" />
+    <rect x="170" y="724" width="55" height="7" rx="3.5" fill="#10B981" />
+    <text x="345" y="732" class="font-sans" font-size="11" font-weight="700" fill="#0F172A" text-anchor="end">23 rep.</text>
+  </g>
+
+  <!-- 6. BARRA DE NAVEGACION INFERIOR FIJA -->
+  <g id="bottom-navigation">
+    <!-- White Background bar with top border -->
+    <rect x="0" y="768" width="393" height="84" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+
+    <!-- Tab 1: Inicio -->
+    <g transform="translate(49, 786)">
+      <path d="M-8 4 L0 -4 L8 4 V10 H3 V5 H-3 V10 H-8 Z" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linejoin="round" />
+      <text x="0" y="20" class="font-sans" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Inicio</text>
+    </g>
+
+    <!-- Tab 2: Mapa -->
+    <g transform="translate(147, 786)">
+      <path d="M-8 -3 L-3 -6 L3 -3 L8 -6 V7 L3 10 L-3 7 L-8 10 Z M-3 -6 V7 M3 -3 V10" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linejoin="round" />
+      <text x="0" y="20" class="font-sans" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Mapa</text>
+    </g>
+
+    <!-- Tab 3: Estadísticas (ACTIVO: Material 3 pill) -->
+    <g transform="translate(245, 786)">
+      <rect x="-24" y="-8" width="48" height="24" rx="12" fill="#E0F2FE" />
+      <!-- Bar Chart icon -->
+      <rect x="-7" y="3" width="3" height="6" rx="0.8" fill="#0F4C81" />
+      <rect x="-1.5" y="-3" width="3" height="12" rx="0.8" fill="#0F4C81" />
+      <rect x="4" y="0" width="3" height="9" rx="0.8" fill="#0F4C81" />
+      <text x="0" y="21" class="font-sans" font-size="10" font-weight="700" fill="#0F4C81" text-anchor="middle">Estadísticas</text>
+    </g>
+
+    <!-- Tab 4: Perfil -->
+    <g transform="translate(344, 786)">
+      <circle cx="0" cy="0" r="4" fill="none" stroke="#94A3B8" stroke-width="1.6" />
+      <path d="M-7 10 C-7 6.5 -4 5 0 5 C4 5 7 6.5 7 10" fill="none" stroke="#94A3B8" stroke-width="1.6" />
+      <text x="0" y="20" class="font-sans" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Perfil</text>
+    </g>
+
+    <!-- Home Indicator -->
+    <rect x="130" y="838" width="134" height="4.5" rx="2.25" fill="#0F172A" />
+  </g>
+</svg>
