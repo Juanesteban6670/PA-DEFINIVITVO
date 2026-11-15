@@ -80,26 +80,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     );
   }
 
-  Future<void> _openWhatsApp(String phone, String contactName) async {
-    final digits = phone.replaceAll(RegExp(r'[^\d]'), '');
-    final targetPhone = digits.startsWith('57') ? digits : '57$digits';
-    final message = Uri.encodeComponent(
-      'Hola $contactName, me comunico mediante la app Cartagena Segura por una situación de emergencia.',
-    );
-    final uri = Uri.parse('https://wa.me/$targetPhone?text=$message');
-    try {
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      if (!launched) {
-        await _call(phone);
-      }
-    } catch (_) {
-      await _call(phone);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -401,7 +381,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   contact: contact,
                   isDark: isDark,
                   onCall: () => _call(contact.phone),
-                  onWhatsApp: () => _openWhatsApp(contact.phone, contact.name),
                   onCopy: () => _copyPhone(contact.phone),
                 ),
               ),
@@ -467,14 +446,12 @@ class _ModernContactCard extends StatelessWidget {
     required this.contact,
     required this.isDark,
     required this.onCall,
-    required this.onWhatsApp,
     required this.onCopy,
   });
 
   final EmergencyContact contact;
   final bool isDark;
   final VoidCallback onCall;
-  final VoidCallback onWhatsApp;
   final VoidCallback onCopy;
 
   @override
@@ -615,16 +592,6 @@ class _ModernContactCard extends StatelessWidget {
                     Icons.copy_rounded,
                     size: 18,
                     color: isDark ? AppColors.sky : AppColors.brightBlue,
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'WhatsApp a ${contact.name}',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: contact.phone.isEmpty ? null : onWhatsApp,
-                  icon: const Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 18,
-                    color: Color(0xFF25D366),
                   ),
                 ),
                 IconButton.filled(

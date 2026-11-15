@@ -32,9 +32,3 @@ services:
         sync: false
       - key: APPS_SCRIPT_URL
         sync: false
-      - key: WHATSAPP_ENABLED
-        value: "false"
-      - key: WHATSAPP_ADMIN_PHONE
-        sync: false
-      - key: WHATSAPP_APIKEY
-        sync: false
