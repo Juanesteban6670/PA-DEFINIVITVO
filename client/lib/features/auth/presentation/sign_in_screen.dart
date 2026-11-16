@@ -452,24 +452,8 @@ class _SignInScreenState extends State<SignInScreen> {
           ? TextCapitalization.none
           : TextCapitalization.words,
       autocorrect: !email && !password && !username && !phone,
-      style: const TextStyle(
-        fontSize: 14,
-        color: Color(0xFF142C40),
-        fontWeight: FontWeight.w500,
-      ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          color: Color(0xFF94A3B8),
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
         prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 20),
         suffixIcon: password
             ? IconButton(
@@ -483,26 +467,6 @@ class _SignInScreenState extends State<SignInScreen> {
                 onPressed: onTogglePassword,
               )
             : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF0F4C81), width: 1.8),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
-        ),
       ),
       validator: (value) {
         final text = value?.trim() ?? '';

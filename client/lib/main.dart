@@ -13,14 +13,17 @@ void main() {
     debugPrint('Flutter Error: ${details.exceptionAsString()}');
   };
   ErrorWidget.builder = (FlutterErrorDetails details) {
+    final stack = details.stack != null
+        ? details.stack.toString().split('\n').take(4).join('\n')
+        : '';
     return Material(
       color: Colors.transparent,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           child: Text(
-            'Error: ${details.exceptionAsString()}',
-            style: const TextStyle(color: Colors.red, fontSize: 11),
+            'Error: ${details.exceptionAsString()}\n$stack',
+            style: const TextStyle(color: Colors.red, fontSize: 10),
             textAlign: TextAlign.center,
           ),
         ),
