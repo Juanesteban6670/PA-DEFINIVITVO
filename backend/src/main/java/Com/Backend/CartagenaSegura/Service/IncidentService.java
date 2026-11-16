@@ -68,6 +68,13 @@ public class IncidentService {
         );
         incident.setZoneId(req.zoneId());
         incident.setImageUrls(req.imageUrls());
+        if (req.createdAt() != null) {
+            incident.setCreatedAt(req.createdAt());
+            incident.setUpdatedAt(req.createdAt());
+        }
+        if (req.status() != null) {
+            incident.setStatus(req.status());
+        }
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
             incident.setIdempotencyKey(idempotencyKey);
             incident.setId(UUID.nameUUIDFromBytes(

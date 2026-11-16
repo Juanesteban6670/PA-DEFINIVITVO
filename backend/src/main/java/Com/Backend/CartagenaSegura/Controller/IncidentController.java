@@ -27,9 +27,19 @@ import java.util.List;
 public class IncidentController {
 
     private final IncidentService incidentService;
+    private final Com.Backend.CartagenaSegura.Config.MongoDataSeeder mongoDataSeeder;
 
-    public IncidentController(IncidentService incidentService) {
+    public IncidentController(IncidentService incidentService,
+                              Com.Backend.CartagenaSegura.Config.MongoDataSeeder mongoDataSeeder) {
         this.incidentService = incidentService;
+        this.mongoDataSeeder = mongoDataSeeder;
+    }
+
+    @PostMapping("/Seed")
+    @Operation(summary = "Poblar incidentes iniciales en MongoDB", description = "Siembra incidentes históricos y territorialmente distribuidos en Cartagena si la base de datos está vacía.")
+    public ResponseEntity<ApiResponse<String>> seed() {
+        int seeded = mongoDataSeeder.seedIfNecessary();
+        return ResponseEntity.ok(ApiResponse.ok("Siembra completada", "Incidentes en base de datos: " + seeded));
     }
 
     @PostMapping

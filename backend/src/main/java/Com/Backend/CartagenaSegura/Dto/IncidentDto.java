@@ -16,8 +16,24 @@ public class IncidentDto {
             String zoneId,
             Incident.Priority priority,
             List<String> imageUrls,
-            String idempotencyKey
-    ) {}
+            String idempotencyKey,
+            LocalDateTime createdAt,
+            Incident.Status status
+    ) {
+        public CreateIncidentRequest(
+                String type,
+                String description,
+                String location,
+                Double latitude,
+                Double longitude,
+                String zoneId,
+                Incident.Priority priority,
+                List<String> imageUrls,
+                String idempotencyKey
+        ) {
+            this(type, description, location, latitude, longitude, zoneId, priority, imageUrls, idempotencyKey, null, null);
+        }
+    }
 
     // ---- REQUEST: Actualizar estado ----
     public record UpdateStatusRequest(

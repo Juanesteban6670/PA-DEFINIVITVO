@@ -102,6 +102,7 @@ public class SecurityConfig {
                         // ===== Estadisticas publicas para Landing Page (Solo GET) =====
                         .requestMatchers(HttpMethod.GET, "/api/Incidents").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/Zones").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/Incidents/Seed").permitAll()
 
                         // ===== Archivos de evidencia - publico (solo GET) =====
                         .requestMatchers(HttpMethod.GET, "/api/Files/**", "/api/files/**").permitAll()

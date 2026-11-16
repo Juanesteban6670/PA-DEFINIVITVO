@@ -1,7 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
+import 'package:cartagena_segura/core/data/incident_repository.dart';
+import 'package:cartagena_segura/core/data/models.dart';
 
 class AnalyticsCitizenScreen extends StatefulWidget {
   const AnalyticsCitizenScreen({
@@ -20,6 +24,43 @@ class AnalyticsCitizenScreen extends StatefulWidget {
 class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
   String _selectedPeriod = 'Esta semana';
   final List<String> _periods = const ['Hoy', 'Esta semana', 'Este mes'];
+  late Future<List<Incident>> _futureIncidents;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    _futureIncidents = loadIncidents(widget.api, mine: false);
+  }
+
+  List<Incident> _filterByPeriod(List<Incident> all) {
+    final now = DateTime.now();
+    switch (_selectedPeriod) {
+      case 'Hoy':
+        final startOfDay = DateTime(now.year, now.month, now.day);
+        return all.where((i) {
+          final date = i.createdAt;
+          return date != null && date.isAfter(startOfDay);
+        }).toList();
+      case 'Esta semana':
+        final weekAgo = now.subtract(const Duration(days: 7));
+        return all.where((i) {
+          final date = i.createdAt;
+          return date != null && date.isAfter(weekAgo);
+        }).toList();
+      case 'Este mes':
+        final monthAgo = now.subtract(const Duration(days: 30));
+        return all.where((i) {
+          final date = i.createdAt;
+          return date != null && date.isAfter(monthAgo);
+        }).toList();
+      default:
+        return all;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,461 +70,614 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              children: [
-                // Encabezado (Figma Frame 2:434)
-                const Text(
-                  'Estadísticas Ciudadanas',
-                  style: TextStyle(
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF142C40),
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Panorama de seguridad y movilidad',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Selector de período (Figma 2:472)
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE9EEF3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      for (final period in _periods) ...[
-                        Expanded(
-                          child: _buildPeriodOption(period),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Indicadores Principales 1x2 (Figma Frame 2:435)
-                Row(
-                  children: [
-                    // Total Reportes (Figma 2:479)
-                    Expanded(
-                      child: Container(
-                        height: 108,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE7ECF1)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Total Reportes',
-                                  style: TextStyle(
-                                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF526579),
-                                  ),
-                                ),
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F0F8),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.bar_chart_rounded,
-                                    color: Color(0xFF0F4C81),
-                                    size: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            const Text(
-                              '142',
-                              style: TextStyle(
-                                            fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F4C81),
-                                height: 1.0,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE6F7EF),
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                              child: const Text(
-                                '+12% frente a la semana anterior',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                                fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF087554),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            child: FutureBuilder<List<Incident>>(
+              future: _futureIncidents,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40),
+                      child: CircularProgressIndicator(),
                     ),
-                    const SizedBox(width: 12),
+                  );
+                }
 
-                    // Tasa de Resolución (Figma 2:487)
-                    Expanded(
-                      child: Container(
-                        height: 108,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE7ECF1)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Tasa de Resolución',
-                                  style: TextStyle(
-                                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF526579),
-                                  ),
-                                ),
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE5F7EF),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.check_circle_outline_rounded,
-                                    color: Color(0xFF087F5B),
-                                    size: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            const Text(
-                              '78%',
-                              style: TextStyle(
-                                            fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F4C81),
-                                height: 1.0,
-                              ),
-                            ),
-                            const Spacer(),
-                            // Barra de progreso 78% (Figma 2:493)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Container(
-                                height: 7,
-                                color: const Color(0xFFDDF4EA),
-                                child: FractionallySizedBox(
-                                  alignment: Alignment.centerLeft,
-                                  widthFactor: 0.78,
-                                  child: Container(
-                                    color: const Color(0xFF10B981),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-
-                // Actividad de reportes (Últimos 7 días) (Figma Frame 2:436)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE7ECF1)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0F2940).withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Actividad de reportes (Últimos 7 días)',
-                        style: TextStyle(
-                                fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF142C40),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 140,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Eje Y con guías
-                            const SizedBox(
-                              width: 18,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '40',
-                                    style: TextStyle(
-                                                        fontSize: 9,
-                                      color: Color(0xFF94A3B8),
-                                    ),
-                                  ),
-                                  Text(
-                                    '20',
-                                    style: TextStyle(
-                                                        fontSize: 9,
-                                      color: Color(0xFF94A3B8),
-                                    ),
-                                  ),
-                                  Text(
-                                    '0',
-                                    style: TextStyle(
-                                                        fontSize: 9,
-                                      color: Color(0xFF94A3B8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            // Barras diarias (Figma 2:503 a 2:514)
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  _buildDayBar('L', 14, 40),
-                                  _buildDayBar('M', 18, 40),
-                                  _buildDayBar('X', 22, 40),
-                                  _buildDayBar('J', 16, 40),
-                                  _buildDayBar('V', 34, 40, isPeak: true),
-                                  _buildDayBar('S', 24, 40),
-                                  _buildDayBar('D', 14, 40),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Incidentes por categoría (Donut Chart) (Figma 2:437)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE7ECF1)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Incidentes por categoría',
-                        style: TextStyle(
-                                fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF142C40),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Donut Chart con "142 Total" en el centro
-                          SizedBox(
-                            width: 110,
-                            height: 110,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                PieChart(
-                                  PieChartData(
-                                    sectionsSpace: 2,
-                                    centerSpaceRadius: 36,
-                                    startDegreeOffset: -90,
-                                    sections: [
-                                      PieChartSectionData(
-                                        value: 46,
-                                        color: const Color(0xFF0F4C81),
-                                        radius: 16,
-                                        showTitle: false,
-                                      ),
-                                      PieChartSectionData(
-                                        value: 30,
-                                        color: const Color(0xFF10B981),
-                                        radius: 16,
-                                        showTitle: false,
-                                      ),
-                                      PieChartSectionData(
-                                        value: 15,
-                                        color: const Color(0xFFF59E0B),
-                                        radius: 16,
-                                        showTitle: false,
-                                      ),
-                                      PieChartSectionData(
-                                        value: 12,
-                                        color: const Color(0xFFEF4444),
-                                        radius: 16,
-                                        showTitle: false,
-                                      ),
-                                    ],
-                                  ),
+                          const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 40),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Error al conectar con la base de datos:\n${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => setState(_loadData),
+                            icon: const Icon(Icons.refresh_rounded, size: 18),
+                            label: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final allIncidents = snapshot.data ?? const <Incident>[];
+                final periodIncidents = _filterByPeriod(allIncidents);
+                final total = periodIncidents.length;
+                final resolvedCount = periodIncidents.where((i) => i.status == 'RESOLVED').length;
+                final resolutionRate = total > 0 ? ((resolvedCount / total) * 100).round() : 0;
+
+                // --- 1. Distribución semanal real (Últimos 7 días) ---
+                final now = DateTime.now();
+                final List<Map<String, dynamic>> dayStats = [];
+                const dayLetters = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+                // Días 6 a 0 (de hace 6 días a hoy)
+                int peakCount = 0;
+                int peakIndex = -1;
+
+                for (int i = 6; i >= 0; i--) {
+                  final targetDay = now.subtract(Duration(days: i));
+                  final weekdayIndex = targetDay.weekday - 1; // 0=Lunes, 6=Domingo
+                  final letter = dayLetters[weekdayIndex.clamp(0, 6)];
+
+                  final count = allIncidents.where((inc) {
+                    final d = inc.createdAt;
+                    if (d == null) return false;
+                    return d.year == targetDay.year &&
+                        d.month == targetDay.month &&
+                        d.day == targetDay.day;
+                  }).length;
+
+                  if (count > peakCount) {
+                    peakCount = count;
+                    peakIndex = 6 - i;
+                  }
+
+                  dayStats.add({
+                    'letter': letter,
+                    'count': count,
+                  });
+                }
+
+                // --- 2. Categorías reales para la dona ---
+                int mobilityCount = 0;
+                int securityCount = 0;
+                int infraCount = 0;
+                int otherCount = 0;
+
+                for (final inc in periodIncidents) {
+                  final t = inc.type.toUpperCase();
+                  if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('VIA') || t.contains('OBSTACULO')) {
+                    mobilityCount++;
+                  } else if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO')) {
+                    securityCount++;
+                  } else if (t.contains('INFRA') || t.contains('ALUMBR') || t.contains('HUECO') || t.contains('OBRA')) {
+                    infraCount++;
+                  } else {
+                    otherCount++;
+                  }
+                }
+
+                final safeTotal = total > 0 ? total : 1;
+                final mobPct = ((mobilityCount / safeTotal) * 100).round();
+                final secPct = ((securityCount / safeTotal) * 100).round();
+                final infPct = ((infraCount / safeTotal) * 100).round();
+                final othPct = total > 0 ? math.max(0, 100 - mobPct - secPct - infPct) : 0;
+
+                // --- 3. Sectores con mayor reporte ---
+                final Map<String, int> sectorCounts = {};
+                const knownSectors = [
+                  'Centro Histórico',
+                  'Bocagrande',
+                  'Manga',
+                  'Getsemaní',
+                  'Bazurto',
+                  'Pie de la Popa',
+                  'Olaya Herrera',
+                ];
+
+                for (final sec in knownSectors) {
+                  final count = periodIncidents.where((inc) {
+                    final loc = inc.location.toLowerCase();
+                    final desc = inc.description.toLowerCase();
+                    return loc.contains(sec.toLowerCase()) || desc.contains(sec.toLowerCase());
+                  }).length;
+                  if (count > 0) {
+                    sectorCounts[sec] = count;
+                  }
+                }
+
+                // Si no hay coincidencias con los conocidos, agrupar por location
+                if (sectorCounts.isEmpty) {
+                  for (final inc in periodIncidents) {
+                    final key = inc.location.split(',').first.trim();
+                    if (key.isNotEmpty) {
+                      sectorCounts[key] = (sectorCounts[key] ?? 0) + 1;
+                    }
+                  }
+                }
+
+                final sortedSectors = sectorCounts.entries.toList()
+                  ..sort((a, b) => b.value.compareTo(a.value));
+                final topSectors = sortedSectors.take(3).toList();
+                final maxSectorCount = topSectors.isNotEmpty ? topSectors.first.value : 1;
+
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  children: [
+                    // Encabezado (Figma Frame 2:434)
+                    const Text(
+                      'Estadísticas Ciudadanas',
+                      style: TextStyle(
+                        fontSize: 23,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF142C40),
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Panorama de seguridad y movilidad en tiempo real',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Selector de período (Figma 2:472)
+                    Container(
+                      height: 36,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE9EEF3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          for (final period in _periods) ...[
+                            Expanded(
+                              child: _buildPeriodOption(period),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Indicadores Principales 1x2 DINÁMICOS (Figma Frame 2:435)
+                    Row(
+                      children: [
+                        // Total Reportes (Figma 2:479)
+                        Expanded(
+                          child: Container(
+                            height: 108,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFE7ECF1)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
-                                const Column(
-                                  mainAxisSize: MainAxisSize.min,
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      '142',
+                                    const Text(
+                                      'Total Reportes',
                                       style: TextStyle(
-                                                            fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF142C40),
-                                        height: 1.0,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF526579),
                                       ),
                                     ),
-                                    Text(
-                                      'Total',
-                                      style: TextStyle(
-                                                            fontSize: 9,
-                                        color: Color(0xFF64748B),
+                                    Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8F0F8),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Icon(
+                                        Icons.bar_chart_rounded,
+                                        color: Color(0xFF0F4C81),
+                                        size: 14,
                                       ),
                                     ),
                                   ],
                                 ),
+                                const Spacer(),
+                                Text(
+                                  '$total',
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0F4C81),
+                                    height: 1.0,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE6F7EF),
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  child: Text(
+                                    '$resolvedCount resueltos en BD',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF087554),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          // Leyenda de categorías
-                          Expanded(
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Tasa de Resolución DINÁMICA (Figma 2:487)
+                        Expanded(
+                          child: Container(
+                            height: 108,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFE7ECF1)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildLegendItem(
-                                  const Color(0xFF0F4C81),
-                                  'Movilidad y tráfico',
-                                  '46%',
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Tasa de Resolución',
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF526579),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE5F7EF),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Icon(
+                                        Icons.check_circle_outline_rounded,
+                                        color: Color(0xFF087F5B),
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
-                                _buildLegendItem(
-                                  const Color(0xFF10B981),
-                                  'Seguridad ciudadana',
-                                  '30%',
+                                const Spacer(),
+                                Text(
+                                  '$resolutionRate%',
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF087F5B),
+                                    height: 1.0,
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                _buildLegendItem(
-                                  const Color(0xFFF59E0B),
-                                  'Infraestructura y vías',
-                                  '15%',
+                                const Spacer(),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: LinearProgressIndicator(
+                                    value: total > 0 ? (resolutionRate / 100).clamp(0.0, 1.0) : 0.0,
+                                    minHeight: 6,
+                                    backgroundColor: const Color(0xFFE2E8F0),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF087F5B),
+                                    ),
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                _buildLegendItem(
-                                  const Color(0xFFEF4444),
-                                  'Otros servicios',
-                                  '12%',
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Actividad de reportes (Últimos 7 días) DINÁMICA (Figma Frame 2:436)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F2940).withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Actividad de reportes (Últimos 7 días)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF142C40),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            height: 140,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                // Eje Y con guías
+                                SizedBox(
+                                  width: 18,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${math.max(10, (peakCount * 1.2).ceil())}',
+                                        style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                      ),
+                                      Text(
+                                        '${math.max(5, (peakCount * 0.6).ceil())}',
+                                        style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                      ),
+                                      const Text(
+                                        '0',
+                                        style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Barras diarias dinámicas
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      for (int i = 0; i < dayStats.length; i++)
+                                        _buildDayBar(
+                                          dayStats[i]['letter'] as String,
+                                          dayStats[i]['count'] as int,
+                                          math.max(peakCount, 5),
+                                          isPeak: i == peakIndex && peakCount > 0,
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
+                    ),
+                    const SizedBox(height: 18),
 
-                // Sectores con mayor reporte (Figma 2:438)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE7ECF1)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sectores con mayor reporte',
-                        style: TextStyle(
-                                fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF142C40),
-                        ),
+                    // Incidentes por categoría DINÁMICA (Donut Chart) (Figma 2:437)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE7ECF1)),
                       ),
-                      const SizedBox(height: 14),
-                      _buildSectorRank('01', 'Centro Histórico', 46, 50),
-                      const SizedBox(height: 10),
-                      _buildSectorRank('02', 'Bocagrande', 38, 50),
-                      const SizedBox(height: 10),
-                      _buildSectorRank('03', 'Manga', 29, 50),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Incidentes por categoría',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF142C40),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              // Donut Chart con Total en el centro
+                              SizedBox(
+                                width: 110,
+                                height: 110,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    PieChart(
+                                      PieChartData(
+                                        sectionsSpace: 2,
+                                        centerSpaceRadius: 36,
+                                        startDegreeOffset: -90,
+                                        sections: total == 0
+                                            ? [
+                                                PieChartSectionData(
+                                                  value: 1,
+                                                  color: const Color(0xFFE2E8F0),
+                                                  radius: 14,
+                                                  showTitle: false,
+                                                ),
+                                              ]
+                                            : [
+                                                if (mobilityCount > 0)
+                                                  PieChartSectionData(
+                                                    value: mobilityCount.toDouble(),
+                                                    color: const Color(0xFF0F4C81),
+                                                    radius: 16,
+                                                    showTitle: false,
+                                                  ),
+                                                if (securityCount > 0)
+                                                  PieChartSectionData(
+                                                    value: securityCount.toDouble(),
+                                                    color: const Color(0xFF10B981),
+                                                    radius: 16,
+                                                    showTitle: false,
+                                                  ),
+                                                if (infraCount > 0)
+                                                  PieChartSectionData(
+                                                    value: infraCount.toDouble(),
+                                                    color: const Color(0xFFF59E0B),
+                                                    radius: 16,
+                                                    showTitle: false,
+                                                  ),
+                                                if (otherCount > 0)
+                                                  PieChartSectionData(
+                                                    value: otherCount.toDouble(),
+                                                    color: const Color(0xFFEF4444),
+                                                    radius: 16,
+                                                    showTitle: false,
+                                                  ),
+                                              ],
+                                      ),
+                                    ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '$total',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF142C40),
+                                            height: 1.0,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Total',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            color: Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              // Leyenda dinámica
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildLegendItem(
+                                      const Color(0xFF0F4C81),
+                                      'Movilidad y tráfico',
+                                      '$mobPct% ($mobilityCount)',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem(
+                                      const Color(0xFF10B981),
+                                      'Seguridad ciudadana',
+                                      '$secPct% ($securityCount)',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem(
+                                      const Color(0xFFF59E0B),
+                                      'Infraestructura y vías',
+                                      '$infPct% ($infraCount)',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem(
+                                      const Color(0xFFEF4444),
+                                      'Otros servicios',
+                                      '$othPct% ($otherCount)',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Sectores con mayor reporte DINÁMICO (Figma 2:438)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Sectores con mayor reporte',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF142C40),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          if (topSectors.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                'No hay datos suficientes para rankear sectores',
+                                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                              ),
+                            )
+                          else
+                            for (int i = 0; i < topSectors.length; i++) ...[
+                              _buildSectorRank(
+                                '0${i + 1}',
+                                topSectors[i].key,
+                                topSectors[i].value,
+                                maxSectorCount,
+                              ),
+                              if (i < topSectors.length - 1) const SizedBox(height: 10),
+                            ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -520,17 +714,17 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? const Color(0xFF0F4C81) : const Color(0xFF64748B),
+            color: isSelected ? const Color(0xFF142C40) : const Color(0xFF64748B),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDayBar(String day, int count, int maxVal, {bool isPeak = false}) {
-    final heightRatio = (count / maxVal).clamp(0.05, 1.0);
-    const maxBarHeight = 90.0;
-    final barHeight = maxBarHeight * heightRatio;
+  Widget _buildDayBar(String label, int value, int maxValue, {bool isPeak = false}) {
+    final ratio = maxValue > 0 ? (value / maxValue).clamp(0.05, 1.0) : 0.05;
+    const maxBarHeight = 75.0;
+    final barHeight = ratio * maxBarHeight;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -540,130 +734,129 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFF0F4C81),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: const Text(
-              '34 reportes',
-              style: TextStyle(
-                    fontSize: 8,
+            child: Text(
+              '$value reportes',
+              style: const TextStyle(
+                fontSize: 8,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
             ),
           ),
           const SizedBox(height: 4),
+        ] else ...[
+          const SizedBox(height: 18),
         ],
         Container(
-          width: 22,
+          width: 14,
           height: barHeight,
           decoration: BoxDecoration(
-            color: const Color(0xFF0F4C81),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(5),
-              topRight: Radius.circular(5),
-            ),
+            color: isPeak ? const Color(0xFF0F4C81) : const Color(0xFF8FAAC4),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
         const SizedBox(height: 6),
         Text(
-          day,
+          label,
           style: TextStyle(
             fontSize: 10,
             fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
-            color: const Color(0xFF64748B),
+            color: isPeak ? const Color(0xFF0F4C81) : const Color(0xFF64748B),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLegendItem(Color color, String label, String pct) {
+  Widget _buildLegendItem(Color color, String label, String percentage) {
     return Row(
       children: [
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
             style: const TextStyle(
-                fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF142C40),
+              color: Color(0xFF526579),
             ),
           ),
         ),
         Text(
-          '($pct)',
+          percentage,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF526579),
+            color: Color(0xFF142C40),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSectorRank(String rank, String sector, int count, int maxVal) {
-    final factor = (count / maxVal).clamp(0.05, 1.0);
-    return Row(
-      children: [
-        Text(
-          rank,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF94A3B8),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 105,
-          child: Text(
-            sector,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF142C40),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Container(
-              height: 6,
-              color: const Color(0xFFE2E8F0),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: factor,
-                child: Container(
-                  color: const Color(0xFF0F4C81),
-                ),
+  Widget _buildSectorRank(String rank, String sector, int count, int maxCount) {
+    final progress = maxCount > 0 ? (count / maxCount).clamp(0.05, 1.0) : 0.05;
+
+    return InkWell(
+      onTap: widget.onSelectSector != null ? () => widget.onSelectSector!(sector) : null,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 20,
+            child: Text(
+              rank,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF94A3B8),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          '$count',
-          style: const TextStyle(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0F4C81),
+          Expanded(
+            flex: 4,
+            child: Text(
+              sector,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF142C40),
+              ),
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 5,
+                backgroundColor: const Color(0xFFF1F5F9),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 24,
+            child: Text(
+              '$count',
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF142C40),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

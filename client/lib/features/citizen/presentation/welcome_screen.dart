@@ -26,6 +26,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   late Future<List<Incident>> _incidents;
+  List<dynamic> _zones = [];
   String _selectedSector = 'Todos';
 
   final List<String> _sectors = const [
@@ -33,14 +34,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     'Centro Histórico',
     'Bocagrande',
     'Manga',
+    'Getsemaní',
     'Bazurto',
+    'Olaya Herrera',
   ];
 
   @override
   void initState() {
     super.initState();
     widget.incidentRefresh.addListener(_reload);
-    _incidents = loadIncidents(widget.session.api, mine: true);
+    _incidents = loadIncidents(widget.session.api, mine: false);
+    _loadZones();
+  }
+
+  Future<void> _loadZones() async {
+    try {
+      final res = await widget.session.api.get('Zones');
+      final list = res is List
+          ? res
+          : (res is Map<String, dynamic> && res['data'] is List ? res['data'] as List : null);
+      if (list != null && mounted) {
+        setState(() => _zones = list);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -61,9 +77,43 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _reload() {
     if (mounted) {
       setState(() {
-        _incidents = loadIncidents(widget.session.api, mine: true);
+        _incidents = loadIncidents(widget.session.api, mine: false);
+        _loadZones();
       });
     }
+  }
+
+  String _formatTimeAgo(DateTime? date) {
+    if (date == null) return 'Reciente';
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 60) {
+      final mins = diff.inMinutes <= 0 ? 1 : diff.inMinutes;
+      return 'Hace $mins min';
+    }
+    if (diff.inHours < 24) {
+      return 'Hace ${diff.inHours} h';
+    }
+    if (diff.inDays == 1) {
+      return 'Ayer';
+    }
+    return 'Hace ${diff.inDays} d';
+  }
+
+  (String, Color, Color, IconData) _getCategoryMeta(String type) {
+    final t = type.toUpperCase();
+    if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('CONGESTION')) {
+      return ('Tráfico', const Color(0xFF9A6200), const Color(0xFFFFF4DC), Icons.directions_car_rounded);
+    }
+    if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO')) {
+      return ('Seguridad', const Color(0xFFDC2626), const Color(0xFFFEE2E2), Icons.shield_outlined);
+    }
+    if (t.contains('VIA') || t.contains('OBRA') || t.contains('OBSTACULO') || t.contains('PAVIMENT')) {
+      return ('Vía cerrada', const Color(0xFF0284C7), const Color(0xFFE0F2FE), Icons.construction_rounded);
+    }
+    if (t.contains('ALUMBR') || t.contains('LUZ') || t.contains('INFRA')) {
+      return ('Servicios', const Color(0xFF0F766E), const Color(0xFFCCFBF1), Icons.lightbulb_outline_rounded);
+    }
+    return ('Alerta', const Color(0xFF0F4C81), const Color(0xFFE8F0F8), Icons.warning_amber_rounded);
   }
 
   @override
@@ -85,6 +135,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 final incidents = snapshot.data ?? const <Incident>[];
                 final activeCount = incidents.where((i) => i.status != 'RESOLVED').length;
                 final resolvedCount = incidents.where((i) => i.status == 'RESOLVED').length;
+                final mobilityCount = incidents.where((i) {
+                  final t = i.type.toUpperCase();
+                  return t.contains('TRAF') || t.contains('TRANSIT') || t.contains('VIA') || t.contains('OBSTACULO');
+                }).length;
+                final safeZonesCount = _zones.isNotEmpty
+                    ? _zones.where((z) => z is Map && (z['riskLevel'] == 'LOW' || z['active'] == true)).length
+                    : 5;
+
+                // Filtrar incidentes por sector seleccionado
+                final filteredIncidents = _selectedSector == 'Todos'
+                    ? incidents
+                    : incidents.where((inc) {
+                        final loc = inc.location.toLowerCase();
+                        final desc = inc.description.toLowerCase();
+                        final sec = _selectedSector.toLowerCase();
+                        return loc.contains(sec) || desc.contains(sec);
+                      }).toList();
 
                 return ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -220,12 +287,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Cuadrícula de Métricas 2x2 (Figma 2:232, 2:239, 2:246, 2:253)
+                    // Cuadrícula de Métricas 2x2 DINÁMICAS (Figma 2:232, 2:239, 2:246, 2:253)
                     Row(
                       children: [
                         Expanded(
                           child: _buildMetricCard(
-                            value: activeCount > 0 ? '$activeCount' : '24',
+                            value: '$activeCount',
                             label: 'Reportes activos',
                             valColor: const Color(0xFF0F4C81),
                             iconBg: const Color(0xFFE8F0F8),
@@ -237,7 +304,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildMetricCard(
-                            value: '18',
+                            value: '$safeZonesCount',
                             label: 'Zonas seguras',
                             valColor: const Color(0xFF087F5B),
                             iconBg: const Color(0xFFE5F7EF),
@@ -253,7 +320,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       children: [
                         Expanded(
                           child: _buildMetricCard(
-                            value: '7',
+                            value: '$mobilityCount',
                             label: 'Alertas de movilidad',
                             valColor: const Color(0xFF9A6200),
                             iconBg: const Color(0xFFFFF4D9),
@@ -267,8 +334,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildMetricCard(
-                            value: resolvedCount > 0 ? '$resolvedCount' : '12',
-                            label: 'Resueltos hoy',
+                            value: '$resolvedCount',
+                            label: 'Resueltos',
                             valColor: const Color(0xFF087F5B),
                             iconBg: const Color(0xFFE5F7EF),
                             iconColor: const Color(0xFF087F5B),
@@ -325,67 +392,68 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Tarjetas de incidentes (Figma 2:272, 2:280, 2:289)
-                    if (_selectedSector == 'Todos' || _selectedSector == 'Bocagrande')
-                      _buildIncidentCard(
-                        category: 'Tráfico',
-                        categoryColor: const Color(0xFF9A6200),
-                        iconBg: const Color(0xFFFFF4DC),
-                        icon: Icons.directions_car_rounded,
-                        title: 'Congestión en Av. San Martín',
-                        subtitle: 'Bocagrande · Hace 10 min',
-                        distance: 'a 450 m',
-                        onTap: () => widget.onSelectTab(1),
-                      ),
-                    if (_selectedSector == 'Todos' || _selectedSector == 'Manga')
-                      _buildIncidentCard(
-                        category: 'Seguridad',
-                        categoryColor: const Color(0xFFDC2626),
-                        iconBg: const Color(0xFFFEE2E2),
-                        icon: Icons.shield_outlined,
-                        title: 'Alumbrado público sin funcionar',
-                        subtitle: 'Manga · Hace 18 min',
-                        distance: 'a 1,2 km',
-                        onTap: () => widget.onSelectTab(1),
-                      ),
-                    if (_selectedSector == 'Todos' || _selectedSector == 'Centro Histórico')
-                      _buildIncidentCard(
-                        category: 'Vía cerrada',
-                        categoryColor: const Color(0xFF0284C7),
-                        iconBg: const Color(0xFFE0F2FE),
-                        icon: Icons.construction_rounded,
-                        title: 'Obras en la calle de la Media Luna',
-                        subtitle: 'Centro Histórico · Hace 25 min',
-                        distance: 'a 2,1 km',
-                        onTap: () => widget.onSelectTab(1),
-                      ),
-                    if (_selectedSector == 'Todos' || _selectedSector == 'Bazurto')
-                      _buildIncidentCard(
-                        category: 'Movilidad',
-                        categoryColor: const Color(0xFF0F766E),
-                        iconBg: const Color(0xFFCCFBF1),
-                        icon: Icons.warning_amber_rounded,
-                        title: 'Paso habilitado en Av. Pedro de Heredia',
-                        subtitle: 'Bazurto · Hace 35 min',
-                        distance: 'a 3 km',
-                        onTap: () => widget.onSelectTab(1),
-                      ),
-
-                    // Reportes reales adicionales si existen en el backend
-                    for (final inc in incidents.take(4))
-                      if (_selectedSector == 'Todos' ||
-                          inc.location.toLowerCase().contains(_selectedSector.toLowerCase()) ||
-                          inc.description.toLowerCase().contains(_selectedSector.toLowerCase()))
-                        _buildIncidentCard(
-                          category: inc.type,
-                          categoryColor: const Color(0xFF0F4C81),
-                          iconBg: const Color(0xFFE8F0F8),
-                          icon: Icons.report_problem_outlined,
-                          title: inc.description.isNotEmpty ? inc.description : inc.type,
-                          subtitle: '${inc.location} · Hace poco',
-                          distance: 'Cerca',
-                          onTap: () => widget.onSelectTab(1),
+                    // Lista de incidentes reales desde MongoDB (sin datos quemados)
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator(),
                         ),
+                      )
+                    else if (filteredIncidents.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE7ECF1)),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_outline_rounded,
+                              color: Color(0xFF10B981),
+                              size: 28,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Sin reportes activos en $_selectedSector',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: Color(0xFF142C40),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Sector seguro y sin novedades reportadas',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      for (final inc in filteredIncidents) ...[
+                        Builder(
+                          builder: (context) {
+                            final (catName, catColor, catBg, catIcon) = _getCategoryMeta(inc.type);
+                            final title = inc.description.isNotEmpty ? inc.description : inc.type;
+                            final subtitle = '${inc.location} · ${_formatTimeAgo(inc.createdAt)}';
+
+                            return _buildIncidentCard(
+                              category: catName,
+                              categoryColor: catColor,
+                              iconBg: catBg,
+                              icon: catIcon,
+                              title: title,
+                              subtitle: subtitle,
+                              distance: inc.status == 'RESOLVED' ? 'Resuelto' : 'En proceso',
+                              onTap: () => widget.onSelectTab(1), // Ver en Mapa
+                            );
+                          },
+                        ),
+                      ],
 
                     const SizedBox(height: 20),
                     // Acceso a Asistente Ciudadano IA
@@ -645,7 +713,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ],
                 ),
               ),
-              // Distancia
+              // Distancia / Estado
               Text(
                 distance,
                 style: const TextStyle(
