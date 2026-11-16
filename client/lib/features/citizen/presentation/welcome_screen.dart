@@ -40,7 +40,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
     widget.incidentRefresh.addListener(_reload);
-    _incidents = loadIncidents(widget.session.api);
+    _incidents = loadIncidents(widget.session.api, mine: true);
   }
 
   @override
@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _reload() {
     if (mounted) {
       setState(() {
-        _incidents = loadIncidents(widget.session.api);
+        _incidents = loadIncidents(widget.session.api, mine: true);
       });
     }
   }
@@ -70,7 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     final user = widget.session.user!;
     final name = user.fullName.isNotEmpty
-        ? user.fullName.split(' ').first
+        ? user.fullName
         : (user.username.isNotEmpty ? user.username : 'ciudadano');
 
     return Scaffold(
@@ -382,11 +382,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           inc.location.toLowerCase().contains(_selectedSector.toLowerCase()) ||
                           inc.description.toLowerCase().contains(_selectedSector.toLowerCase()))
                         _buildIncidentCard(
-                          category: inc.category,
+                          category: inc.type,
                           categoryColor: const Color(0xFF0F4C81),
                           iconBg: const Color(0xFFE8F0F8),
                           icon: Icons.report_problem_outlined,
-                          title: inc.title.isNotEmpty ? inc.title : inc.description,
+                          title: inc.description.isNotEmpty ? inc.description : inc.type,
                           subtitle: '${inc.location} · Hace poco',
                           distance: 'Cerca',
                           onTap: () => widget.onSelectTab(1),

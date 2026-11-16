@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
-import 'package:cartagena_segura/core/data/models.dart';
 
 class AnalyticsCitizenScreen extends StatefulWidget {
   const AnalyticsCitizenScreen({

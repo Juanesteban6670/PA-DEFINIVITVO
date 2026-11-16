@@ -36,7 +36,7 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'citizen');
       await tester.enterText(find.byType(TextFormField).at(1), 'wrongpass');
-      await tester.tap(find.text('Ingresar'));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
 
       expect(find.text('Credenciales incorrectas'), findsOneWidget);
@@ -77,10 +77,10 @@ void main() {
         MaterialApp(home: SignInScreen(session: session)),
       );
 
-      await tester.tap(find.text('¿No tienes cuenta? Regístrate'));
+      await tester.tap(find.textContaining('Regístrate'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Crear cuenta'));
-      await tester.tap(find.text('Crear cuenta'));
+      await tester.ensureVisible(find.byType(ElevatedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
       expect(find.text('Este campo es obligatorio'), findsNWidgets(4));
 
@@ -96,8 +96,8 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(2), '3001234567');
       await tester.enterText(find.byType(TextFormField).at(3), ' newcitizen ');
       await tester.enterText(find.byType(TextFormField).at(4), 'secret1');
-      await tester.ensureVisible(find.text('Crear cuenta'));
-      await tester.tap(find.text('Crear cuenta'));
+      await tester.ensureVisible(find.byType(ElevatedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
 
       expect(submitted?['username'], 'newcitizen');
@@ -252,7 +252,7 @@ void main() {
 
       await tester.tap(find.text('Reportes').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Nuevo'));
+      await tester.tap(find.text('Crear nuevo reporte'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextFormField).at(0),
@@ -272,10 +272,9 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Emergencias').last);
+      await tester.tap(find.text('Mapa').last);
       await tester.pumpAndSettle();
-      expect(find.text('Contactos disponibles'), findsOneWidget);
-      expect(find.text('Llamar al 123'), findsOneWidget);
+      expect(find.text('Mapa de tu ciudad'), findsOneWidget);
 
       await tester.tap(find.text('Inicio').last);
       await tester.pumpAndSettle();

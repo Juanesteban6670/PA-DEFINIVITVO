@@ -15,7 +15,6 @@ import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 import 'analytics_citizen_screen.dart';
-import 'emergency_screen.dart';
 import 'incidents_map_screen.dart';
 import 'my_reports_screen.dart';
 import 'notifications_screen.dart';

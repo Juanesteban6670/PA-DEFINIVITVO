@@ -32,7 +32,7 @@ class MyReportsScreen extends StatefulWidget {
 }
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
-  int _selectedTab = 0; // 0 = Comunidad, 1 = Mis reportes
+  int _selectedTab = 1; // 0 = Comunidad, 1 = Mis reportes
   String _selectedStatusFilter = 'Todos'; // 'Todos', 'En revisión', 'En atención', 'Resueltos'
   
   late Future<List<Incident>> _incidents;
