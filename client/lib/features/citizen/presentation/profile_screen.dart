@@ -30,7 +30,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _startEditing() {
-    final user = widget.session.user!;
+    final user = widget.session.user;
+    if (user == null) return;
     _fullName.text = user.fullName;
     _email.text = user.email;
     _phone.text = user.phone;
@@ -66,7 +67,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
-    final user = session.user!;
+    final user = session.user;
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final initial =
         user.username.isEmpty ? 'U' : user.username[0].toUpperCase();
     return ListView(

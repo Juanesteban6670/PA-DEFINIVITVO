@@ -68,10 +68,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.session.user!;
-    final name = user.fullName.isNotEmpty
+    final user = widget.session.user;
+    final name = (user != null && user.fullName.isNotEmpty)
         ? user.fullName
-        : (user.username.isNotEmpty ? user.username : 'ciudadano');
+        : (user != null && user.username.isNotEmpty ? user.username : 'ciudadano');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),

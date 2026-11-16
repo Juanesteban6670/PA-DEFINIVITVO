@@ -48,7 +48,7 @@ class _HomeShellState extends State<HomeShell> {
     super.initState();
     _drafts = ReportDraftStore(
       storage: widget.session.storage,
-      owner: widget.session.user!.username,
+      owner: widget.session.user?.username ?? 'ciudadano',
     );
     _realtimeService =
         RealtimeAlertService(baseUrl: widget.session.api.baseUrl);
