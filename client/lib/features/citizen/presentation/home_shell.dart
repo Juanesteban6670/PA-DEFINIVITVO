@@ -122,6 +122,7 @@ class _HomeShellState extends State<HomeShell> {
     return ListenableBuilder(
       listenable: LocaleController.instance,
       builder: (context, _) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         final strings = LocaleController.instance.strings;
         final api = widget.session.api;
         final wideLayout = MediaQuery.sizeOf(context).width >= 700;
@@ -144,8 +145,18 @@ class _HomeShellState extends State<HomeShell> {
         ];
 
         return Scaffold(
+          backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
           appBar: wideLayout
               ? AppBar(
+            backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+            elevation: 0,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Divider(
+                height: 1,
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
+            ),
             titleSpacing: 16,
             title: Row(
               children: [
@@ -154,9 +165,13 @@ class _HomeShellState extends State<HomeShell> {
                   height: 34,
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.blue.withValues(alpha: 0.06),
+                    color: isDark
+                        ? AppColors.brightBlue.withValues(alpha: 0.12)
+                        : AppColors.blue.withValues(alpha: 0.06),
                     border: Border.all(
-                      color: AppColors.blue.withValues(alpha: 0.1),
+                      color: isDark
+                          ? AppColors.brightBlue.withValues(alpha: 0.25)
+                          : AppColors.blue.withValues(alpha: 0.1),
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -174,7 +189,7 @@ class _HomeShellState extends State<HomeShell> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: isDark ? AppColors.darkText : AppColors.navy,
                         ),
                       ),
                       Text(
@@ -183,10 +198,9 @@ class _HomeShellState extends State<HomeShell> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 10,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.55),
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF64748B),
                           letterSpacing: 0.4,
                         ),
                       ),
@@ -270,13 +284,17 @@ class _HomeShellState extends State<HomeShell> {
                     NavigationRail(
                       selectedIndex: _selectedIndex,
                       onDestinationSelected: _selectTab,
+                      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
                       extended: MediaQuery.sizeOf(context).width >= 1000,
                       labelType: MediaQuery.sizeOf(context).width >= 1000
                           ? null
                           : NavigationRailLabelType.all,
                       destinations: _buildRailDestinations(strings),
                     ),
-                    const VerticalDivider(width: 1),
+                    VerticalDivider(
+                      width: 1,
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                    ),
                     Expanded(
                       child: Center(
                         child: ConstrainedBox(
@@ -294,40 +312,44 @@ class _HomeShellState extends State<HomeShell> {
           bottomNavigationBar: wideLayout
               ? null
               : Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
                     border: Border(
-                      top: BorderSide(color: Color(0xFFE2E8F0)),
+                      top: BorderSide(
+                        color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                      ),
                     ),
                   ),
                   child: NavigationBarTheme(
                     data: NavigationBarThemeData(
-                      backgroundColor: Colors.white,
+                      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
                       elevation: 0,
                       height: 66,
-                      indicatorColor: const Color(0xFFE7F0F8),
+                      indicatorColor: isDark
+                          ? AppColors.brightBlue.withValues(alpha: 0.18)
+                          : const Color(0xFFE7F0F8),
                       iconTheme: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return const IconThemeData(
-                            color: Color(0xFF0F4C81),
+                          return IconThemeData(
+                            color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                             size: 22,
                           );
                         }
-                        return const IconThemeData(
-                          color: Color(0xFF64748B),
+                        return IconThemeData(
+                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                           size: 22,
                         );
                       }),
                       labelTextStyle: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return const TextStyle(
-                            color: Color(0xFF0F4C81),
+                          return TextStyle(
+                            color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           );
                         }
-                        return const TextStyle(
-                          color: Color(0xFF64748B),
+                        return TextStyle(
+                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         );

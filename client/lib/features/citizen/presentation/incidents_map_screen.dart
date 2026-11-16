@@ -751,33 +751,33 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             (withLocation.isNotEmpty ? withLocation.first : null);
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: isDark ? AppColors.darkCanvas : const Color(0xFFF8FAFC),
           body: SafeArea(
             child: Column(
               children: [
                 // Encabezado Figma (03 · Mapa) - Oculto durante navegación activa para pantalla completa tipo Waze
                 if (!_isNavigating)
                   Container(
-                    color: const Color(0xFFF8FAFC),
+                    color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Mapa de tu ciudad',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF142C40),
+                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                             letterSpacing: -0.4,
                           ),
                         ),
                         const SizedBox(height: 3),
-                        const Text(
+                        Text(
                           'Muévete informado. Llega seguro.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF64748B),
+                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -792,18 +792,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                   height: 44,
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark ? AppColors.darkCard : Colors.white,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    border: Border.all(
+                                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                    ),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     children: [
-                                      Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-                                      SizedBox(width: 8),
+                                      Icon(
+                                        Icons.search_rounded,
+                                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           'Buscar sector o dirección',
-                                          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                          style: TextStyle(
+                                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                            fontSize: 13,
+                                          ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -820,9 +829,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDark ? AppColors.darkCard : Colors.white,
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 child: Badge(
                                   isLabelVisible: _typeFilter != null ||
@@ -830,9 +841,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                       _priorityFilter != null ||
                                       _distanceFilterKm != null ||
                                       _timeFilter != null,
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.tune_rounded,
-                                    color: Color(0xFF0F4C81),
+                                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                     size: 20,
                                   ),
                                 ),
@@ -1095,12 +1106,14 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCard : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
+                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1118,12 +1131,12 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Text(
+                      Text(
                         'En tiempo real',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF142C40),
+                          color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                         ),
                       ),
                     ],
@@ -1137,45 +1150,47 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 top: 14,
                 right: 14,
                 child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Ver lista accesible de incidentes',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _showIncidentList(filtered),
-                      icon: const Icon(
-                        Icons.format_list_bulleted_rounded,
-                        size: 18,
-                        color: Color(0xFF0F4C81),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: 'Actualizar incidentes',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: _reload,
-                      icon: const Icon(
-                        Icons.refresh_rounded,
-                        size: 18,
-                        color: Color(0xFF0F4C81),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Ver lista accesible de incidentes',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showIncidentList(filtered),
+                        icon: Icon(
+                          Icons.format_list_bulleted_rounded,
+                          size: 18,
+                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                        ),
                       ),
-                    ),
-                  ],
+                      IconButton(
+                        tooltip: 'Actualizar incidentes',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _reload,
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          size: 18,
+                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
             // Botón flotante para Trazar Ruta Segura estilo Waze
             if (!_isSelectingDestinationOnMap && _safeRoutes == null)
@@ -2784,38 +2799,49 @@ class _FigmaMapIncidentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (incident == null) {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppColors.darkCard : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(Icons.check_circle_outline_rounded, color: Color(0xFF087554), size: 18),
-                SizedBox(width: 8),
+                const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
+                const SizedBox(width: 8),
                 Text(
                   'Cartagena sin alertas críticas cercanas',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF142C40)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
               'Mapa de referencia · Datos en tiempo real',
-              style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+              ),
             ),
           ],
         ),
@@ -2823,17 +2849,19 @@ class _FigmaMapIncidentCard extends StatelessWidget {
     }
 
     final inc = incident!;
-    final (catName, catBg, catFg) = _getCatInfo(inc.type);
+    final (catName, catBg, catFg) = _getCatInfo(inc.type, isDark);
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -2861,11 +2889,11 @@ class _FigmaMapIncidentCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Text(
+              Text(
                 'a 450 m de ti',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -2876,18 +2904,18 @@ class _FigmaMapIncidentCard extends StatelessWidget {
             inc.description.isNotEmpty ? inc.description : inc.type,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF142C40),
+              color: isDark ? AppColors.darkText : const Color(0xFF142C40),
             ),
           ),
           const SizedBox(height: 3),
           Text(
             '${inc.location.isNotEmpty ? inc.location : "Cartagena"} · Hace 10 min',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF64748B),
+              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 10),
@@ -2895,7 +2923,7 @@ class _FigmaMapIncidentCard extends StatelessWidget {
             height: 38,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F4C81),
+                backgroundColor: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -2918,12 +2946,12 @@ class _FigmaMapIncidentCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Center(
+          Center(
             child: Text(
               'Mapa de referencia · Datos de sentido',
               style: TextStyle(
                 fontSize: 10,
-                color: Color(0xFF94A3B8),
+                color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
               ),
             ),
           ),
@@ -2932,17 +2960,33 @@ class _FigmaMapIncidentCard extends StatelessWidget {
     );
   }
 
-  (String, Color, Color) _getCatInfo(String type) {
+  (String, Color, Color) _getCatInfo(String type, bool isDark) {
     final lower = type.toLowerCase();
     if (lower.contains('traf') || lower.contains('movil') || lower.contains('accidente')) {
-      return ('Movilidad', const Color(0xFFFFF4DC), const Color(0xFF9A6200));
+      return (
+        'Movilidad',
+        isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
+        isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
+      );
     }
     if (lower.contains('segur') || lower.contains('robo') || lower.contains('sospech')) {
-      return ('Seguridad', const Color(0xFFFEE2E2), const Color(0xFFDC2626));
+      return (
+        'Seguridad',
+        isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+        isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+      );
     }
     if (lower.contains('vía') || lower.contains('via') || lower.contains('calle') || lower.contains('obra')) {
-      return ('Vía cerrada', const Color(0xFFE6F7EF), const Color(0xFF087554));
+      return (
+        'Vía cerrada',
+        isDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
+        isDark ? const Color(0xFF34D399) : const Color(0xFF087554),
+      );
     }
-    return ('Incidente', const Color(0xFFE7F0F8), const Color(0xFF0F4C81));
+    return (
+      'Incidente',
+      isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE7F0F8),
+      isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
+    );
   }
 }

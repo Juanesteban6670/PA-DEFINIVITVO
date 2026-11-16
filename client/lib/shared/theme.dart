@@ -133,6 +133,23 @@ ThemeData buildAppTheme() {
         ),
       ),
     ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      indicatorColor: AppColors.blue.withValues(alpha: 0.1),
+      selectedIconTheme: const IconThemeData(color: AppColors.blue, size: 22),
+      unselectedIconTheme: const IconThemeData(color: Color(0xFF64748B), size: 22),
+      selectedLabelTextStyle: const TextStyle(
+        color: AppColors.blue,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
+      unselectedLabelTextStyle: const TextStyle(
+        color: Color(0xFF64748B),
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
     dividerTheme: const DividerThemeData(
       color: AppColors.border,
       thickness: 1,
@@ -254,6 +271,23 @@ ThemeData buildDarkAppTheme() {
               ? AppColors.brightBlue
               : AppColors.darkTextMuted,
         ),
+      ),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: AppColors.darkSurface,
+      elevation: 0,
+      indicatorColor: AppColors.brightBlue.withValues(alpha: 0.18),
+      selectedIconTheme: const IconThemeData(color: AppColors.brightBlue, size: 22),
+      unselectedIconTheme: const IconThemeData(color: AppColors.darkTextMuted, size: 22),
+      selectedLabelTextStyle: const TextStyle(
+        color: AppColors.brightBlue,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
+      unselectedLabelTextStyle: const TextStyle(
+        color: AppColors.darkTextMuted,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
       ),
     ),
     dividerTheme: const DividerThemeData(

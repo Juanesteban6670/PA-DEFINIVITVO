@@ -99,32 +99,58 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return 'Hace ${diff.inDays} d';
   }
 
-  (String, Color, Color, IconData) _getCategoryMeta(String type) {
+  (String, Color, Color, IconData) _getCategoryMeta(String type, bool isDark) {
     final t = type.toUpperCase();
     if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('CONGESTION')) {
-      return ('Tráfico', const Color(0xFF9A6200), const Color(0xFFFFF4DC), Icons.directions_car_rounded);
+      return (
+        'Tráfico',
+        isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
+        isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
+        Icons.directions_car_rounded,
+      );
     }
     if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO')) {
-      return ('Seguridad', const Color(0xFFDC2626), const Color(0xFFFEE2E2), Icons.shield_outlined);
+      return (
+        'Seguridad',
+        isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+        isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+        Icons.shield_outlined,
+      );
     }
     if (t.contains('VIA') || t.contains('OBRA') || t.contains('OBSTACULO') || t.contains('PAVIMENT')) {
-      return ('Vía cerrada', const Color(0xFF0284C7), const Color(0xFFE0F2FE), Icons.construction_rounded);
+      return (
+        'Vía cerrada',
+        isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+        isDark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE),
+        Icons.construction_rounded,
+      );
     }
     if (t.contains('ALUMBR') || t.contains('LUZ') || t.contains('INFRA')) {
-      return ('Servicios', const Color(0xFF0F766E), const Color(0xFFCCFBF1), Icons.lightbulb_outline_rounded);
+      return (
+        'Servicios',
+        isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+        isDark ? const Color(0xFF042F2E) : const Color(0xFFCCFBF1),
+        Icons.lightbulb_outline_rounded,
+      );
     }
-    return ('Alerta', const Color(0xFF0F4C81), const Color(0xFFE8F0F8), Icons.warning_amber_rounded);
+    return (
+      'Alerta',
+      isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
+      isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE8F0F8),
+      Icons.warning_amber_rounded,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = widget.session.user;
     final name = (user != null && user.fullName.isNotEmpty)
         ? user.fullName
         : (user != null && user.username.isNotEmpty ? user.username : 'ciudadano');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -166,28 +192,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             children: [
                               Text(
                                 'Hola, $name',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF142C40),
+                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                                   letterSpacing: -0.4,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Row(
+                              Row(
                                 children: [
                                   Icon(
                                     Icons.location_on_rounded,
                                     size: 15,
-                                    color: Color(0xFF64748B),
+                                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Cartagena, Bolívar',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF64748B),
+                                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -212,12 +238,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? AppColors.darkCard : Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE7ECF1)),
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -226,9 +254,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.notifications_none_rounded,
-                                  color: Color(0xFF142C40),
+                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                                   size: 22,
                                 ),
                                 Positioned(
@@ -241,7 +269,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       color: const Color(0xFFEF4444),
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: isDark ? AppColors.darkCard : Colors.white,
                                         width: 1.5,
                                       ),
                                     ),
@@ -260,8 +288,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       height: 32,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9F7F1),
+                        color: isDark
+                            ? const Color(0xFF064E3B).withValues(alpha: 0.35)
+                            : const Color(0xFFE9F7F1),
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF047857).withValues(alpha: 0.4)
+                              : Colors.transparent,
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -274,12 +309,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Tu ciudad, conectada y más segura',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF087554),
+                              color: isDark
+                                  ? const Color(0xFF6EE7B7)
+                                  : const Color(0xFF087554),
                             ),
                           ),
                         ],
@@ -294,10 +331,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: _buildMetricCard(
                             value: '$activeCount',
                             label: 'Reportes activos',
-                            valColor: const Color(0xFF0F4C81),
-                            iconBg: const Color(0xFFE8F0F8),
-                            iconColor: const Color(0xFF0F4C81),
+                            valColor: isDark
+                                ? const Color(0xFF60A5FA)
+                                : const Color(0xFF0F4C81),
+                            iconBg: isDark
+                                ? const Color(0xFF1E3A5F)
+                                : const Color(0xFFE8F0F8),
+                            iconColor: isDark
+                                ? const Color(0xFF60A5FA)
+                                : const Color(0xFF0F4C81),
                             icon: Icons.assignment_outlined,
+                            isDark: isDark,
                             onTap: () => widget.onSelectTab(2), // Ir a Reportes
                           ),
                         ),
@@ -306,10 +350,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: _buildMetricCard(
                             value: '$safeZonesCount',
                             label: 'Zonas seguras',
-                            valColor: const Color(0xFF087F5B),
-                            iconBg: const Color(0xFFE5F7EF),
-                            iconColor: const Color(0xFF087F5B),
+                            valColor: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF087F5B),
+                            iconBg: isDark
+                                ? const Color(0xFF064E3B)
+                                : const Color(0xFFE5F7EF),
+                            iconColor: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF087F5B),
                             icon: Icons.shield_outlined,
+                            isDark: isDark,
                             onTap: () => widget.onSelectTab(1), // Ir a Mapa
                           ),
                         ),
@@ -322,10 +373,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: _buildMetricCard(
                             value: '$mobilityCount',
                             label: 'Alertas de movilidad',
-                            valColor: const Color(0xFF9A6200),
-                            iconBg: const Color(0xFFFFF4D9),
-                            iconColor: const Color(0xFF9A6200),
+                            valColor: isDark
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFF9A6200),
+                            iconBg: isDark
+                                ? const Color(0xFF451A03)
+                                : const Color(0xFFFFF4D9),
+                            iconColor: isDark
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFF9A6200),
                             icon: Icons.directions_car_outlined,
+                            isDark: isDark,
                             onTap: () {
                               setState(() => _selectedSector = 'Bocagrande');
                             },
@@ -336,10 +394,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: _buildMetricCard(
                             value: '$resolvedCount',
                             label: 'Resueltos',
-                            valColor: const Color(0xFF087F5B),
-                            iconBg: const Color(0xFFE5F7EF),
-                            iconColor: const Color(0xFF087F5B),
+                            valColor: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF087F5B),
+                            iconBg: isDark
+                                ? const Color(0xFF064E3B)
+                                : const Color(0xFFE5F7EF),
+                            iconColor: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF087F5B),
                             icon: Icons.check_circle_outline_rounded,
+                            isDark: isDark,
                             onTap: () => widget.onSelectTab(2),
                           ),
                         ),
@@ -353,7 +418,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: Row(
                         children: [
                           for (final sector in _sectors) ...[
-                            _buildSectorChip(sector),
+                            _buildSectorChip(sector, isDark),
                             const SizedBox(width: 8),
                           ],
                         ],
@@ -364,26 +429,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     // Encabezado de sección Reportes recientes (Figma 2:270 y 2:271)
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Reportes recientes',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF142C40),
+                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                             letterSpacing: -0.3,
                           ),
                         ),
                         const Spacer(),
                         InkWell(
                           onTap: () => widget.onSelectTab(2), // Ver todos -> Reportes
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                             child: Text(
                               'Ver todos',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0F4C81),
+                                color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                               ),
                             ),
                           ),
@@ -405,9 +470,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? AppColors.darkCard : Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE7ECF1)),
+                          border: Border.all(
+                            color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                          ),
                         ),
                         child: Column(
                           children: [
@@ -419,16 +486,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             const SizedBox(height: 8),
                             Text(
                               'Sin reportes activos en $_selectedSector',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
-                                color: Color(0xFF142C40),
+                                color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
+                            Text(
                               'Sector seguro y sin novedades reportadas',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                              ),
                             ),
                           ],
                         ),
@@ -437,7 +507,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       for (final inc in filteredIncidents) ...[
                         Builder(
                           builder: (context) {
-                            final (catName, catColor, catBg, catIcon) = _getCategoryMeta(inc.type);
+                            final (catName, catColor, catBg, catIcon) =
+                                _getCategoryMeta(inc.type, isDark);
                             final title = inc.description.isNotEmpty ? inc.description : inc.type;
                             final subtitle = '${inc.location} · ${_formatTimeAgo(inc.createdAt)}';
 
@@ -449,6 +520,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               title: title,
                               subtitle: subtitle,
                               distance: inc.status == 'RESOLVED' ? 'Resuelto' : 'En proceso',
+                              isDark: isDark,
                               onTap: () => widget.onSelectTab(1), // Ver en Mapa
                             );
                           },
@@ -460,9 +532,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -470,17 +551,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE8F0F8),
+                              color: isDark
+                                  ? const Color(0xFF1E3A5F)
+                                  : const Color(0xFFE8F0F8),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.smart_toy_outlined,
-                              color: Color(0xFF0F4C81),
+                              color: isDark
+                                  ? const Color(0xFF60A5FA)
+                                  : const Color(0xFF0F4C81),
                               size: 22,
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -489,25 +574,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF142C40),
+                                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
                                   'Resuelve dudas sobre trámites y seguridad.',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF64748B),
+                                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.arrow_forward_ios_rounded,
                               size: 14,
-                              color: Color(0xFF94A3B8),
+                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
                             ),
                             onPressed: () {
                               Navigator.of(context).push(
@@ -539,6 +624,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     required Color iconBg,
     required Color iconColor,
     required IconData icon,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -548,12 +634,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         height: 92,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppColors.darkCard : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE7ECF1)),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -578,10 +666,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF526579),
+                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
                   ),
                 ),
               ],
@@ -605,7 +693,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _buildSectorChip(String label) {
+  Widget _buildSectorChip(String label, bool isDark) {
     final isSelected = _selectedSector == label;
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -618,9 +706,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         height: 30,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF142C40) : Colors.white,
+          color: isSelected
+              ? (isDark ? AppColors.brightBlue : const Color(0xFF142C40))
+              : (isDark ? AppColors.darkCard : Colors.white),
           borderRadius: BorderRadius.circular(14),
-          border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                ),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -628,7 +722,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF526579),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkTextMuted : const Color(0xFF526579)),
           ),
         ),
       ),
@@ -643,6 +739,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     required String title,
     required String subtitle,
     required String distance,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
     return Padding(
@@ -653,12 +750,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? AppColors.darkCard : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE7ECF1)),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -696,18 +795,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF142C40),
+                        color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF64748B),
+                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -716,10 +815,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               // Distancia / Estado
               Text(
                 distance,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                 ),
               ),
             ],

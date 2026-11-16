@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/shared/theme.dart';
 
 class AnalyticsCitizenScreen extends StatefulWidget {
   const AnalyticsCitizenScreen({
@@ -131,8 +132,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -280,22 +282,22 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   children: [
                     // Encabezado (Figma Frame 2:434)
-                    const Text(
+                    Text(
                       'Estadísticas Ciudadanas',
                       style: TextStyle(
                         fontSize: 23,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF142C40),
+                        color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                         letterSpacing: -0.4,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Panorama de seguridad y movilidad en tiempo real',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF64748B),
+                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -308,7 +310,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             height: 38,
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE9EEF3),
+                              color: isDark ? AppColors.darkCard : const Color(0xFFE9EEF3),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: SingleChildScrollView(
@@ -316,7 +318,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                               child: Row(
                                 children: [
                                   for (final period in _periods) ...[
-                                    _buildPeriodOption(period),
+                                    _buildPeriodOption(period, isDark),
                                     const SizedBox(width: 4),
                                   ],
                                 ],
@@ -333,16 +335,18 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             height: 38,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             decoration: BoxDecoration(
-                              color: _customDateRange != null ? const Color(0xFF0F4C81) : Colors.white,
+                              color: _customDateRange != null
+                                  ? const Color(0xFF0F4C81)
+                                  : (isDark ? AppColors.darkCard : Colors.white),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _customDateRange != null
                                     ? const Color(0xFF0F4C81)
-                                    : const Color(0xFFE2E8F0),
+                                    : (isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 ),
@@ -353,7 +357,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 Icon(
                                   Icons.calendar_month_rounded,
                                   size: 16,
-                                  color: _customDateRange != null ? Colors.white : const Color(0xFF0F4C81),
+                                  color: _customDateRange != null
+                                      ? Colors.white
+                                      : (isDark ? AppColors.brightBlue : const Color(0xFF0F4C81)),
                                 ),
                                 if (_customDateRange != null) ...[
                                   const SizedBox(width: 6),
@@ -392,14 +398,18 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                       padding: const EdgeInsets.only(top: 8, bottom: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.filter_alt_outlined, size: 13, color: Color(0xFF0F4C81)),
+                          Icon(
+                            Icons.filter_alt_outlined,
+                            size: 13,
+                            color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Periodo: $_periodLabel · $total reportes filtrados',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF526579),
+                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
                             ),
                           ),
                         ],
@@ -416,12 +426,14 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             height: 108,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? AppColors.darkCard : Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE7ECF1)),
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -433,24 +445,26 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Total Reportes',
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF526579),
+                                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
                                       ),
                                     ),
                                     Container(
                                       width: 20,
                                       height: 20,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFE8F0F8),
+                                        color: isDark
+                                            ? AppColors.brightBlue.withValues(alpha: 0.2)
+                                            : const Color(0xFFE8F0F8),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.bar_chart_rounded,
-                                        color: Color(0xFF0F4C81),
+                                        color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                         size: 14,
                                       ),
                                     ),
@@ -459,10 +473,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 const Spacer(),
                                 Text(
                                   '$total',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF0F4C81),
+                                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                     height: 1.0,
                                   ),
                                 ),
@@ -473,17 +487,21 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE6F7EF),
+                                    color: isDark
+                                        ? const Color(0xFF064E3B)
+                                        : const Color(0xFFE6F7EF),
                                     borderRadius: BorderRadius.circular(7),
                                   ),
                                   child: Text(
                                     '$resolvedCount resueltos',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF087554),
+                                      color: isDark
+                                          ? const Color(0xFF34D399)
+                                          : const Color(0xFF087554),
                                     ),
                                   ),
                                 ),
@@ -499,12 +517,14 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             height: 108,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? AppColors.darkCard : Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE7ECF1)),
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -516,24 +536,26 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Tasa de Resolución',
                                       style: TextStyle(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF526579),
+                                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
                                       ),
                                     ),
                                     Container(
                                       width: 20,
                                       height: 20,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFE5F7EF),
+                                        color: isDark
+                                            ? const Color(0xFF064E3B)
+                                            : const Color(0xFFE5F7EF),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Icon(
                                         Icons.check_circle_outline_rounded,
-                                        color: Color(0xFF087F5B),
+                                        color: Color(0xFF10B981),
                                         size: 14,
                                       ),
                                     ),
@@ -542,10 +564,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 const Spacer(),
                                 Text(
                                   '$resolutionRate%',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF087F5B),
+                                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF087F5B),
                                     height: 1.0,
                                   ),
                                 ),
@@ -555,9 +577,11 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                   child: LinearProgressIndicator(
                                     value: total > 0 ? (resolutionRate / 100).clamp(0.0, 1.0) : 0.0,
                                     minHeight: 6,
-                                    backgroundColor: const Color(0xFFE2E8F0),
+                                    backgroundColor: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : const Color(0xFFE2E8F0),
                                     valueColor: const AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF087F5B),
+                                      Color(0xFF10B981),
                                     ),
                                   ),
                                 ),
@@ -573,12 +597,16 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F2940).withValues(alpha: 0.05),
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.2)
+                                : const Color(0xFF0F2940).withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -587,12 +615,12 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Actividad de reportes (Últimos 7 días)',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF142C40),
+                              color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -610,15 +638,24 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                     children: [
                                       Text(
                                         '${math.max(10, (peakCount * 1.2).ceil())}',
-                                        style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                        ),
                                       ),
                                       Text(
                                         '${math.max(5, (peakCount * 0.6).ceil())}',
-                                        style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                        ),
                                       ),
-                                      const Text(
+                                      Text(
                                         '0',
-                                        style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -635,6 +672,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                           dayStats[i]['letter'] as String,
                                           dayStats[i]['count'] as int,
                                           math.max(peakCount, 5),
+                                          isDark: isDark,
                                           isPeak: i == peakIndex && peakCount > 0,
                                         ),
                                     ],
@@ -652,19 +690,21 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Incidentes por categoría',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF142C40),
+                              color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -686,7 +726,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                             ? [
                                                 PieChartSectionData(
                                                   value: 1,
-                                                  color: const Color(0xFFE2E8F0),
+                                                  color: isDark
+                                                      ? const Color(0xFF334155)
+                                                      : const Color(0xFFE2E8F0),
                                                   radius: 14,
                                                   showTitle: false,
                                                 ),
@@ -695,7 +737,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                                 if (mobilityCount > 0)
                                                   PieChartSectionData(
                                                     value: mobilityCount.toDouble(),
-                                                    color: const Color(0xFF0F4C81),
+                                                    color: isDark
+                                                        ? AppColors.brightBlue
+                                                        : const Color(0xFF0F4C81),
                                                     radius: 16,
                                                     showTitle: false,
                                                   ),
@@ -728,18 +772,18 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                       children: [
                                         Text(
                                           '$total',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800,
-                                            color: Color(0xFF142C40),
+                                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                                             height: 1.0,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           'Total',
                                           style: TextStyle(
                                             fontSize: 9,
-                                            color: Color(0xFF64748B),
+                                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                                           ),
                                         ),
                                       ],
@@ -754,27 +798,31 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildLegendItem(
-                                      const Color(0xFF0F4C81),
+                                      isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                       'Movilidad y tráfico',
                                       '$mobPct% ($mobilityCount)',
+                                      isDark,
                                     ),
                                     const SizedBox(height: 8),
                                     _buildLegendItem(
                                       const Color(0xFF10B981),
                                       'Seguridad ciudadana',
                                       '$secPct% ($securityCount)',
+                                      isDark,
                                     ),
                                     const SizedBox(height: 8),
                                     _buildLegendItem(
                                       const Color(0xFFF59E0B),
                                       'Infraestructura y vías',
                                       '$infPct% ($infraCount)',
+                                      isDark,
                                     ),
                                     const SizedBox(height: 8),
                                     _buildLegendItem(
                                       const Color(0xFFEF4444),
                                       'Otros servicios',
                                       '$othPct% ($otherCount)',
+                                      isDark,
                                     ),
                                   ],
                                 ),
@@ -790,28 +838,33 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE7ECF1)),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Sectores con mayor reporte',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF142C40),
+                              color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                             ),
                           ),
                           const SizedBox(height: 14),
                           if (topSectors.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Text(
                                 'No hay datos suficientes para rankear sectores',
-                                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                ),
                               ),
                             )
                           else
@@ -821,6 +874,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 topSectors[i].key,
                                 topSectors[i].value,
                                 maxSectorCount,
+                                isDark,
                               ),
                               if (i < topSectors.length - 1) const SizedBox(height: 10),
                             ],
@@ -838,7 +892,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     );
   }
 
-  Widget _buildPeriodOption(String title) {
+  Widget _buildPeriodOption(String title, bool isDark) {
     final isSelected = _selectedPeriod == title && _customDateRange == null;
     return InkWell(
       borderRadius: BorderRadius.circular(9),
@@ -851,12 +905,14 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          color: isSelected
+              ? (isDark ? AppColors.brightBlue : Colors.white)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -869,14 +925,22 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? const Color(0xFF142C40) : const Color(0xFF64748B),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkTextMuted : const Color(0xFF64748B)),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDayBar(String label, int value, int maxValue, {bool isPeak = false}) {
+  Widget _buildDayBar(
+    String label,
+    int value,
+    int maxValue, {
+    required bool isDark,
+    bool isPeak = false,
+  }) {
     final ratio = maxValue > 0 ? (value / maxValue).clamp(0.05, 1.0) : 0.05;
     const maxBarHeight = 75.0;
     final barHeight = ratio * maxBarHeight;
@@ -888,7 +952,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F4C81),
+              color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -908,7 +972,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           width: 14,
           height: barHeight,
           decoration: BoxDecoration(
-            color: isPeak ? const Color(0xFF0F4C81) : const Color(0xFF8FAAC4),
+            color: isPeak
+                ? (isDark ? AppColors.brightBlue : const Color(0xFF0F4C81))
+                : (isDark ? const Color(0xFF334155) : const Color(0xFF8FAAC4)),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -918,14 +984,21 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           style: TextStyle(
             fontSize: 10,
             fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
-            color: isPeak ? const Color(0xFF0F4C81) : const Color(0xFF64748B),
+            color: isPeak
+                ? (isDark ? AppColors.brightBlue : const Color(0xFF0F4C81))
+                : (isDark ? AppColors.darkTextMuted : const Color(0xFF64748B)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLegendItem(Color color, String label, String percentage) {
+  Widget _buildLegendItem(
+    Color color,
+    String label,
+    String percentage,
+    bool isDark,
+  ) {
     return Row(
       children: [
         Container(
@@ -937,26 +1010,32 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF526579),
+              color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
             ),
           ),
         ),
         Text(
           percentage,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF142C40),
+            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSectorRank(String rank, String sector, int count, int maxCount) {
+  Widget _buildSectorRank(
+    String rank,
+    String sector,
+    int count,
+    int maxCount,
+    bool isDark,
+  ) {
     final progress = maxCount > 0 ? (count / maxCount).clamp(0.05, 1.0) : 0.05;
 
     return InkWell(
@@ -967,10 +1046,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             width: 20,
             child: Text(
               rank,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF94A3B8),
+                color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
               ),
             ),
           ),
@@ -978,10 +1057,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             flex: 4,
             child: Text(
               sector,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF142C40),
+                color: isDark ? AppColors.darkText : const Color(0xFF142C40),
               ),
             ),
           ),
@@ -992,8 +1071,12 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 5,
-                backgroundColor: const Color(0xFFF1F5F9),
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
+                backgroundColor: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF1F5F9),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                ),
               ),
             ),
           ),
@@ -1003,10 +1086,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             child: Text(
               '$count',
               textAlign: TextAlign.end,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF142C40),
+                color: isDark ? AppColors.darkText : const Color(0xFF142C40),
               ),
             ),
           ),

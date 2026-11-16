@@ -84,8 +84,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -102,11 +104,14 @@ class _SignInScreenState extends State<SignInScreen> {
                       width: 96,
                       height: 96,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE7F0F8),
+                        color: isDark ? AppColors.darkCard : const Color(0xFFE7F0F8),
                         borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : Colors.transparent,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F4C81).withValues(alpha: 0.08),
+                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
                             blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
@@ -121,24 +126,24 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   const SizedBox(height: 20),
                   // Título institucional
-                  const Text(
+                  Text(
                     'Cartagena Segura',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F4C81),
+                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                       letterSpacing: -0.6,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Movilidad y alertas en tiempo real',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF64748B),
+                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -147,10 +152,10 @@ class _SignInScreenState extends State<SignInScreen> {
                     _registering
                         ? 'Crear cuenta ciudadana'
                         : 'Bienvenido de nuevo',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF142C40),
+                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -159,10 +164,10 @@ class _SignInScreenState extends State<SignInScreen> {
                     _registering
                         ? 'Regístrate para reportar incidentes y cuidar tu comunidad.'
                         : 'Conectados por una ciudad más segura.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF64748B),
+                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -173,7 +178,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (_registering) ...[
-                          _inputLabel('Nombre completo'),
+                          _inputLabel('Nombre completo', isDark),
                           const SizedBox(height: 6),
                           _field(
                             _fullName,
@@ -182,7 +187,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             required: true,
                           ),
                           const SizedBox(height: 16),
-                          _inputLabel('Correo electrónico'),
+                          _inputLabel('Correo electrónico', isDark),
                           const SizedBox(height: 6),
                           _field(
                             _email,
@@ -192,7 +197,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             email: true,
                           ),
                           const SizedBox(height: 16),
-                          _inputLabel('Teléfono de contacto'),
+                          _inputLabel('Teléfono de contacto', isDark),
                           const SizedBox(height: 6),
                           _field(
                             _phone,
@@ -201,7 +206,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             phone: true,
                           ),
                           const SizedBox(height: 16),
-                          _inputLabel('Nombre de usuario'),
+                          _inputLabel('Nombre de usuario', isDark),
                           const SizedBox(height: 6),
                           _field(
                             _username,
@@ -212,7 +217,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           const SizedBox(height: 16),
                         ] else ...[
-                          _inputLabel('Correo electrónico o usuario'),
+                          _inputLabel('Correo electrónico o usuario', isDark),
                           const SizedBox(height: 6),
                           _field(
                             _username,
@@ -223,7 +228,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           const SizedBox(height: 16),
                         ],
-                        _inputLabel('Contraseña'),
+                        _inputLabel('Contraseña', isDark),
                         const SizedBox(height: 6),
                         _field(
                           _password,
@@ -259,8 +264,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                         );
                                       }
                                     },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
                                   vertical: 4,
                                   horizontal: 2,
                                 ),
@@ -269,7 +274,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF0F4C81),
+                                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                   ),
                                 ),
                               ),
@@ -285,10 +290,14 @@ class _SignInScreenState extends State<SignInScreen> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEE2E2),
+                              color: isDark
+                                  ? const Color(0xFF450A0A)
+                                  : const Color(0xFFFEE2E2),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFFCA5A5),
+                                color: isDark
+                                    ? const Color(0xFF991B1B)
+                                    : const Color(0xFFFCA5A5),
                               ),
                             ),
                             child: Row(
@@ -302,8 +311,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                 Expanded(
                                   child: Text(
                                     _error ?? widget.session.sessionNotice!,
-                                    style: const TextStyle(
-                                      color: Color(0xFF991B1B),
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? const Color(0xFFFCA5A5)
+                                          : const Color(0xFF991B1B),
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -319,7 +330,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           height: 54,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F4C81),
+                              backgroundColor: isDark
+                                  ? AppColors.brightBlue
+                                  : const Color(0xFF0F4C81),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -370,9 +383,9 @@ class _SignInScreenState extends State<SignInScreen> {
                               _registering
                                   ? '¿Ya tienes una cuenta? '
                                   : '¿No tienes cuenta? ',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF64748B),
+                                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                               ),
                             ),
                             InkWell(
@@ -395,10 +408,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                 _registering
                                     ? 'Inicia sesión aquí'
                                     : 'Regístrate aquí',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F4C81),
+                                  color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                                 ),
                               ),
                             ),
@@ -417,13 +430,13 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _inputLabel(String label) {
+  Widget _inputLabel(String label, bool isDark) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF142C40),
+        color: isDark ? AppColors.darkText : const Color(0xFF142C40),
       ),
     );
   }
