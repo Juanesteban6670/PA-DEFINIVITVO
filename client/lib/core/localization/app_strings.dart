@@ -35,6 +35,7 @@ class AppStrings {
   String get navHome => isEnglish ? 'Home' : 'Inicio';
   String get navReports => isEnglish ? 'Reports' : 'Reportes';
   String get navMap => isEnglish ? 'Map' : 'Mapa';
+  String get navAnalytics => isEnglish ? 'Analytics' : 'Estadísticas';
   String get navEmergency => isEnglish ? 'Emergency' : 'Emergencias';
   String get navProfile => isEnglish ? 'Profile' : 'Perfil';
   String get navNotifications => isEnglish ? 'Notifications' : 'Notificaciones';

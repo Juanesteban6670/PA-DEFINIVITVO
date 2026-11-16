@@ -30,6 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _password = TextEditingController();
   late bool _registering = widget.initialRegistering;
   bool _busy = false;
+  bool _obscurePassword = true;
   String? _error;
 
   @override
@@ -61,14 +62,14 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       if (_registering) {
         await widget.session.register(
-          username: _username.text,
-          fullName: _fullName.text,
-          email: _email.text,
-          phone: _phone.text,
+          username: _username.text.trim(),
+          fullName: _fullName.text.trim(),
+          email: _email.text.trim(),
+          phone: _phone.text.trim(),
           password: _password.text,
         );
       } else {
-        await widget.session.login(_username.text, _password.text);
+        await widget.session.login(_username.text.trim(), _password.text);
       }
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -83,243 +84,375 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.navy,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            _registering
-                ? 'assets/brand/register-background.png'
-                : 'assets/brand/login-background.png',
-            fit: BoxFit.cover,
-          ),
-          ColoredBox(color: Colors.black.withValues(alpha: 0.62)),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 68,
-                        height: 68,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 393),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 12),
+                  // Emblema de confianza (Figma Frame 2:193)
+                  Center(
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7F0F8),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F4C81).withValues(alpha: 0.08),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
                           ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Image.asset('assets/brand/app-icon.png'),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Cartagena Segura',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      padding: const EdgeInsets.all(18),
+                      child: Image.asset(
+                        'assets/brand/app-icon.png',
+                        fit: BoxFit.contain,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Sistema de Seguridad Ciudadana',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xE61E293B),
-                          border: Border.all(
-                            color: const Color(0x33FFFFFF),
-                            width: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Título institucional
+                  const Text(
+                    'Cartagena Segura',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F4C81),
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Movilidad y alertas en tiempo real',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Encabezado de acceso
+                  Text(
+                    _registering
+                        ? 'Crear cuenta ciudadana'
+                        : 'Bienvenido de nuevo',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 21,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF142C40),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _registering
+                        ? 'Regístrate para reportar incidentes y cuidar tu comunidad.'
+                        : 'Conectados por una ciudad más segura.',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Formulario
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_registering) ...[
+                          _inputLabel('Nombre completo'),
+                          const SizedBox(height: 6),
+                          _field(
+                            _fullName,
+                            'Tu nombre y apellidos',
+                            icon: Icons.badge_outlined,
+                            required: true,
                           ),
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.35),
-                              blurRadius: 24,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                          const SizedBox(height: 16),
+                          _inputLabel('Correo electrónico'),
+                          const SizedBox(height: 6),
+                          _field(
+                            _email,
+                            'correo@ejemplo.com',
+                            icon: Icons.mail_outline_rounded,
+                            required: true,
+                            email: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _inputLabel('Teléfono de contacto'),
+                          const SizedBox(height: 6),
+                          _field(
+                            _phone,
+                            '300 000 0000',
+                            icon: Icons.phone_outlined,
+                            phone: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _inputLabel('Nombre de usuario'),
+                          const SizedBox(height: 6),
+                          _field(
+                            _username,
+                            'nombre_usuario',
+                            icon: Icons.person_outline_rounded,
+                            required: true,
+                            username: true,
+                          ),
+                          const SizedBox(height: 16),
+                        ] else ...[
+                          _inputLabel('Correo electrónico o usuario'),
+                          const SizedBox(height: 6),
+                          _field(
+                            _username,
+                            'Correo electrónico',
+                            icon: Icons.mail_outline_rounded,
+                            required: true,
+                            username: true,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        _inputLabel('Contraseña'),
+                        const SizedBox(height: 6),
+                        _field(
+                          _password,
+                          'Contraseña',
+                          icon: Icons.lock_outline_rounded,
+                          required: true,
+                          password: true,
+                          isPasswordVisible: !_obscurePassword,
+                          onTogglePassword: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                _registering
-                                    ? 'Crear cuenta ciudadana'
-                                    : 'Iniciar sesión',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                                  const SizedBox(height: 18),
-                                  if (_registering) ...[
-                                    _field(
-                                      _fullName,
-                                      'Nombre completo',
-                                      required: true,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _field(
-                                      _email,
-                                      'Correo electrónico',
-                                      required: true,
-                                      email: true,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _field(_phone, 'Teléfono', phone: true),
-                                    const SizedBox(height: 12),
-                                  ],
-                                  _field(
-                                    _username,
-                                    _registering
-                                        ? 'Usuario'
-                                        : 'Usuario, correo o teléfono',
-                                    required: true,
-                                    username: true,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _field(
-                                    _password,
-                                    'Contraseña',
-                                    required: true,
-                                    password: true,
-                                  ),
-                                  if (!_registering)
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton(
-                                        onPressed: _busy
-                                            ? null
-                                            : () {
-                                                if (GoRouter.maybeOf(context) !=
-                                                    null) {
-                                                  context.go('/ForgotPassword');
-                                                } else {
-                                                  Navigator.of(context).push(
-                                                    MaterialPageRoute<void>(
-                                                      builder: (_) =>
-                                                          PasswordRecoveryScreen(
-                                                        session: widget.session,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                        child: const Text(
-                                          '¿Olvidaste tu contraseña?',
-                                          style: TextStyle(
-                                            color: Color(0xFF93C5FD),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  if (_error != null ||
-                                      widget.session.sessionNotice != null) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _error ?? widget.session.sessionNotice!,
-                                      style: const TextStyle(
-                                        color: Color(0xFFFCA5A5),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                  const SizedBox(height: 12),
-                                  FilledButton(
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: AppColors.blue,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    onPressed: _busy ? null : _submit,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: _busy
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : Text(
-                                              _registering
-                                                  ? 'Crear cuenta'
-                                                  : 'Ingresar',
+                        if (!_registering) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: InkWell(
+                              onTap: _busy
+                                  ? null
+                                  : () {
+                                      if (GoRouter.maybeOf(context) != null) {
+                                        context.go('/ForgotPassword');
+                                      } else {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                PasswordRecoveryScreen(
+                                              session: widget.session,
                                             ),
-                                    ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: 2,
+                                ),
+                                child: Text(
+                                  '¿Olvidaste tu contraseña?',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF0F4C81),
                                   ),
-                                  const SizedBox(height: 8),
-                                  TextButton(
-                                    onPressed: _busy
-                                        ? null
-                                        : () {
-                                            final location = _registering
-                                                ? '/Login'
-                                                : '/Register';
-                                            if (GoRouter.maybeOf(context) !=
-                                                null) {
-                                              context.go(location);
-                                            } else {
-                                              setState(() {
-                                                _registering = !_registering;
-                                                _error = null;
-                                              });
-                                            }
-                                          },
-                                    child: Text(
-                                      _registering
-                                          ? 'Ya tengo una cuenta'
-                                          : '¿No tienes cuenta? Regístrate',
-                                      style: const TextStyle(
-                                        color: Color(0xFFBFDBFE),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ],
+                        if (_error != null ||
+                            widget.session.sessionNotice != null) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFFCA5A5),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Color(0xFFDC2626),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _error ?? widget.session.sessionNotice!,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inter',
+                                      color: Color(0xFF991B1B),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        // Botón principal (Figma Frame 2:214)
+                        SizedBox(
+                          height: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F4C81),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                            ),
+                            onPressed: _busy ? null : _submit,
+                            child: _busy
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        _registering
+                                            ? 'Crear cuenta ciudadana'
+                                            : 'Iniciar sesión',
+                                        style: const TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.1,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Icon(
+                                        Icons.arrow_forward_rounded,
+                                        size: 19,
+                                        color: Colors.white,
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Alternar registro / login (Figma 2:218 y 2:219)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _registering
+                                  ? '¿Ya tienes una cuenta? '
+                                  : '¿No tienes cuenta? ',
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: _busy
+                                  ? null
+                                  : () {
+                                      final location = _registering
+                                          ? '/Login'
+                                          : '/Register';
+                                      if (GoRouter.maybeOf(context) != null) {
+                                        context.go(location);
+                                      } else {
+                                        setState(() {
+                                          _registering = !_registering;
+                                          _error = null;
+                                        });
+                                      }
+                                    },
+                              child: Text(
+                                _registering
+                                    ? 'Inicia sesión aquí'
+                                    : 'Regístrate aquí',
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0F4C81),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _inputLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF142C40),
       ),
     );
   }
 
   Widget _field(
     TextEditingController controller,
-    String label, {
+    String hint, {
+    required IconData icon,
     bool required = false,
     bool email = false,
     bool password = false,
     bool username = false,
     bool phone = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePassword,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: password,
+      obscureText: password && !isPasswordVisible,
       keyboardType: email
           ? TextInputType.emailAddress
           : phone
@@ -329,31 +462,62 @@ class _SignInScreenState extends State<SignInScreen> {
           ? TextCapitalization.none
           : TextCapitalization.words,
       autocorrect: !email && !password && !username && !phone,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        color: Color(0xFF142C40),
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        filled: true,
-        fillColor: const Color(0x14FFFFFF),
-        prefixIcon: Icon(
-          password
-              ? Icons.lock_outline
-              : email
-                  ? Icons.mail_outline
-                  : Icons.person_outline,
-          color: Colors.white70,
+        hintText: hint,
+        hintStyle: const TextStyle(
+          fontFamily: 'Inter',
+          color: Color(0xFF94A3B8),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
         ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 14, right: 10),
+          child: Icon(icon, color: const Color(0xFF64748B), size: 20),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        suffixIcon: password
+            ? IconButton(
+                icon: Icon(
+                  isPasswordVisible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: const Color(0xFF64748B),
+                  size: 20,
+                ),
+                onPressed: onTogglePassword,
+              )
+            : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0x33FFFFFF)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0x33FFFFFF)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF93C5FD), width: 1.4),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF0F4C81), width: 1.8),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
         ),
       ),
       validator: (value) {

@@ -14,6 +14,7 @@ import 'package:cartagena_segura/shared/live_status_badge.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
+import 'analytics_citizen_screen.dart';
 import 'emergency_screen.dart';
 import 'incidents_map_screen.dart';
 import 'my_reports_screen.dart';
@@ -97,9 +98,9 @@ class _HomeShellState extends State<HomeShell> {
   void _selectTab(int index) {
     final location = switch (index) {
       0 => '/App',
-      1 => '/App/Incidents',
-      2 => '/App/Map',
-      3 => '/App/Emergency',
+      1 => '/App/Map',
+      2 => '/App/Incidents',
+      3 => '/App/Analytics',
       _ => '/App/Profile',
     };
     if (GoRouter.maybeOf(context) != null) {
@@ -131,6 +132,7 @@ class _HomeShellState extends State<HomeShell> {
             incidentRefresh: _incidentRefresh,
             onSelectTab: _selectTab,
           ),
+          IncidentsMapScreen(api: api, incidentRefresh: _incidentRefresh),
           MyReportsScreen(
             api: api,
             drafts: _drafts,
@@ -138,13 +140,13 @@ class _HomeShellState extends State<HomeShell> {
             onReportSubmitted: () => _incidentRefresh.value++,
             initialIncidentId: widget.initialIncidentId,
           ),
-          IncidentsMapScreen(api: api, incidentRefresh: _incidentRefresh),
-          EmergencyScreen(api: api),
+          AnalyticsCitizenScreen(api: api),
           ProfileScreen(session: widget.session),
         ];
 
         return Scaffold(
-          appBar: AppBar(
+          appBar: wideLayout
+              ? AppBar(
             titleSpacing: 16,
             title: Row(
               children: [
@@ -262,7 +264,7 @@ class _HomeShellState extends State<HomeShell> {
               ),
               const SizedBox(width: 8),
             ],
-          ),
+          ) : null,
           body: wideLayout
               ? Row(
                   children: [
@@ -292,10 +294,52 @@ class _HomeShellState extends State<HomeShell> {
               : IndexedStack(index: _selectedIndex, children: pages),
           bottomNavigationBar: wideLayout
               ? null
-              : NavigationBar(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _selectTab,
-                  destinations: _buildNavDestinations(strings),
+              : Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                  child: NavigationBarTheme(
+                    data: NavigationBarThemeData(
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      height: 66,
+                      indicatorColor: const Color(0xFFE7F0F8),
+                      iconTheme: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return const IconThemeData(
+                            color: Color(0xFF0F4C81),
+                            size: 22,
+                          );
+                        }
+                        return const IconThemeData(
+                          color: Color(0xFF64748B),
+                          size: 22,
+                        );
+                      }),
+                      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return const TextStyle(
+                            color: Color(0xFF0F4C81),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          );
+                        }
+                        return const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        );
+                      }),
+                    ),
+                    child: NavigationBar(
+                      selectedIndex: _selectedIndex,
+                      onDestinationSelected: _selectTab,
+                      destinations: _buildNavDestinations(strings),
+                    ),
+                  ),
                 ),
         );
       },
@@ -305,27 +349,27 @@ class _HomeShellState extends State<HomeShell> {
   List<NavigationDestination> _buildNavDestinations(AppStrings strings) => [
         NavigationDestination(
           icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home),
+          selectedIcon: const Icon(Icons.home_rounded),
           label: strings.navHome,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.assignment_outlined),
-          selectedIcon: const Icon(Icons.assignment),
-          label: strings.navReports,
-        ),
-        NavigationDestination(
           icon: const Icon(Icons.map_outlined),
-          selectedIcon: const Icon(Icons.map),
+          selectedIcon: const Icon(Icons.map_rounded),
           label: strings.navMap,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.phone_outlined),
-          selectedIcon: const Icon(Icons.phone),
-          label: strings.navEmergency,
+          icon: const Icon(Icons.assignment_outlined),
+          selectedIcon: const Icon(Icons.assignment_rounded),
+          label: strings.navReports,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.person_outline),
-          selectedIcon: const Icon(Icons.person),
+          icon: const Icon(Icons.bar_chart_rounded),
+          selectedIcon: const Icon(Icons.bar_chart_rounded),
+          label: strings.navAnalytics,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.person_outline_rounded),
+          selectedIcon: const Icon(Icons.person_rounded),
           label: strings.navProfile,
         ),
       ];
@@ -334,27 +378,27 @@ class _HomeShellState extends State<HomeShell> {
       [
         NavigationRailDestination(
           icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home),
+          selectedIcon: const Icon(Icons.home_rounded),
           label: Text(strings.navHome),
         ),
         NavigationRailDestination(
-          icon: const Icon(Icons.assignment_outlined),
-          selectedIcon: const Icon(Icons.assignment),
-          label: Text(strings.navReports),
-        ),
-        NavigationRailDestination(
           icon: const Icon(Icons.map_outlined),
-          selectedIcon: const Icon(Icons.map),
+          selectedIcon: const Icon(Icons.map_rounded),
           label: Text(strings.navMap),
         ),
         NavigationRailDestination(
-          icon: const Icon(Icons.phone_outlined),
-          selectedIcon: const Icon(Icons.phone),
-          label: Text(strings.navEmergency),
+          icon: const Icon(Icons.assignment_outlined),
+          selectedIcon: const Icon(Icons.assignment_rounded),
+          label: Text(strings.navReports),
         ),
         NavigationRailDestination(
-          icon: const Icon(Icons.person_outline),
-          selectedIcon: const Icon(Icons.person),
+          icon: const Icon(Icons.bar_chart_rounded),
+          selectedIcon: const Icon(Icons.bar_chart_rounded),
+          label: Text(strings.navAnalytics),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.person_outline_rounded),
+          selectedIcon: const Icon(Icons.person_rounded),
           label: Text(strings.navProfile),
         ),
       ];

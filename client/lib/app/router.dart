@@ -45,32 +45,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => HomeShell(session: session),
       ),
       GoRoute(
+        path: '/App/Map',
+        builder: (context, state) =>
+            HomeShell(session: session, initialIndex: 1),
+      ),
+      GoRoute(
         path: '/App/Incidents',
         builder: (context, state) => HomeShell(
           session: session,
-          initialIndex: 1,
+          initialIndex: 2,
           initialIncidentId: state.uri.queryParameters['id'],
         ),
       ),
       GoRoute(
-        path: '/App/Map',
-        builder: (context, state) =>
-            HomeShell(session: session, initialIndex: 2),
-      ),
-      GoRoute(
-        path: '/App/Emergency',
-        builder: (context, state) =>
-            HomeShell(session: session, initialIndex: 3),
-      ),
-      GoRoute(
         path: '/App/Analytics',
         builder: (context, state) =>
-            HomeShell(session: session, initialIndex: 1),
+            HomeShell(session: session, initialIndex: 3),
       ),
       GoRoute(
         path: '/App/Profile',
         builder: (context, state) =>
             HomeShell(session: session, initialIndex: 4),
+      ),
+      GoRoute(
+        path: '/App/Emergency',
+        builder: (context, state) =>
+            HomeShell(session: session, initialIndex: 1),
       ),
       GoRoute(
         path: '/App/Notifications',
