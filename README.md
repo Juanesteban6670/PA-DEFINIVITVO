@@ -4,13 +4,50 @@ Plataforma integral de seguridad ciudadana, monitoreo geoespacial en tiempo real
 
 ---
 
-## 🌐 Despliegue Oficial en Vivo 24/7 (Producción Cloud)
+## 🌐 Plataformas Cloud, Enlaces de Acceso y Servicios en Vivo
 
-La plataforma se encuentra actualmente desplegada y disponible permanentemente en la nube para acceso público, evaluación docente y pruebas ciudadanas:
+El ecosistema de **Cartagena Segura** se encuentra completamente desplegado e interconectado en la nube bajo servicios de alta disponibilidad:
 
-* 🚀 **Aplicación Web Oficial:** [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com)
-* 📖 **Documentación Interactiva Swagger:** [https://pa-definivitvo.onrender.com/swagger-ui/index.html](https://pa-definivitvo.onrender.com/swagger-ui/index.html)
-* 🩺 **Monitoreo de Salud del Sistema:** [https://pa-definivitvo.onrender.com/actuator/health](https://pa-definivitvo.onrender.com/actuator/health)
+| Servicio / Recurso | Plataforma | Enlace de Acceso Directo | Descripción |
+| :--- | :--- | :--- | :--- |
+| 🚀 **Aplicación Web Oficial** | **Render Cloud** | [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com) | Despliegue en vivo 24/7 del cliente Web PWA y API REST |
+| ⚙️ **Panel de Despliegue & Métricas** | **Render Dashboard** | [https://dashboard.render.com](https://dashboard.render.com) | Administración del servicio `cartagena-segura`, logs y compilación continua |
+| 📖 **Documentación Swagger / OpenAPI** | **Springdoc OpenAPI 3** | [https://pa-definivitvo.onrender.com/swagger-ui/index.html](https://pa-definivitvo.onrender.com/swagger-ui/index.html) | Catálogo interactivo de endpoints REST y esquemas de datos |
+| 🩺 **Monitoreo de Salud (Healthcheck)** | **Spring Boot Actuator** | [https://pa-definivitvo.onrender.com/actuator/health](https://pa-definivitvo.onrender.com/actuator/health) | Sonda en tiempo real del estado del sistema y conexiones |
+| 🐘 **Base de Datos Relacional (SQL)** | **PostgreSQL 16 Cloud** | [Render Databases / Supabase](https://dashboard.render.com/) | Persistencia ACID: usuarios, roles, contactos SOS y registros de auditoría |
+| 🍃 **Base de Datos NoSQL Geoespacial** | **MongoDB Atlas Cloud** | [https://cloud.mongodb.com](https://cloud.mongodb.com) | Persistencia de documentos: incidentes, zonas distritales, evidencias e historial |
+| 🎨 **Prototipo UI/UX Mobile Oficial** | **Figma Design** | [Ver Diseño en Figma](https://www.figma.com/design/9wy9ITJgIg4XIJ4zClvCux/Untitled?node-id=0-1&p=f&t=yTrbwC6tVm9AvNYW-0) | Diseño de pantallas 01 a 05 adaptadas pixel a pixel para móviles |
+| 📦 **Repositorio Central** | **GitHub** | [https://github.com/Juanesteban6670/PA-DEFINIVITVO](https://github.com/Juanesteban6670/PA-DEFINIVITVO) | Código fuente, integración continua (CI/CD) y documentación |
+
+---
+
+### 🗄️ Detalle de Conexión y Gestión de Bases de Datos
+
+El backend en Spring Boot opera de forma híbrida con dos motores de base de datos en la nube:
+
+1. **PostgreSQL 16 (Relacional / ACID):**
+   * **Plataforma:** PostgreSQL gestionado en la nube ([Render](https://dashboard.render.com/) / [Neon](https://neon.tech/) / [Supabase](https://supabase.com/)).
+   * **Variables de entorno:** `DB_URL` (JDBC con SSL obligatorio `sslmode=require`), `DB_USERNAME`, `DB_PASSWORD`.
+   * **Esquema:** Tablas relacionales con migraciones DDL automáticas (`users`, `roles`, `user_roles`, `emergency_contacts`, `audit_logs`).
+   * **Herramientas de conexión recomendadas:** DBeaver, DataGrip, pgAdmin o terminal `psql`.
+
+2. **MongoDB 7 (NoSQL / Geoespacial):**
+   * **Plataforma:** [MongoDB Atlas Cloud](https://cloud.mongodb.com/) (Cluster M0 / M10+).
+   * **Variables de entorno:** `MONGO_URI` (`mongodb+srv://...`), `MONGO_DATABASE` (`cartagena_segura`).
+   * **Esquema elástico:** Colecciones indexadas geoespacialmente (`incidents`, `zones`, `comments`, `notifications`, `incident_history`).
+   * **Herramientas de conexión recomendadas:** MongoDB Compass o extensión oficial de VS Code.
+
+---
+
+### 📱 Vistas Móviles Oficiales (Alineadas con Figma)
+
+La interfaz ciudadana ha sido diseñada y adaptada para pantallas móviles respetando las especificaciones de Figma:
+* **01 · Iniciar sesión:** Lienzo `#F8FAFC`, contenedor de escudo `#E7F0F8`, inputs redondeados de 16px con toggle de contraseña y botón full-width `#0F4C81`.
+* **02 · Inicio:** Saludo al ciudadano, indicador de ubicación en Cartagena, botón de notificaciones con badge, banner de conexión, cuadrícula 2x2 de métricas y filtro de sectores.
+* **03 · Mapa:** Buscador interactivo de direcciones o sectores, botón de filtros avanzados, badge `En tiempo real`, navegación satelital y tarjeta inferior flotante de *Incidente cercano*.
+* **04 · Reportes:** Botón `+ Crear nuevo reporte`, switch segmentado (*Comunidad* / *Mis reportes*), chips de estado y banner comunitario.
+* **05 · Estadísticas y Datos:** Indicadores KPI, gráfico de barras de 7 días con pico semanal destacado, gráfico de dona (*Donut chart*) por categorías y ranking de sectores con más reportes.
+* **Barra Inferior Unificada:** 5 pestañas fijas (`Inicio`, `Mapa`, `Reportes`, `Estadísticas`, `Perfil`) con píldora indicadora `#E7F0F8` y color activo `#0F4C81`.
 
 ---
 
