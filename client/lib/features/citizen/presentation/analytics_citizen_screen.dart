@@ -23,7 +23,16 @@ class AnalyticsCitizenScreen extends StatefulWidget {
 
 class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
   String _selectedPeriod = 'Esta semana';
-  final List<String> _periods = const ['Hoy', 'Esta semana', 'Este mes'];
+  DateTimeRange? _customDateRange;
+
+  final List<String> _periods = const [
+    'Hoy',
+    'Esta semana',
+    'Este mes',
+    '3 meses',
+    'Histórico',
+  ];
+
   late Future<List<Incident>> _futureIncidents;
 
   @override
@@ -36,7 +45,51 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     _futureIncidents = loadIncidents(widget.api, mine: false);
   }
 
+  Future<void> _pickCustomRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2025, 1, 1),
+      lastDate: now.add(const Duration(days: 1)),
+      initialDateRange: _customDateRange ??
+          DateTimeRange(
+            start: now.subtract(const Duration(days: 7)),
+            end: now,
+          ),
+      helpText: 'Seleccionar rango de fechas',
+      confirmText: 'Aplicar filtro',
+      cancelText: 'Cancelar',
+    );
+
+    if (picked != null) {
+      setState(() {
+        _customDateRange = picked;
+        _selectedPeriod = 'Personalizado';
+      });
+    }
+  }
+
   List<Incident> _filterByPeriod(List<Incident> all) {
+    if (_customDateRange != null) {
+      final start = DateTime(
+        _customDateRange!.start.year,
+        _customDateRange!.start.month,
+        _customDateRange!.start.day,
+      );
+      final end = DateTime(
+        _customDateRange!.end.year,
+        _customDateRange!.end.month,
+        _customDateRange!.end.day,
+        23,
+        59,
+        59,
+      );
+      return all.where((i) {
+        final d = i.createdAt;
+        return d != null && d.isAfter(start.subtract(const Duration(seconds: 1))) && d.isBefore(end);
+      }).toList();
+    }
+
     final now = DateTime.now();
     switch (_selectedPeriod) {
       case 'Hoy':
@@ -57,9 +110,23 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           final date = i.createdAt;
           return date != null && date.isAfter(monthAgo);
         }).toList();
+      case '3 meses':
+        final ninetyDaysAgo = now.subtract(const Duration(days: 90));
+        return all.where((i) {
+          final date = i.createdAt;
+          return date != null && date.isAfter(ninetyDaysAgo);
+        }).toList();
+      case 'Histórico':
       default:
         return all;
     }
+  }
+
+  String get _periodLabel {
+    if (_customDateRange != null) {
+      return '${_customDateRange!.start.day}/${_customDateRange!.start.month}/${_customDateRange!.start.year} - ${_customDateRange!.end.day}/${_customDateRange!.end.month}/${_customDateRange!.end.year}';
+    }
+    return _selectedPeriod;
   }
 
   @override
@@ -195,7 +262,6 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                   }
                 }
 
-                // Si no hay coincidencias con los conocidos, agrupar por location
                 if (sectorCounts.isEmpty) {
                   for (final inc in periodIncidents) {
                     final key = inc.location.split(',').first.trim();
@@ -234,25 +300,112 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Selector de período (Figma 2:472)
-                    Container(
-                      height: 36,
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE9EEF3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    // Selector de período Mejorado con Botón de Calendario (Figma 2:472)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 38,
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE9EEF3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  for (final period in _periods) ...[
+                                    _buildPeriodOption(period),
+                                    const SizedBox(width: 4),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Botón de Rango de Fechas Personalizado
+                        InkWell(
+                          onTap: _pickCustomRange,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: _customDateRange != null ? const Color(0xFF0F4C81) : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _customDateRange != null
+                                    ? const Color(0xFF0F4C81)
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_rounded,
+                                  size: 16,
+                                  color: _customDateRange != null ? Colors.white : const Color(0xFF0F4C81),
+                                ),
+                                if (_customDateRange != null) ...[
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${_customDateRange!.start.day}/${_customDateRange!.start.month} - ${_customDateRange!.end.day}/${_customDateRange!.end.month}',
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _customDateRange = null;
+                                        _selectedPeriod = 'Esta semana';
+                                      });
+                                    },
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Etiqueta informativa del filtro activo
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 4),
                       child: Row(
                         children: [
-                          for (final period in _periods) ...[
-                            Expanded(
-                              child: _buildPeriodOption(period),
+                          const Icon(Icons.filter_alt_outlined, size: 13, color: Color(0xFF0F4C81)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Periodo: $_periodLabel · $total reportes filtrados',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF526579),
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
 
                     // Indicadores Principales 1x2 DINÁMICOS (Figma Frame 2:435)
                     Row(
@@ -324,7 +477,7 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                     borderRadius: BorderRadius.circular(7),
                                   ),
                                   child: Text(
-                                    '$resolvedCount resueltos en BD',
+                                    '$resolvedCount resueltos',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -686,15 +839,17 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
   }
 
   Widget _buildPeriodOption(String title) {
-    final isSelected = _selectedPeriod == title;
+    final isSelected = _selectedPeriod == title && _customDateRange == null;
     return InkWell(
       borderRadius: BorderRadius.circular(9),
       onTap: () {
         setState(() {
+          _customDateRange = null;
           _selectedPeriod = title;
         });
       },
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(9),

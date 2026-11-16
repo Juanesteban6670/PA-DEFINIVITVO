@@ -13,12 +13,14 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Sembrador de datos geoespaciales realistas para Cartagena de Indias.
- * Si la base de datos MongoDB tiene menos de 15 incidentes, genera automáticamente
- * incidentes distribuidos territorial y temporalmente (últimos 7 días) para que
- * las vistas ciudadanas (Inicio, Mapa, Reportes, Estadísticas) operen 100% con datos reales de MongoDB.
+ * Genera un conjunto rico de incidentes (~150 reportes) distribuidos
+ * temporalmente a lo largo de 90 días (hoy, semana actual, semanas previas y meses anteriores)
+ * para que los filtros de fecha en la pantalla de estadísticas ("Hoy", "Esta semana",
+ * "Este mes", "3 meses", "Todo") muestren variaciones reales y marcadas.
  */
 @Component
 public class MongoDataSeeder implements ApplicationRunner {
@@ -35,19 +37,23 @@ public class MongoDataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        seedIfNecessary();
+        seedIfNecessary(false);
     }
 
-    public synchronized int seedIfNecessary() {
+    public synchronized int seedIfNecessary(boolean force) {
         long count = incidentRepository.count();
-        if (count >= 15) {
-            log.info("MongoDB ya contiene {} incidentes. No se requiere siembra.", count);
+        if (!force && count >= 50) {
+            log.info("MongoDB ya contiene {} incidentes. No se requiere siembra automática.", count);
             return (int) count;
         }
 
-        log.info("Iniciando siembra de datos geoespaciales en MongoDB Atlas (Incidentes existentes: {})...", count);
+        if (force) {
+            log.warn("Siembra forzada solicitada. Eliminando incidentes anteriores para repoblar con fechas variadas...");
+            incidentRepository.deleteAll();
+        } else {
+            log.info("Base de datos con pocos incidentes ({}). Iniciando siembra rica con historial variado de 90 días...", count);
+        }
 
-        // Asegurar que las zonas existan
         List<Zone> zones = ensureZones();
         String zoneCentro = findZoneId(zones, "Centro", "zone_centro");
         String zoneGetsemani = findZoneId(zones, "Getsemaní", "zone_getsemani");
@@ -58,101 +64,153 @@ public class MongoDataSeeder implements ApplicationRunner {
         LocalDateTime now = LocalDateTime.now();
         List<Incident> seedList = new ArrayList<>();
 
-        // Helper para crear incidentes
-        // Día 0 (Hoy)
-        seedList.add(createIncident("TRAFICO", "Congestión vehicular moderada en retorno", "Avenida San Martín con Calle 8, Bocagrande",
-                10.4055, -75.5562, zoneBoca, "ciudadano_maria", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, now.minusHours(2)));
-        seedList.add(createIncident("SEGURIDAD", "Patrullaje preventivo solicitado por comerciantes", "Calle de la Moneda, Centro Histórico",
-                10.4238, -75.5492, zoneCentro, "juan123", Incident.Priority.LOW, Incident.Status.IN_PROGRESS, now.minusHours(4)));
-        seedList.add(createIncident("INFRAESTRUCTURA", "Semáforo peatonal intermitente", "Avenida Pedro de Heredia, Sector Bazurto",
-                10.4082, -75.5186, zoneCentro, "ciudadano_camilo", Incident.Priority.MEDIUM, Incident.Status.PENDING, now.minusHours(6)));
-        seedList.add(createIncident("ROBO", "Intento de hurto frustrado por cuadrante", "Plaza de la Trinidad, Getsemaní",
-                10.4195, -75.5452, zoneGetsemani, "ciudadano_maria", Incident.Priority.HIGH, Incident.Status.RESOLVED, now.minusHours(8)));
+        // Plantillas de sectores con coordenadas reales en Cartagena
+        record LocationSpec(String sector, String place, double lat, double lon, String zoneId) {}
+        List<LocationSpec> locations = List.of(
+                new LocationSpec("Centro Histórico", "Plaza de los Coches, Torre del Reloj", 10.4228, -75.5486, zoneCentro),
+                new LocationSpec("Centro Histórico", "Calle de la Moneda con Calle de la Iglesia", 10.4242, -75.5499, zoneCentro),
+                new LocationSpec("Centro Histórico", "Plaza Santo Domingo", 10.4231, -75.5505, zoneCentro),
+                new LocationSpec("Centro Histórico", "Baluarte de San Ignacio", 10.4208, -75.5512, zoneCentro),
+                new LocationSpec("Centro Histórico", "Calle San Juan de Dios #3-45", 10.4215, -75.5492, zoneCentro),
+                new LocationSpec("Centro Histórico", "Calle de las Damas", 10.4220, -75.5510, zoneCentro),
+                new LocationSpec("Bocagrande", "Avenida San Martín #8-45", 10.4062, -75.5558, zoneBoca),
+                new LocationSpec("Bocagrande", "Carrera 2 con Calle 6", 10.4021, -75.5582, zoneBoca),
+                new LocationSpec("Bocagrande", "Playa Hollywood", 10.4012, -75.5601, zoneBoca),
+                new LocationSpec("Bocagrande", "Avenida San Martín con Calle 10", 10.4045, -75.5565, zoneBoca),
+                new LocationSpec("Bocagrande", "Malecón de Bocagrande frente al Hotel Decameron", 10.4030, -75.5590, zoneBoca),
+                new LocationSpec("Manga", "Avenida Miramar frente al Club de Pesca", 10.4145, -75.5385, zoneManga),
+                new LocationSpec("Manga", "Callejón Dandy #22-14", 10.4120, -75.5398, zoneManga),
+                new LocationSpec("Manga", "Puente Román", 10.4182, -75.5410, zoneManga),
+                new LocationSpec("Manga", "Paseo Peatonal de Manga", 10.4135, -75.5370, zoneManga),
+                new LocationSpec("Getsemaní", "Calle de la Media Luna", 10.4198, -75.5435, zoneGetsemani),
+                new LocationSpec("Getsemaní", "Plaza de la Trinidad", 10.4195, -75.5452, zoneGetsemani),
+                new LocationSpec("Getsemaní", "Calle del Pozo #25-10", 10.4188, -75.5441, zoneGetsemani),
+                new LocationSpec("Bazurto", "Avenida Pedro de Heredia frente a Transcaribe", 10.4085, -75.5195, zoneCentro),
+                new LocationSpec("Bazurto", "Sector La Cuchilla, Mercado de Bazurto", 10.4072, -75.5178, zoneCentro),
+                new LocationSpec("Bazurto", "Central de Abastos de Bazurto", 10.4091, -75.5202, zoneCentro),
+                new LocationSpec("Pie de la Popa", "Subida al Convento de la Popa", 10.4215, -75.5310, zoneManga),
+                new LocationSpec("Pie de la Popa", "Calle del Toril, Pie de la Popa", 10.4190, -75.5335, zoneManga),
+                new LocationSpec("Olaya Herrera", "Sector Stella Calle 32, Olaya Herrera", 10.3945, -75.4975, zoneOlaya),
+                new LocationSpec("Olaya Herrera", "Carrera 50 con Calle 34, Olaya Herrera", 10.3962, -75.4990, zoneOlaya),
+                new LocationSpec("Olaya Herrera", "Cancha deportiva de Olaya Herrera", 10.3930, -75.4960, zoneOlaya)
+        );
 
-        // Día 1 (Ayer)
-        LocalDateTime day1 = now.minusDays(1);
-        seedList.add(createIncident("ACCIDENTE_TRANSITO", "Colisión simple de dos taxis sin lesionados", "Avenida Blas de Lezo frente al Muelle",
-                10.4215, -75.5488, zoneCentro, "oficial_cuadrante4", Incident.Priority.HIGH, Incident.Status.RESOLVED, day1.minusHours(3)));
-        seedList.add(createIncident("TRAFICO", "Paso vehicular restringido por evento cultural", "Calle de la Media Luna, Getsemaní",
-                10.4198, -75.5435, zoneGetsemani, "ciudadano_camilo", Incident.Priority.LOW, Incident.Status.RESOLVED, day1.minusHours(5)));
-        seedList.add(createIncident("ALUMBRADO_PUBLICO", "Luminarias apagadas en sendero peatonal", "Avenida Miramar, Manga",
-                10.4145, -75.5385, zoneManga, "ciudadano_maria", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day1.minusHours(7)));
-        seedList.add(createIncident("ALTERCADO", "Discusión en vía pública por estacionamiento", "Carrera 3 con Calle 10, Bocagrande",
-                10.4040, -75.5570, zoneBoca, "ciudadano_maria", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day1.minusHours(9)));
-        seedList.add(createIncident("INFRAESTRUCTURA", "Tapa de alcantarilla desnivelada", "Calle del Toril, Pie de la Popa",
-                10.4190, -75.5335, zoneManga, "juan123", Incident.Priority.LOW, Incident.Status.RESOLVED, day1.minusHours(11)));
+        // Catálogo de tipos y descripciones realistas
+        record IncidentTemplate(String type, String descPrefix, Incident.Priority prio) {}
+        List<IncidentTemplate> templates = List.of(
+                new IncidentTemplate("TRAFICO", "Congestión vehicular por alto flujo y semáforo intermitente", Incident.Priority.MEDIUM),
+                new IncidentTemplate("ACCIDENTE_TRANSITO", "Colisión leve de vehículos sin lesionados de gravedad", Incident.Priority.HIGH),
+                new IncidentTemplate("VIA_CERRADA", "Paso vehicular restringido por labores de mantenimiento en la calzada", Incident.Priority.MEDIUM),
+                new IncidentTemplate("OBSTACULO_VIAL", "Caída de ramas y escombros que reducen la velocidad", Incident.Priority.LOW),
+                new IncidentTemplate("ROBO", "Hurto de dispositivo móvil frustrado por la red de apoyo", Incident.Priority.HIGH),
+                new IncidentTemplate("ALTERCADO", "Discusión en espacio público atendida preventivamente por la patrulla", Incident.Priority.MEDIUM),
+                new IncidentTemplate("ACTIVIDAD_SOSPECHOSA", "Presencia de sospechosos reportada por comerciantes del sector", Incident.Priority.LOW),
+                new IncidentTemplate("SOS", "Solicitud de asistencia médica y primeros auxilios", Incident.Priority.CRITICAL),
+                new IncidentTemplate("PELEA", "Riña entre particulares disuelta por las autoridades", Incident.Priority.HIGH),
+                new IncidentTemplate("ALUMBRADO_PUBLICO", "Luminarias públicas averiadas generando baja visibilidad nocturna", Incident.Priority.LOW),
+                new IncidentTemplate("INFRAESTRUCTURA", "Desnivel pronunciado en la vía pública señalizado preventivamente", Incident.Priority.LOW),
+                new IncidentTemplate("INUNDACION", "Acumulación temporal de agua de lluvia en la calzada", Incident.Priority.MEDIUM)
+        );
 
-        // Día 2 (Hace 2 días)
-        LocalDateTime day2 = now.minusDays(2);
-        seedList.add(createIncident("ROBO", "Hurto de pertenencias en zona de playa", "Playa Hollywood, Bocagrande",
-                10.4012, -75.5601, zoneBoca, "ciudadano_camilo", Incident.Priority.HIGH, Incident.Status.RESOLVED, day2.minusHours(4)));
-        seedList.add(createIncident("VIA_CERRADA", "Mantenimiento de tubería matriz", "Calle San Juan de Dios, Centro Histórico",
-                10.4215, -75.5492, zoneCentro, "admin", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day2.minusHours(8)));
-        seedList.add(createIncident("SEGURIDAD", "Alerta comunitaria por personas sospechosas", "Sector Stella, Olaya Herrera",
-                10.3945, -75.4975, zoneOlaya, "oficial_cuadrante4", Incident.Priority.HIGH, Incident.Status.IN_PROGRESS, day2.minusHours(12)));
-        seedList.add(createIncident("TRAFICO", "Alta afluencia de transporte público", "Mercado de Bazurto, Av. Pedro de Heredia",
-                10.4091, -75.5202, zoneCentro, "ciudadano_maria", Incident.Priority.LOW, Incident.Status.RESOLVED, day2.minusHours(16)));
+        List<String> users = List.of("ciudadano_maria", "ciudadano_camilo", "juan123", "admin", "oficial_cuadrante4");
+        Random rnd = new Random(42); // Semilla fija para consistencia
 
-        // Día 3 (Viernes - Pico semanal con mayor actividad)
-        LocalDateTime day3 = now.minusDays(3);
-        seedList.add(createIncident("TRAFICO", "Congestión alta en horas pico nocturnas", "Avenida San Martín #8-45, Bocagrande",
-                10.4062, -75.5558, zoneBoca, "ciudadano_maria", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day3.minusHours(2)));
-        seedList.add(createIncident("ALTERCADO", "Alteración del orden público en terraza comercial", "Calle del Pozo, Getsemaní",
-                10.4188, -75.5441, zoneGetsemani, "ciudadano_camilo", Incident.Priority.HIGH, Incident.Status.RESOLVED, day3.minusHours(4)));
-        seedList.add(createIncident("ROBO", "Cosquilleo en aglomeración turística", "Plaza de los Coches, Torre del Reloj",
-                10.4228, -75.5486, zoneCentro, "oficial_cuadrante4", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day3.minusHours(6)));
-        seedList.add(createIncident("ACCIDENTE_TRANSITO", "Caída de motociclista por asfalto húmedo", "Puente Román, Manga",
-                10.4182, -75.5410, zoneManga, "juan123", Incident.Priority.HIGH, Incident.Status.RESOLVED, day3.minusHours(7)));
-        seedList.add(createIncident("SOS", "Asistencia de primeros auxilios por golpe de calor", "Plaza Santo Domingo, Centro Histórico",
-                10.4231, -75.5505, zoneCentro, "ciudadano_maria", Incident.Priority.CRITICAL, Incident.Status.RESOLVED, day3.minusHours(9)));
-        seedList.add(createIncident("INFRAESTRUCTURA", "Desprendimiento de rama de árbol en vía", "Callejón Dandy, Manga",
-                10.4120, -75.5398, zoneManga, "ciudadano_camilo", Incident.Priority.LOW, Incident.Status.RESOLVED, day3.minusHours(11)));
-        seedList.add(createIncident("TRAFICO", "Retención vehicular en intersección", "Carrera 2 con Calle 6, Bocagrande",
-                10.4021, -75.5582, zoneBoca, "oficial_cuadrante4", Incident.Priority.LOW, Incident.Status.RESOLVED, day3.minusHours(14)));
-        seedList.add(createIncident("SEGURIDAD", "Verificación de antecedentes en punto de control", "Cancha de Olaya, Olaya Herrera",
-                10.3930, -75.4960, zoneOlaya, "oficial_cuadrante4", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day3.minusHours(18)));
+        // Función generadora de incidentes en un día específico
+        RunnableGenerator generator = (daysAgo, countForDay, defaultStatus) -> {
+            for (int i = 0; i < countForDay; i++) {
+                LocationSpec loc = locations.get(rnd.nextInt(locations.size()));
+                IncidentTemplate tmpl = templates.get(rnd.nextInt(templates.size()));
+                String reporter = users.get(rnd.nextInt(users.size()));
 
-        // Día 4 (Hace 4 días)
-        LocalDateTime day4 = now.minusDays(4);
-        seedList.add(createIncident("VIA_CERRADA", "Pavimentación preventiva de calzada", "Calle de la Media Luna, Getsemaní",
-                10.4200, -75.5440, zoneGetsemani, "admin", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day4.minusHours(5)));
-        seedList.add(createIncident("ROBO", "Hurto de bicicleta en parque residencial", "Paseo Peatonal de Manga",
-                10.4135, -75.5370, zoneManga, "ciudadano_camilo", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day4.minusHours(8)));
-        seedList.add(createIncident("TRAFICO", "Operativo de control vial", "Avenida Santander frente a Murallas",
-                10.4270, -75.5440, zoneCentro, "oficial_cuadrante4", Incident.Priority.LOW, Incident.Status.RESOLVED, day4.minusHours(12)));
-        seedList.add(createIncident("ALUMBRADO_PUBLICO", "Luminarias intermitentes en parque infantil", "Parque Lacustre, Manga",
-                10.4110, -75.5350, zoneManga, "ciudadano_maria", Incident.Priority.LOW, Incident.Status.RESOLVED, day4.minusHours(16)));
+                // Hora variada dentro de ese día (entre 7 AM y 11 PM)
+                int hour = 7 + rnd.nextInt(16);
+                int minute = rnd.nextInt(60);
+                LocalDateTime incidentTime = now.minusDays(daysAgo).withHour(hour).withMinute(minute);
 
-        // Día 5 (Hace 5 días)
-        LocalDateTime day5 = now.minusDays(5);
-        seedList.add(createIncident("ALTERCADO", "Riña verbal disuadida por auxiliares", "Sector La Cuchilla, Bazurto",
-                10.4072, -75.5178, zoneCentro, "oficial_cuadrante4", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day5.minusHours(6)));
-        seedList.add(createIncident("ACCIDENTE_TRANSITO", "Roce entre bus y automóvil", "Avenida San Martín, Bocagrande",
-                10.4070, -75.5550, zoneBoca, "ciudadano_maria", Incident.Priority.HIGH, Incident.Status.RESOLVED, day5.minusHours(10)));
-        seedList.add(createIncident("INFRAESTRUCTURA", "Hueco en calzada señalizado", "Subida al Convento de la Popa",
-                10.4215, -75.5310, zoneManga, "juan123", Incident.Priority.LOW, Incident.Status.RESOLVED, day5.minusHours(14)));
+                Incident.Status status = defaultStatus;
+                if (status == null) {
+                    // Si no se especifica, días antiguos son casi todos RESOLVED
+                    if (daysAgo >= 7) {
+                        status = rnd.nextDouble() < 0.88 ? Incident.Status.RESOLVED : Incident.Status.IN_PROGRESS;
+                    } else if (daysAgo >= 2) {
+                        status = rnd.nextDouble() < 0.75 ? Incident.Status.RESOLVED : Incident.Status.IN_PROGRESS;
+                    } else if (daysAgo == 1) {
+                        status = rnd.nextDouble() < 0.65 ? Incident.Status.RESOLVED : (rnd.nextBoolean() ? Incident.Status.IN_PROGRESS : Incident.Status.PENDING);
+                    } else { // Hoy
+                        status = rnd.nextDouble() < 0.35 ? Incident.Status.RESOLVED : (rnd.nextBoolean() ? Incident.Status.IN_PROGRESS : Incident.Status.PENDING);
+                    }
+                }
 
-        // Día 6 (Hace 6 días)
-        LocalDateTime day6 = now.minusDays(6);
-        seedList.add(createIncident("TRAFICO", "Paso lento por vehículo varado", "Avenida Pedro de Heredia, Mercado Bazurto",
-                10.4085, -75.5190, zoneCentro, "ciudadano_camilo", Incident.Priority.LOW, Incident.Status.RESOLVED, day6.minusHours(8)));
-        seedList.add(createIncident("ROBO", "Hurto menor a transeúnte reportado oportunamente", "Calle de las Damas, Centro Histórico",
-                10.4220, -75.5510, zoneCentro, "ciudadano_maria", Incident.Priority.MEDIUM, Incident.Status.RESOLVED, day6.minusHours(14)));
+                String fullDesc = tmpl.descPrefix + " en " + loc.sector;
+                String fullLocation = loc.place + ", " + loc.sector;
 
+                Incident inc = new Incident(
+                        tmpl.type,
+                        fullDesc,
+                        fullLocation,
+                        loc.lat + (rnd.nextDouble() - 0.5) * 0.002, // Pequeña variación GPS
+                        loc.lon + (rnd.nextDouble() - 0.5) * 0.002,
+                        reporter,
+                        tmpl.prio
+                );
+                inc.setZoneId(loc.zoneId);
+                inc.setStatus(status);
+                inc.setCreatedAt(incidentTime);
+                inc.setUpdatedAt(status == Incident.Status.RESOLVED ? incidentTime.plusHours(2) : incidentTime);
+                if (status == Incident.Status.RESOLVED || status == Incident.Status.IN_PROGRESS) {
+                    inc.setAssignedTo("oficial_cuadrante4");
+                }
+                seedList.add(inc);
+            }
+        };
+
+        // =========================================================================
+        // 1. DÍA DE HOY (Día 0) -> 6 incidentes
+        // =========================================================================
+        generator.generate(0, 6, null);
+
+        // =========================================================================
+        // 2. ÚLTIMOS 6 DÍAS DE LA SEMANA ACTUAL (Días 1 a 6) -> 70 incidentes
+        // =========================================================================
+        generator.generate(1, 9, null);  // Ayer (Domingo) -> 9
+        generator.generate(2, 14, null); // Hace 2 días (Sábado) -> 14
+        generator.generate(3, 22, null); // Hace 3 días (Viernes - PICO SEMANAL) -> 22
+        generator.generate(4, 11, null); // Hace 4 días (Jueves) -> 11
+        generator.generate(5, 8, null);  // Hace 5 días (Miércoles) -> 8
+        generator.generate(6, 6, null);  // Hace 6 días (Martes) -> 6
+        // Total semana: 6 + 9 + 14 + 22 + 11 + 8 + 6 = 76 incidentes
+
+        // =========================================================================
+        // 3. SEMANAS ANTERIORES DEL MES ACTUAL (Días 7 a 29) -> 45 incidentes
+        // =========================================================================
+        for (int day = 7; day <= 29; day += 2) {
+            generator.generate(day, 3 + rnd.nextInt(3), Incident.Status.RESOLVED);
+        }
+        // Total mes: 76 + 45 = ~121 incidentes
+
+        // =========================================================================
+        // 4. MES ANTERIOR (Hace 30 a 60 días) -> 35 incidentes
+        // =========================================================================
+        for (int day = 30; day <= 58; day += 3) {
+            generator.generate(day, 3 + rnd.nextInt(3), Incident.Status.RESOLVED);
+        }
+
+        // =========================================================================
+        // 5. HACE 2 MESES (Hace 60 a 90 días) -> 25 incidentes
+        // =========================================================================
+        for (int day = 60; day <= 88; day += 4) {
+            generator.generate(day, 2 + rnd.nextInt(3), Incident.Status.RESOLVED);
+        }
+
+        // Guardar todos los incidentes en lote en MongoDB Atlas
         incidentRepository.saveAll(seedList);
-        log.info("✓ Siembra de MongoDB exitosa: se insertaron {} incidentes georreferenciados en Cartagena.", seedList.size());
+        log.info("✓ Siembra masiva completada: {} incidentes georreferenciados insertados en MongoDB Atlas a lo largo de 90 días.", seedList.size());
         return seedList.size();
     }
 
-    private Incident createIncident(String type, String description, String location,
-                                    Double lat, Double lon, String zoneId, String reportedBy,
-                                    Incident.Priority priority, Incident.Status status, LocalDateTime createdAt) {
-        Incident inc = new Incident(type, description, location, lat, lon, reportedBy, priority);
-        inc.setZoneId(zoneId);
-        inc.setStatus(status);
-        inc.setCreatedAt(createdAt);
-        inc.setUpdatedAt(createdAt.plusHours(1));
-        return inc;
+    @FunctionalInterface
+    interface RunnableGenerator {
+        void generate(int daysAgo, int count, Incident.Status defaultStatus);
     }
 
     private List<Zone> ensureZones() {

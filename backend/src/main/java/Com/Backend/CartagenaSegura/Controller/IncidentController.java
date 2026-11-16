@@ -35,10 +35,11 @@ public class IncidentController {
         this.mongoDataSeeder = mongoDataSeeder;
     }
 
-    @PostMapping("/Seed")
-    @Operation(summary = "Poblar incidentes iniciales en MongoDB", description = "Siembra incidentes históricos y territorialmente distribuidos en Cartagena si la base de datos está vacía.")
-    public ResponseEntity<ApiResponse<String>> seed() {
-        int seeded = mongoDataSeeder.seedIfNecessary();
+    @RequestMapping(value = "/Seed", method = {RequestMethod.GET, RequestMethod.POST})
+    @Operation(summary = "Poblar incidentes iniciales en MongoDB", description = "Siembra incidentes históricos y territorialmente distribuidos en Cartagena si la base de datos está vacía o si force=true.")
+    public ResponseEntity<ApiResponse<String>> seed(
+            @RequestParam(defaultValue = "false") boolean force) {
+        int seeded = mongoDataSeeder.seedIfNecessary(force);
         return ResponseEntity.ok(ApiResponse.ok("Siembra completada", "Incidentes en base de datos: " + seeded));
     }
 
