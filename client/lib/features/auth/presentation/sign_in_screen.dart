@@ -125,7 +125,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     'Cartagena Segura',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Inter',
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF0F4C81),
@@ -137,7 +136,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     'Movilidad y alertas en tiempo real',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Inter',
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                       color: Color(0xFF64748B),
@@ -150,7 +148,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         ? 'Crear cuenta ciudadana'
                         : 'Bienvenido de nuevo',
                     style: const TextStyle(
-                      fontFamily: 'Inter',
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF142C40),
@@ -163,7 +160,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         ? 'Regístrate para reportar incidentes y cuidar tu comunidad.'
                         : 'Conectados por una ciudad más segura.',
                     style: const TextStyle(
-                      fontFamily: 'Inter',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: Color(0xFF64748B),
@@ -271,7 +267,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                 child: Text(
                                   '¿Olvidaste tu contraseña?',
                                   style: TextStyle(
-                                    fontFamily: 'Inter',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF0F4C81),
@@ -308,7 +303,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                   child: Text(
                                     _error ?? widget.session.sessionNotice!,
                                     style: const TextStyle(
-                                      fontFamily: 'Inter',
                                       color: Color(0xFF991B1B),
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
@@ -352,7 +346,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                             ? 'Crear cuenta ciudadana'
                                             : 'Iniciar sesión',
                                         style: const TextStyle(
-                                          fontFamily: 'Inter',
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0.1,
@@ -378,7 +371,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                   ? '¿Ya tienes una cuenta? '
                                   : '¿No tienes cuenta? ',
                               style: const TextStyle(
-                                fontFamily: 'Inter',
                                 fontSize: 13,
                                 color: Color(0xFF64748B),
                               ),
@@ -404,7 +396,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                     ? 'Inicia sesión aquí'
                                     : 'Regístrate aquí',
                                 style: const TextStyle(
-                                  fontFamily: 'Inter',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF0F4C81),
@@ -430,7 +421,6 @@ class _SignInScreenState extends State<SignInScreen> {
     return Text(
       label,
       style: const TextStyle(
-        fontFamily: 'Inter',
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: Color(0xFF142C40),
@@ -463,7 +453,6 @@ class _SignInScreenState extends State<SignInScreen> {
           : TextCapitalization.words,
       autocorrect: !email && !password && !username && !phone,
       style: const TextStyle(
-        fontFamily: 'Inter',
         fontSize: 14,
         color: Color(0xFF142C40),
         fontWeight: FontWeight.w500,
@@ -471,7 +460,6 @@ class _SignInScreenState extends State<SignInScreen> {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(
-          fontFamily: 'Inter',
           color: Color(0xFF94A3B8),
           fontSize: 14,
           fontWeight: FontWeight.w400,
@@ -482,11 +470,7 @@ class _SignInScreenState extends State<SignInScreen> {
           horizontal: 16,
           vertical: 16,
         ),
-        prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 14, right: 10),
-          child: Icon(icon, color: const Color(0xFF64748B), size: 20),
-        ),
-        prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 20),
         suffixIcon: password
             ? IconButton(
                 icon: Icon(

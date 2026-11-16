@@ -8,6 +8,25 @@ import 'shared/theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('Flutter Error: ${details.exceptionAsString()}');
+  };
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: Colors.transparent,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            'Error: ${details.exceptionAsString()}',
+            style: const TextStyle(color: Colors.red, fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  };
   runApp(const ProviderScope(child: CartagenaApp()));
 }
 

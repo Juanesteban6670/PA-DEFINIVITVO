@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -1750,29 +1748,26 @@ class _FloatingMapButton extends StatelessWidget {
         : (isDark ? AppColors.darkText : AppColors.navy);
 
     return ClipOval(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: borderColor, width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            tooltip: tooltip,
-            iconSize: 20,
-            visualDensity: VisualDensity.compact,
-            color: iconColor,
-            icon: Icon(icon),
-            onPressed: onPressed,
-          ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: borderColor, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IconButton(
+          tooltip: tooltip,
+          iconSize: 20,
+          visualDensity: VisualDensity.compact,
+          color: iconColor,
+          icon: Icon(icon),
+          onPressed: onPressed,
         ),
       ),
     );

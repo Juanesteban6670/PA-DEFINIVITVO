@@ -100,7 +100,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               Text(
                                 'Hola, $name',
                                 style: const TextStyle(
-                                  fontFamily: 'Inter',
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF142C40),
@@ -119,7 +118,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   Text(
                                     'Cartagena, Bolívar',
                                     style: TextStyle(
-                                      fontFamily: 'Inter',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                       color: Color(0xFF64748B),
@@ -212,7 +210,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           const Text(
                             'Tu ciudad, conectada y más segura',
                             style: TextStyle(
-                              fontFamily: 'Inter',
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF087554),
@@ -303,7 +300,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         const Text(
                           'Reportes recientes',
                           style: TextStyle(
-                            fontFamily: 'Inter',
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF142C40),
@@ -318,7 +314,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             child: Text(
                               'Ver todos',
                               style: TextStyle(
-                                fontFamily: 'Inter',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF0F4C81),
@@ -424,7 +419,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 Text(
                                   'Asistente Ciudadano IA',
                                   style: TextStyle(
-                                    fontFamily: 'Inter',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF142C40),
@@ -434,7 +428,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 Text(
                                   'Resuelve dudas sobre trámites y seguridad.',
                                   style: TextStyle(
-                                    fontFamily: 'Inter',
                                     fontSize: 11,
                                     color: Color(0xFF64748B),
                                   ),
@@ -506,7 +499,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Text(
                   value,
                   style: TextStyle(
-                    fontFamily: 'Inter',
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
                     color: valColor,
@@ -519,7 +511,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Inter',
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF526579),
@@ -567,7 +558,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             color: isSelected ? Colors.white : const Color(0xFF526579),
@@ -628,7 +618,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Text(
                       category,
                       style: TextStyle(
-                        fontFamily: 'Inter',
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: categoryColor,
@@ -640,7 +629,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontFamily: 'Inter',
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF142C40),
@@ -650,7 +638,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Text(
                       subtitle,
                       style: const TextStyle(
-                        fontFamily: 'Inter',
                         fontSize: 11,
                         color: Color(0xFF64748B),
                       ),
@@ -662,7 +649,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               Text(
                 distance,
                 style: const TextStyle(
-                  fontFamily: 'Inter',
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF64748B),
