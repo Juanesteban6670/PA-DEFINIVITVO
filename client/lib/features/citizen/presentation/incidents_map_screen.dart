@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -54,6 +57,25 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   bool _showRiskZones = true;
   Incident? _selectedIncident;
 
+  // --- MODO NAVEGACIÓN EN TIEMPO REAL (Estilo Waze) ---
+  static const _distance = Distance();
+  bool _isNavigating = false;
+  bool _isFollowingGps = true;
+  LatLng? _navPosition;
+  double _navHeading = 0.0;
+  double _currentSpeedKmh = 0.0;
+  int _navRoutePointIndex = 0;
+  double _navRemainingDistMeters = 0.0;
+  double _navRemainingSecs = 0.0;
+  String _navManeuverText = 'Continúa recto';
+  IconData _navManeuverIcon = Icons.straight_rounded;
+  double _navDistToNextManeuverMeters = 0.0;
+  Incident? _approachingHazard;
+  bool _hasArrived = false;
+  bool _isSimulating = false;
+  Timer? _simulationTimer;
+  StreamSubscription<Position>? _gpsStreamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +108,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   @override
   void dispose() {
+    _simulationTimer?.cancel();
+    _gpsStreamSubscription?.cancel();
     widget.incidentRefresh.removeListener(_onIncidentRefresh);
     super.dispose();
   }
@@ -287,7 +311,324 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     );
   }
 
+  void _startNavigation() {
+    if (_safeRoutes == null || _safeRoutes!.isEmpty) return;
+    final activeRoute = _safeRoutes![_selectedRouteIndex];
+    if (activeRoute.points.isEmpty) return;
+
+    final startPoint = _position != null
+        ? LatLng(_position!.latitude, _position!.longitude)
+        : activeRoute.points.first;
+
+    setState(() {
+      _isNavigating = true;
+      _isFollowingGps = true;
+      _hasArrived = false;
+      _navPosition = startPoint;
+      _navRoutePointIndex = 0;
+      _navRemainingDistMeters = activeRoute.distanceMeters;
+      _navRemainingSecs = activeRoute.durationSeconds;
+      _currentSpeedKmh = 0.0;
+      _navHeading = 0.0;
+    });
+
+    _mapController.move(startPoint, 17.5);
+    _updateNavProgress(startPoint, activeRoute);
+    _startGpsStream(activeRoute);
+  }
+
+  void _stopNavigation() {
+    _simulationTimer?.cancel();
+    _simulationTimer = null;
+    _gpsStreamSubscription?.cancel();
+    _gpsStreamSubscription = null;
+    setState(() {
+      _isNavigating = false;
+      _isSimulating = false;
+      _approachingHazard = null;
+      _hasArrived = false;
+      _currentSpeedKmh = 0.0;
+    });
+    _centerRoute();
+  }
+
+  void _startGpsStream(SafeRoute route) {
+    _gpsStreamSubscription?.cancel();
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 2,
+    );
+    try {
+      _gpsStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
+        (pos) {
+          if (!_isNavigating || !mounted) return;
+          if (_isSimulating) return;
+
+          final newPoint = LatLng(pos.latitude, pos.longitude);
+          final speed = pos.speed > 0 ? (pos.speed * 3.6) : 0.0;
+          final heading = pos.heading > 0 ? pos.heading : _navHeading;
+
+          setState(() {
+            _position = pos;
+            _navPosition = newPoint;
+            _currentSpeedKmh = speed;
+            if (pos.heading > 0) _navHeading = heading;
+          });
+
+          _updateNavProgress(newPoint, route);
+
+          if (_isFollowingGps) {
+            _mapController.move(newPoint, 17.5);
+          }
+        },
+        onError: (err) {
+          debugPrint('Error en stream GPS de navegación: $err');
+        },
+      );
+    } catch (e) {
+      debugPrint('No se pudo inicializar getPositionStream: $e');
+    }
+  }
+
+  void _updateNavProgress(LatLng currentLoc, SafeRoute route) {
+    if (route.points.isEmpty) return;
+
+    // 1. Encontrar el punto más cercano en la polilínea
+    var closestIdx = _navRoutePointIndex;
+    var minDistance = double.infinity;
+    final searchStart = max(0, _navRoutePointIndex - 2);
+    final searchEnd = min(route.points.length, _navRoutePointIndex + 25);
+
+    for (var i = searchStart; i < searchEnd; i++) {
+      final d = _distance.as(LengthUnit.Meter, currentLoc, route.points[i]);
+      if (d < minDistance) {
+        minDistance = d;
+        closestIdx = i;
+      }
+    }
+    _navRoutePointIndex = max(_navRoutePointIndex, closestIdx);
+
+    // 2. Calcular distancia restante sumando segmentos futuros
+    var remainingDist = _distance.as(
+      LengthUnit.Meter,
+      currentLoc,
+      route.points[_navRoutePointIndex],
+    );
+    for (var i = _navRoutePointIndex; i < route.points.length - 1; i++) {
+      remainingDist += _distance.as(
+        LengthUnit.Meter,
+        route.points[i],
+        route.points[i + 1],
+      );
+    }
+
+    final remainingSecs = (route.distanceMeters > 0)
+        ? (remainingDist / route.distanceMeters) * route.durationSeconds
+        : 0.0;
+
+    // 3. Comprobar si ha llegado a destino (< 25 metros o último punto)
+    if (remainingDist < 25 || _navRoutePointIndex >= route.points.length - 1) {
+      setState(() {
+        _hasArrived = true;
+        _isSimulating = false;
+        _currentSpeedKmh = 0.0;
+        _navRemainingDistMeters = 0.0;
+        _navRemainingSecs = 0.0;
+        _navManeuverText = '¡Llegaste a tu destino!';
+        _navManeuverIcon = Icons.flag_rounded;
+        _navDistToNextManeuverMeters = 0.0;
+        _approachingHazard = null;
+      });
+      _simulationTimer?.cancel();
+      return;
+    }
+
+    // 4. Calcular próximo giro/maniobra analizando cambios de ángulo en los vértices
+    IconData maneuverIcon = Icons.straight_rounded;
+    String maneuverText = 'Continúa recto por la vía';
+    double distToTurn = remainingDist;
+
+    var accumulatedDist = _distance.as(
+      LengthUnit.Meter,
+      currentLoc,
+      route.points[_navRoutePointIndex],
+    );
+
+    for (var i = _navRoutePointIndex; i < route.points.length - 2; i++) {
+      final pA = route.points[i];
+      final pB = route.points[i + 1];
+      final pC = route.points[i + 2];
+
+      final bearing1 = _distance.bearing(pA, pB);
+      final bearing2 = _distance.bearing(pB, pC);
+      final angleDiff = (bearing2 - bearing1 + 540) % 360 - 180;
+
+      accumulatedDist += _distance.as(LengthUnit.Meter, pA, pB);
+
+      if (angleDiff.abs() >= 25.0) {
+        distToTurn = accumulatedDist;
+        if (angleDiff > 25.0) {
+          if (angleDiff > 70.0) {
+            maneuverIcon = Icons.turn_right_rounded;
+            maneuverText = distToTurn < 30
+                ? 'Gira ahora a la derecha'
+                : 'En ${_formatManeuverDist(distToTurn)} gira a la derecha';
+          } else {
+            maneuverIcon = Icons.turn_slight_right_rounded;
+            maneuverText = distToTurn < 30
+                ? 'Curva a la derecha'
+                : 'En ${_formatManeuverDist(distToTurn)} curva a la derecha';
+          }
+        } else {
+          if (angleDiff < -70.0) {
+            maneuverIcon = Icons.turn_left_rounded;
+            maneuverText = distToTurn < 30
+                ? 'Gira ahora a la izquierda'
+                : 'En ${_formatManeuverDist(distToTurn)} gira a la izquierda';
+          } else {
+            maneuverIcon = Icons.turn_slight_left_rounded;
+            maneuverText = distToTurn < 30
+                ? 'Curva a la izquierda'
+                : 'En ${_formatManeuverDist(distToTurn)} curva a la izquierda';
+          }
+        }
+        break;
+      }
+
+      if (accumulatedDist > 700) {
+        maneuverIcon = Icons.straight_rounded;
+        maneuverText = 'Continúa recto por la ruta recomendada';
+        distToTurn = accumulatedDist;
+        break;
+      }
+    }
+
+    // 5. Cálculo de orientación/rumbo (bearing) si la velocidad o GPS no la reporta
+    if (_navRoutePointIndex < route.points.length - 1) {
+      final nextP = route.points[_navRoutePointIndex + 1];
+      final b = _distance.bearing(currentLoc, nextP);
+      if (!_isSimulating && _position?.heading != null && _position!.heading > 0) {
+        _navHeading = _position!.heading;
+      } else {
+        _navHeading = (b + 360) % 360;
+      }
+    }
+
+    // 6. Detección de incidentes/peligros cercanos en la ruta (< 350 metros)
+    Incident? approaching;
+    for (final hazard in route.hazardsOnRoute) {
+      if (hazard.latitude == null || hazard.longitude == null) continue;
+      final hLoc = LatLng(hazard.latitude!, hazard.longitude!);
+      final hDist = _distance.as(LengthUnit.Meter, currentLoc, hLoc);
+      if (hDist <= 350.0) {
+        approaching = hazard;
+        break;
+      }
+    }
+
+    setState(() {
+      _navRemainingDistMeters = remainingDist;
+      _navRemainingSecs = remainingSecs;
+      _navManeuverIcon = maneuverIcon;
+      _navManeuverText = maneuverText;
+      _navDistToNextManeuverMeters = distToTurn;
+      _approachingHazard = approaching;
+    });
+  }
+
+  void _toggleSimulation() {
+    if (_safeRoutes == null || _safeRoutes!.isEmpty) return;
+    final activeRoute = _safeRoutes![_selectedRouteIndex];
+    if (activeRoute.points.isEmpty) return;
+
+    if (_isSimulating) {
+      _simulationTimer?.cancel();
+      _simulationTimer = null;
+      setState(() {
+        _isSimulating = false;
+        _currentSpeedKmh = 0.0;
+      });
+      return;
+    }
+
+    setState(() {
+      _isSimulating = true;
+      _isFollowingGps = true;
+      if (_hasArrived || _navRoutePointIndex >= activeRoute.points.length - 2) {
+        _navRoutePointIndex = 0;
+        _hasArrived = false;
+      }
+    });
+
+    _simulationTimer?.cancel();
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+      if (!_isNavigating || !_isSimulating || !mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_navRoutePointIndex < activeRoute.points.length - 1) {
+        _navRoutePointIndex++;
+        final cur = activeRoute.points[_navRoutePointIndex];
+        final simSpeed = 36.0 + (Random().nextDouble() * 14.0);
+
+        setState(() {
+          _navPosition = cur;
+          _currentSpeedKmh = simSpeed;
+        });
+
+        _updateNavProgress(cur, activeRoute);
+
+        if (_isFollowingGps) {
+          _mapController.move(cur, 17.5);
+        }
+      } else {
+        timer.cancel();
+        setState(() {
+          _isSimulating = false;
+          _hasArrived = true;
+          _currentSpeedKmh = 0.0;
+        });
+      }
+    });
+  }
+
+  void _recenterNavigation() {
+    if (_navPosition != null) {
+      setState(() => _isFollowingGps = true);
+      _mapController.move(_navPosition!, 17.5);
+    }
+  }
+
+  String _formatManeuverDist(double meters) {
+    if (meters < 20) return 'ahora';
+    if (meters < 1000) return '${(meters / 10).round() * 10} m';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+
+  String _formatNavEta(double seconds) {
+    final now = DateTime.now();
+    final arrival = now.add(Duration(seconds: seconds.round()));
+    final hour = arrival.hour > 12
+        ? arrival.hour - 12
+        : (arrival.hour == 0 ? 12 : arrival.hour);
+    final min = arrival.minute.toString().padLeft(2, '0');
+    final period = arrival.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$min $period';
+  }
+
+  String _formatNavDuration(double seconds) {
+    final minutes = (seconds / 60).round();
+    if (minutes < 60) return '$minutes min';
+    final hours = minutes ~/ 60;
+    final remainingMin = minutes % 60;
+    return '${hours}h ${remainingMin}m';
+  }
+
   void _closeRoute() {
+    _stopNavigation();
     setState(() {
       _safeRoutes = null;
       _selectedDestination = null;
@@ -414,93 +755,94 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Encabezado Figma (03 · Mapa)
-                Container(
-                  color: const Color(0xFFF8FAFC),
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Mapa de tu ciudad',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF142C40),
-                          letterSpacing: -0.4,
+                // Encabezado Figma (03 · Mapa) - Oculto durante navegación activa para pantalla completa tipo Waze
+                if (!_isNavigating)
+                  Container(
+                    color: const Color(0xFFF8FAFC),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Mapa de tu ciudad',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF142C40),
+                            letterSpacing: -0.4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      const Text(
-                        'Muévete informado. Llega seguro.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF64748B),
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 3),
+                        const Text(
+                          'Muévete informado. Llega seguro.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: _openDestinationSearch,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _openDestinationSearch,
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  height: 44,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+                                      SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Buscar sector o dirección',
+                                          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => _showFilters(context),
                               borderRadius: BorderRadius.circular(14),
                               child: Container(
+                                width: 44,
                                 height: 44,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(color: const Color(0xFFE2E8F0)),
                                 ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        'Buscar sector o dirección',
-                                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
+                                child: Badge(
+                                  isLabelVisible: _typeFilter != null ||
+                                      _statusFilter != null ||
+                                      _priorityFilter != null ||
+                                      _distanceFilterKm != null ||
+                                      _timeFilter != null,
+                                  child: const Icon(
+                                    Icons.tune_rounded,
+                                    color: Color(0xFF0F4C81),
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () => _showFilters(context),
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: Badge(
-                                isLabelVisible: _typeFilter != null ||
-                                    _statusFilter != null ||
-                                    _priorityFilter != null ||
-                                    _distanceFilterKm != null ||
-                                    _timeFilter != null,
-                                child: const Icon(
-                                  Icons.tune_rounded,
-                                  color: Color(0xFF0F4C81),
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 // Mapa y Controles Flotantes
                 Expanded(
                   child: Stack(
@@ -512,6 +854,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           initialCenter: const LatLng(10.391, -75.4794),
                           initialZoom: 12.5,
                           onTap: (tapPosition, point) => _onMapTap(point),
+                          onPositionChanged: (camera, hasGesture) {
+                            if (hasGesture && _isNavigating && _isFollowingGps) {
+                              setState(() => _isFollowingGps = false);
+                            }
+                          },
                         ),
                         children: [
                           if (isDarkMap)
@@ -669,8 +1016,56 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 MarkerLayer(
                   markers: [
                     ..._buildIncidentMarkers(withLocation, isDark),
-                    // Marcador GPS de ubicación actual del usuario
-                    if (_position case final position?)
+                    // Marcador GPS: Cursor de navegación direccional Waze o marcador estándar
+                    if (_isNavigating && _navPosition != null)
+                      Marker(
+                        point: _navPosition!,
+                        width: 56,
+                        height: 56,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 54,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF3B82F6)
+                                    .withValues(alpha: 0.22),
+                              ),
+                            ),
+                            Transform.rotate(
+                              angle: (_navHeading * pi) / 180,
+                              child: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFF0F4C81),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0F4C81)
+                                          .withValues(alpha: 0.45),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.navigation_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_position case final position?)
                       Marker(
                         point: LatLng(position.latitude, position.longitude),
                         width: 48,
@@ -692,54 +1087,56 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
               ],
             ),
 
-            // Badge flotante "En tiempo real" (Figma 03 · Mapa)
-            Positioned(
-              top: 14,
-              left: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
+            // Badge flotante "En tiempo real" (Figma 03 · Mapa) - Oculto durante navegación
+            if (!_isNavigating)
+              Positioned(
+                top: 14,
+                left: 14,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'En tiempo real',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF142C40),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      const Text(
+                        'En tiempo real',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF142C40),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Acciones rápidas superiores derechas (Lista accesible + Actualizar)
-            Positioned(
-              top: 14,
-              right: 14,
-              child: Container(
+            // Acciones rápidas superiores derechas (Lista accesible + Actualizar) - Oculto durante navegación
+            if (!_isNavigating)
+              Positioned(
+                top: 14,
+                right: 14,
+                child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -936,7 +1333,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             // Barra lateral flotante de controles (Zoom + Zonas + Mi Ubicación)
             Positioned(
               right: 14,
-              bottom: _safeRoutes != null ? 240 : 190,
+              bottom: _isNavigating ? 190 : (_safeRoutes != null ? 240 : 190),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1015,7 +1412,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             ),
 
             // Tarjeta flotante inferior: Incidente cercano (Figma 03 · Mapa)
-            if (_safeRoutes == null)
+            if (_safeRoutes == null && !_isNavigating)
               Positioned(
                 bottom: 14,
                 left: 16,
@@ -1035,27 +1432,37 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 ),
               ),
 
-            // Tarjeta HUD de la Ruta Segura activa (Estilo Waze)
-            if (_safeRoutes case final routes? when routes.isNotEmpty)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SafeRouteSheet(
-                    routes: routes,
-                    selectedRouteIndex: _selectedRouteIndex,
-                    destinationName:
-                        _selectedDestination?.name ?? 'Destino seleccionado',
-                    onSelectRoute: (idx) {
-                      setState(() => _selectedRouteIndex = idx);
-                      _centerRoute();
-                    },
-                    onCloseRoute: _closeRoute,
-                    onCenterRoute: _centerRoute,
+            // Tarjeta HUD de la Ruta Segura activa (Estilo Waze) o HUD de Navegación Activa
+            if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
+              if (_isNavigating) ...[
+                _buildTopManeuverCard(isDark),
+                _buildHazardAlertBanner(isDark),
+                _buildSpeedometer(isDark),
+                _buildRecenterButton(isDark),
+                _buildBottomNavHud(routes[_selectedRouteIndex], isDark),
+                _buildArrivalCelebration(isDark),
+              ] else
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SafeRouteSheet(
+                      routes: routes,
+                      selectedRouteIndex: _selectedRouteIndex,
+                      destinationName:
+                          _selectedDestination?.name ?? 'Destino seleccionado',
+                      onSelectRoute: (idx) {
+                        setState(() => _selectedRouteIndex = idx);
+                        _centerRoute();
+                      },
+                      onCloseRoute: _closeRoute,
+                      onCenterRoute: _centerRoute,
+                      onStartNavigation: _startNavigation,
+                    ),
                   ),
                 ),
-              ),
+            ],
           ],
         ),
       ),
@@ -1066,6 +1473,534 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 },
 );
 }
+
+  Widget _buildTopManeuverCard(bool isDark) {
+    return Positioned(
+      top: 14,
+      left: 14,
+      right: 14,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(18),
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F4C81), Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F4C81).withValues(alpha: 0.45),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: _hasArrived
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFF2563EB),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 6),
+                      ],
+                    ),
+                    child: Icon(
+                      _navManeuverIcon,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!_hasArrived)
+                          Text(
+                            _navDistToNextManeuverMeters < 30
+                                ? 'Ahora'
+                                : 'En ${_formatManeuverDist(_navDistToNextManeuverMeters)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        Text(
+                          _navManeuverText,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Detener navegación',
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    onPressed: _stopNavigation,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHazardAlertBanner(bool isDark) {
+    if (_approachingHazard == null) return const SizedBox.shrink();
+    final hazard = _approachingHazard!;
+    final hazardDist = (_navPosition != null &&
+            hazard.latitude != null &&
+            hazard.longitude != null)
+        ? _distance
+            .as(
+              LengthUnit.Meter,
+              _navPosition!,
+              LatLng(hazard.latitude!, hazard.longitude!),
+            )
+            .round()
+        : 200;
+
+    return Positioned(
+      top: 96,
+      left: 14,
+      right: 14,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Material(
+            elevation: 6,
+            borderRadius: BorderRadius.circular(14),
+            color: const Color(0xFFB91C1C),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFB91C1C),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFB91C1C).withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          '¡ALERTA DE PELIGRO EN TU RUTA!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'A $hazardDist m: ${hazard.type} • ${hazard.description.isNotEmpty ? hazard.description : hazard.location}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    onPressed: () => setState(() => _approachingHazard = null),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpeedometer(bool isDark) {
+    return Positioned(
+      bottom: 120,
+      left: 16,
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: const Color(0xFF0F4C81),
+            width: 2.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '${_currentSpeedKmh.round()}',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : const Color(0xFF0F4C81),
+                height: 1.0,
+              ),
+            ),
+            Text(
+              'km/h',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecenterButton(bool isDark) {
+    if (_isFollowingGps) return const SizedBox.shrink();
+    return Positioned(
+      bottom: 120,
+      right: 16,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF0F4C81),
+          foregroundColor: Colors.white,
+          elevation: 4,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+        onPressed: _recenterNavigation,
+        icon: const Icon(Icons.navigation_rounded, size: 18),
+        label: const Text(
+          'Recentrar',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavHud(SafeRoute route, bool isDark) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 16,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Fila 1: Indicadores clave (Tiempo restante, Distancia, Hora estimada)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatNavDuration(_navRemainingSecs),
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0F4C81),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        Text(
+                          '${(_navRemainingDistMeters / 1000).toStringAsFixed(1)} km restantes',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.access_time_filled_rounded,
+                              size: 15,
+                              color: Color(0xFF10B981),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatNavEta(_navRemainingSecs),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFFA7F3D0),
+                            ),
+                          ),
+                          child: Text(
+                            '${route.safetyScore}% SEGURO',
+                            style: const TextStyle(
+                              color: Color(0xFF047857),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Divider(
+                  height: 1,
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                ),
+                const SizedBox(height: 10),
+                // Fila 2: Botones de control (Simular recorrido / Detener)
+                Row(
+                  children: [
+                    // Botón Simular recorrido (ideal para pruebas en PC/laptop)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _toggleSimulation,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _isSimulating
+                              ? const Color(0xFFD97706)
+                              : const Color(0xFF0F4C81),
+                          side: BorderSide(
+                            color: _isSimulating
+                                ? const Color(0xFFF59E0B)
+                                : const Color(0xFFCBD5E1),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        icon: Icon(
+                          _isSimulating
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _isSimulating ? 'Pausar simulación' : 'Simular recorrido',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Botón Salir / Detener navegación
+                    ElevatedButton.icon(
+                      onPressed: _stopNavigation,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFDC2626),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                      ),
+                      icon: const Icon(Icons.stop_rounded, size: 18),
+                      label: const Text(
+                        'Salir',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArrivalCelebration(bool isDark) {
+    if (!_hasArrived) return const SizedBox.shrink();
+    return Positioned(
+      top: 100,
+      left: 20,
+      right: 20,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Material(
+            elevation: 12,
+            borderRadius: BorderRadius.circular(20),
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF10B981),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFECFDF5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.celebration_rounded,
+                      color: Color(0xFF059669),
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '¡Llegaste a tu destino!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F4C81),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Has completado la ruta con seguridad en Cartagena Segura.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _stopNavigation,
+                      child: const Text(
+                        'Finalizar navegación',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _showFilters(BuildContext context) async {
     var type = _typeFilter;

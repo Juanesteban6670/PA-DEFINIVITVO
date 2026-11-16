@@ -13,6 +13,7 @@ class SafeRouteSheet extends StatefulWidget {
     required this.onSelectRoute,
     required this.onCloseRoute,
     required this.onCenterRoute,
+    this.onStartNavigation,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class SafeRouteSheet extends StatefulWidget {
   final ValueChanged<int> onSelectRoute;
   final VoidCallback onCloseRoute;
   final VoidCallback onCenterRoute;
+  final VoidCallback? onStartNavigation;
 
   @override
   State<SafeRouteSheet> createState() => _SafeRouteSheetState();
@@ -430,7 +432,38 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
             ),
           ],
 
-          const SizedBox(height: 8),
+          // Botón principal de Iniciar Navegación en vivo estilo Waze
+          if (widget.onStartNavigation != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: widget.onStartNavigation,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F4C81),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shadowColor: const Color(0xFF0F4C81).withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.navigation_rounded, size: 20),
+                  label: const Text(
+                    'Iniciar navegación',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            const SizedBox(height: 8),
         ],
       ),
     );
