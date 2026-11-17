@@ -87,6 +87,10 @@ public class IncidentController {
     @GetMapping("/My")
     @Operation(summary = "Mis incidentes", description = "Retorna los incidentes reportados por el usuario autenticado.")
     public ResponseEntity<ApiResponse<List<Incident>>> getMine(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Autenticación requerida para ver reportes propios"));
+        }
         return ResponseEntity.ok(ApiResponse.ok("OK", incidentService.getByUser(userDetails.getUsername())));
     }
 

@@ -171,7 +171,9 @@ class ApiClient {
 
   Future<dynamic> _decodeResponse(http.Response response) async {
     String? sessionCleanupError;
-    if (response.statusCode == 401 && token != null && onUnauthorized != null) {
+    if ((response.statusCode == 401 || response.statusCode == 403) &&
+        token != null &&
+        onUnauthorized != null) {
       try {
         await onUnauthorized!();
       } on Exception catch (error) {

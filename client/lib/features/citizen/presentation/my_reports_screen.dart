@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_repository.dart';
@@ -359,18 +360,20 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                        ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(
                             Icons.people_outline_rounded,
-                            color: Color(0xFF0F4C81),
+                            color: isDark ? AppColors.sky : const Color(0xFF0F4C81),
                             size: 22,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,15 +383,15 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF142C40),
+                                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
                                   'Reporta con respeto. No compartas datos personales.',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF64748B),
+                                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -917,6 +920,10 @@ class _ReportsError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAuthError = message.contains('401') ||
+        message.contains('403') ||
+        message.toLowerCase().contains('sesión') ||
+        message.toLowerCase().contains('autentic');
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -929,10 +936,18 @@ class _ReportsError extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_outlined, color: Color(0xFFDC2626), size: 36),
+          Icon(
+            isAuthError ? Icons.lock_outline_rounded : Icons.cloud_off_outlined,
+            color: isAuthError
+                ? (isDark ? AppColors.brightBlue : const Color(0xFF0F4C81))
+                : const Color(0xFFDC2626),
+            size: 36,
+          ),
           const SizedBox(height: 10),
           Text(
-            'No se pudieron cargar los reportes',
+            isAuthError
+                ? 'Sesión requerida'
+                : 'No se pudieron cargar los reportes',
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: isDark ? AppColors.darkText : const Color(0xFF142C40),
@@ -940,18 +955,44 @@ class _ReportsError extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            message,
+            isAuthError
+                ? 'Para consultar tus reportes personales debes iniciar sesión con tu cuenta.'
+                : message,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
             ),
           ),
-          const SizedBox(height: 10),
-          TextButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Reintentar'),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isAuthError) ...[
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F4C81),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (GoRouter.maybeOf(context) != null) {
+                      context.go('/Login');
+                    }
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 16),
+                  label: const Text('Iniciar sesión'),
+                ),
+                const SizedBox(width: 10),
+              ],
+              TextButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Reintentar'),
+              ),
+            ],
           ),
         ],
       ),
