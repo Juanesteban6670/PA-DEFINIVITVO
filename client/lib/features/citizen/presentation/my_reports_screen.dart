@@ -424,11 +424,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   }
 
   void _showDetails(Incident incident) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.darkCard : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -440,29 +441,29 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             children: [
               Text(
                 incident.type,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF142C40),
+                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                 ),
               ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 children: [
-                  _StatusBadge(status: incident.status),
+                  _StatusBadge(status: incident.status, isDark: isDark),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       'Prioridad: ${incident.priority}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF475569),
+                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -471,9 +472,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               const SizedBox(height: 16),
               Text(
                 incident.description.isEmpty ? 'Sin descripción' : incident.description,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF334155),
+                  color: isDark ? AppColors.darkText : const Color(0xFF334155),
                   height: 1.5,
                 ),
               ),
@@ -482,15 +483,19 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.place_outlined, color: Color(0xFF0F4C81), size: 18),
+                    Icon(
+                      Icons.place_outlined,
+                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         incident.location,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF142C40),
+                          color: isDark ? AppColors.darkText : const Color(0xFF142C40),
                         ),
                       ),
                     ),
@@ -501,14 +506,20 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'Enviado: ${_formatDate(incident.createdAt!)}',
-                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  style: TextStyle(
+                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
                 ),
               ],
               if (incident.latitude != null && incident.longitude != null) ...[
                 const SizedBox(height: 8),
                 Text(
                   'GPS: ${incident.latitude}, ${incident.longitude}',
-                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                  style: TextStyle(
+                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ],
@@ -781,28 +792,29 @@ class _FigmaReportCard extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status, required this.isDark});
+  const _StatusBadge({required this.status, this.isDark});
 
   final String status;
-  final bool isDark;
+  final bool? isDark;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
     final (label, bg, fg) = switch (status.toUpperCase()) {
       'RESOLVED' => (
           'Resuelto',
-          isDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
-          isDark ? const Color(0xFF6EE7B7) : const Color(0xFF087554),
+          effectiveIsDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
+          effectiveIsDark ? const Color(0xFF6EE7B7) : const Color(0xFF087554),
         ),
       'IN_PROGRESS' => (
           'En atención',
-          isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
-          isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
+          effectiveIsDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
+          effectiveIsDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
         ),
       _ => (
           'En revisión',
-          isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-          isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+          effectiveIsDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          effectiveIsDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
         ),
     };
 
@@ -812,7 +824,7 @@ class _StatusBadge extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? fg.withValues(alpha: 0.3) : Colors.transparent,
+          color: effectiveIsDark ? fg.withValues(alpha: 0.3) : Colors.transparent,
         ),
       ),
       child: Text(
