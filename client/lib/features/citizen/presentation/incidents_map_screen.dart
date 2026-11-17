@@ -13,6 +13,7 @@ import 'package:cartagena_segura/core/data/incident_filters.dart';
 import 'package:cartagena_segura/core/data/location_service.dart';
 import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/safe_route_service.dart';
+import 'package:cartagena_segura/core/services/voice_navigation/voice_navigation_service.dart';
 import 'package:cartagena_segura/features/citizen/presentation/destination_search_dialog.dart';
 import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.dart';
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
@@ -75,6 +76,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   bool _isSimulating = false;
   Timer? _simulationTimer;
   StreamSubscription<Position>? _gpsStreamSubscription;
+  List<LatLng> _traveledPoints = const [];
+  List<LatLng> _remainingPoints = const [];
+  int _offRouteCount = 0;
+  bool _isRecalculating = false;
+  DateTime? _navigationStartTime;
 
   @override
   void initState() {
@@ -110,6 +116,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   void dispose() {
     _simulationTimer?.cancel();
     _gpsStreamSubscription?.cancel();
+    VoiceNavigationService.instance.stop();
     widget.incidentRefresh.removeListener(_onIncidentRefresh);
     super.dispose();
   }
@@ -330,11 +337,19 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       _navRemainingSecs = activeRoute.durationSeconds;
       _currentSpeedKmh = 0.0;
       _navHeading = 0.0;
+      _traveledPoints = [startPoint];
+      _remainingPoints = List<LatLng>.from(activeRoute.points);
+      _offRouteCount = 0;
+      _isRecalculating = false;
+      _navigationStartTime = DateTime.now();
     });
 
     _mapController.move(startPoint, 17.5);
     _updateNavProgress(startPoint, activeRoute);
     _startGpsStream(activeRoute);
+
+    final destName = _selectedDestination?.name ?? 'tu destino';
+    VoiceNavigationService.instance.announceStart(destName);
   }
 
   void _stopNavigation() {
@@ -342,12 +357,17 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     _simulationTimer = null;
     _gpsStreamSubscription?.cancel();
     _gpsStreamSubscription = null;
+    VoiceNavigationService.instance.stop();
     setState(() {
       _isNavigating = false;
       _isSimulating = false;
       _approachingHazard = null;
       _hasArrived = false;
       _currentSpeedKmh = 0.0;
+      _traveledPoints = const [];
+      _remainingPoints = const [];
+      _offRouteCount = 0;
+      _isRecalculating = false;
     });
     _centerRoute();
   }
@@ -410,7 +430,31 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     }
     _navRoutePointIndex = max(_navRoutePointIndex, closestIdx);
 
-    // 2. Calcular distancia restante sumando segmentos futuros
+    // 2. Ruta Bicolor Dinámica: Segmentar tramo recorrido vs tramo pendiente
+    final validIdx = _navRoutePointIndex.clamp(0, route.points.length - 1);
+    final traveled = <LatLng>[
+      ...route.points.sublist(0, validIdx + 1),
+      currentLoc,
+    ];
+    final remaining = <LatLng>[
+      currentLoc,
+      if (validIdx + 1 < route.points.length)
+        ...route.points.sublist(validIdx + 1),
+    ];
+
+    // 3. Detección de Desvíos (Off-Route) y Recálculo Automático
+    if (minDistance > 45.0 && !_isSimulating) {
+      _offRouteCount++;
+      if (_offRouteCount >= 3 && !_isRecalculating) {
+        _isRecalculating = true;
+        VoiceNavigationService.instance.announceDeviation();
+        _recalculateRoute(currentLoc);
+      }
+    } else if (minDistance <= 35.0) {
+      _offRouteCount = 0;
+    }
+
+    // 4. Calcular distancia restante sumando segmentos futuros
     var remainingDist = _distance.as(
       LengthUnit.Meter,
       currentLoc,
@@ -428,24 +472,30 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         ? (remainingDist / route.distanceMeters) * route.durationSeconds
         : 0.0;
 
-    // 3. Comprobar si ha llegado a destino (< 25 metros o último punto)
+    // 5. Comprobar si ha llegado a destino (< 25 metros o último punto)
     if (remainingDist < 25 || _navRoutePointIndex >= route.points.length - 1) {
-      setState(() {
-        _hasArrived = true;
-        _isSimulating = false;
-        _currentSpeedKmh = 0.0;
-        _navRemainingDistMeters = 0.0;
-        _navRemainingSecs = 0.0;
-        _navManeuverText = '¡Llegaste a tu destino!';
-        _navManeuverIcon = Icons.flag_rounded;
-        _navDistToNextManeuverMeters = 0.0;
-        _approachingHazard = null;
-      });
-      _simulationTimer?.cancel();
+      if (!_hasArrived) {
+        setState(() {
+          _hasArrived = true;
+          _isSimulating = false;
+          _currentSpeedKmh = 0.0;
+          _navRemainingDistMeters = 0.0;
+          _navRemainingSecs = 0.0;
+          _navManeuverText = '¡Llegaste a tu destino!';
+          _navManeuverIcon = Icons.flag_rounded;
+          _navDistToNextManeuverMeters = 0.0;
+          _approachingHazard = null;
+          _traveledPoints = traveled;
+          _remainingPoints = const [];
+        });
+        _simulationTimer?.cancel();
+        VoiceNavigationService.instance.announceArrival();
+        _showArrivalSummaryDialog(route);
+      }
       return;
     }
 
-    // 4. Calcular próximo giro/maniobra analizando cambios de ángulo en los vértices
+    // 6. Calcular próximo giro/maniobra analizando cambios de ángulo en los vértices
     IconData maneuverIcon = Icons.straight_rounded;
     String maneuverText = 'Continúa recto por la vía';
     double distToTurn = remainingDist;
@@ -469,29 +519,54 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
       if (angleDiff.abs() >= 25.0) {
         distToTurn = accumulatedDist;
-        if (angleDiff > 25.0) {
-          if (angleDiff > 70.0) {
+        final isRight = angleDiff > 0;
+        final isSharp = angleDiff.abs() > 70.0;
+        final maneuverKey =
+            'turn_${pB.latitude.toStringAsFixed(4)}_${pB.longitude.toStringAsFixed(4)}';
+
+        if (isRight) {
+          if (isSharp) {
             maneuverIcon = Icons.turn_right_rounded;
             maneuverText = distToTurn < 30
                 ? 'Gira ahora a la derecha'
                 : 'En ${_formatManeuverDist(distToTurn)} gira a la derecha';
+            VoiceNavigationService.instance.announceManeuver(
+              maneuverKey: maneuverKey,
+              actionText: 'gira a la derecha',
+              distanceMeters: distToTurn,
+            );
           } else {
             maneuverIcon = Icons.turn_slight_right_rounded;
             maneuverText = distToTurn < 30
                 ? 'Curva a la derecha'
                 : 'En ${_formatManeuverDist(distToTurn)} curva a la derecha';
+            VoiceNavigationService.instance.announceManeuver(
+              maneuverKey: maneuverKey,
+              actionText: 'curva suave a la derecha',
+              distanceMeters: distToTurn,
+            );
           }
         } else {
-          if (angleDiff < -70.0) {
+          if (isSharp) {
             maneuverIcon = Icons.turn_left_rounded;
             maneuverText = distToTurn < 30
                 ? 'Gira ahora a la izquierda'
                 : 'En ${_formatManeuverDist(distToTurn)} gira a la izquierda';
+            VoiceNavigationService.instance.announceManeuver(
+              maneuverKey: maneuverKey,
+              actionText: 'gira a la izquierda',
+              distanceMeters: distToTurn,
+            );
           } else {
             maneuverIcon = Icons.turn_slight_left_rounded;
             maneuverText = distToTurn < 30
                 ? 'Curva a la izquierda'
                 : 'En ${_formatManeuverDist(distToTurn)} curva a la izquierda';
+            VoiceNavigationService.instance.announceManeuver(
+              maneuverKey: maneuverKey,
+              actionText: 'curva suave a la izquierda',
+              distanceMeters: distToTurn,
+            );
           }
         }
         break;
@@ -505,7 +580,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       }
     }
 
-    // 5. Cálculo de orientación/rumbo (bearing) si la velocidad o GPS no la reporta
+    // 7. Cálculo de orientación/rumbo (bearing) si la velocidad o GPS no la reporta
     if (_navRoutePointIndex < route.points.length - 1) {
       final nextP = route.points[_navRoutePointIndex + 1];
       final b = _distance.bearing(currentLoc, nextP);
@@ -516,7 +591,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       }
     }
 
-    // 6. Detección de incidentes/peligros cercanos en la ruta (< 350 metros)
+    // 8. Detección de incidentes/peligros cercanos en la ruta (< 350 metros)
     Incident? approaching;
     for (final hazard in route.hazardsOnRoute) {
       if (hazard.latitude == null || hazard.longitude == null) continue;
@@ -524,6 +599,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       final hDist = _distance.as(LengthUnit.Meter, currentLoc, hLoc);
       if (hDist <= 350.0) {
         approaching = hazard;
+        VoiceNavigationService.instance.announceHazard(
+          hazardType: hazard.type ?? 'peligro reportado',
+          distanceMeters: hDist,
+        );
         break;
       }
     }
@@ -535,7 +614,218 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       _navManeuverText = maneuverText;
       _navDistToNextManeuverMeters = distToTurn;
       _approachingHazard = approaching;
+      _traveledPoints = traveled;
+      _remainingPoints = remaining;
     });
+  }
+
+  Future<void> _recalculateRoute(LatLng currentLoc) async {
+    if (_selectedDestination == null) {
+      _isRecalculating = false;
+      return;
+    }
+    try {
+      final currentIncidents = await _incidents;
+      final rawRoutes = await SafeRouteService.calculateRoutes(
+        origin: currentLoc,
+        destination: _selectedDestination!.location,
+        incidents: currentIncidents,
+      );
+      if (rawRoutes.isNotEmpty && mounted && _isNavigating) {
+        setState(() {
+          _safeRoutes = rawRoutes;
+          _selectedRouteIndex = 0;
+          _navRoutePointIndex = 0;
+          _offRouteCount = 0;
+          _isRecalculating = false;
+        });
+        VoiceNavigationService.instance.speak(
+          'Ruta recalculada. Continúa por la nueva vía.',
+          force: true,
+        );
+        _updateNavProgress(currentLoc, rawRoutes.first);
+      } else {
+        _isRecalculating = false;
+      }
+    } catch (e) {
+      debugPrint('Error en recálculo de ruta: $e');
+      _isRecalculating = false;
+    }
+  }
+
+  void _showArrivalSummaryDialog(SafeRoute route) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final elapsedSecs = _navigationStartTime != null
+        ? DateTime.now().difference(_navigationStartTime!).inSeconds
+        : route.durationSeconds.round();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFECFDF5),
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF10B981),
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                '¡Llegaste a tu destino!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? AppColors.darkText : AppColors.navy,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _selectedDestination?.name ?? 'Destino alcanzado',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        const Icon(Icons.timer_outlined, size: 20, color: Color(0xFF0F4C81)),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatNavDuration(elapsedSecs.toDouble()),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
+                          ),
+                        ),
+                        Text(
+                          'Tiempo empleado',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(width: 1, height: 35, color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1)),
+                    Column(
+                      children: [
+                        const Icon(Icons.straighten_rounded, size: 20, color: Color(0xFF0F4C81)),
+                        const SizedBox(height: 4),
+                        Text(
+                          route.formattedDistance,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
+                          ),
+                        ),
+                        Text(
+                          'Distancia total',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(width: 1, height: 35, color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1)),
+                    Column(
+                      children: [
+                        const Icon(Icons.shield_outlined, size: 20, color: Color(0xFF10B981)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${route.safetyScore}%',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF10B981),
+                          ),
+                        ),
+                        Text(
+                          'Ruta segura',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _stopNavigation();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F4C81),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Finalizar y Volver al Mapa',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
   }
 
   void _toggleSimulation() {
@@ -914,8 +1204,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
                   PolylineLayer(
                     polylines: [
+                      // Rutas alternativas en modo pre-navegación
                       for (var i = 0; i < routes.length; i++)
-                        if (i != _selectedRouteIndex)
+                        if (i != _selectedRouteIndex && !_isNavigating)
                           Polyline(
                             points: routes[i].points,
                             strokeWidth: 4.0,
@@ -926,15 +1217,39 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 isDark ? Colors.black54 : Colors.white70,
                             borderStrokeWidth: 1.0,
                           ),
-                      Polyline(
-                        points: routes[_selectedRouteIndex].points,
-                        strokeWidth: 6.0,
-                        color: _routeColor(
-                          routes[_selectedRouteIndex].safetyLevel,
+                      // En modo estático (pre-navegación): ruta completa seleccionada
+                      if (!_isNavigating)
+                        Polyline(
+                          points: routes[_selectedRouteIndex].points,
+                          strokeWidth: 6.0,
+                          color: _routeColor(
+                            routes[_selectedRouteIndex].safetyLevel,
+                          ),
+                          borderColor: isDark ? Colors.black : Colors.white,
+                          borderStrokeWidth: 2.5,
                         ),
-                        borderColor: isDark ? Colors.black : Colors.white,
-                        borderStrokeWidth: 2.5,
-                      ),
+                      // En modo NAVEGACIÓN ACTIVA: Ruta Bicolor Dinámica
+                      // 1. Tramo Recorrido: color gris suave que avanza conforme el usuario se desplaza
+                      if (_isNavigating && _traveledPoints.length >= 2)
+                        Polyline(
+                          points: _traveledPoints,
+                          strokeWidth: 5.0,
+                          color: isDark
+                              ? const Color(0xFF64748B)
+                              : const Color(0xFF94A3B8),
+                          borderColor:
+                              isDark ? Colors.black45 : Colors.white70,
+                          borderStrokeWidth: 1.2,
+                        ),
+                      // 2. Tramo Pendiente: azul institucional vibrante que se reduce progresivamente
+                      if (_isNavigating && _remainingPoints.isNotEmpty)
+                        Polyline(
+                          points: _remainingPoints,
+                          strokeWidth: 6.5,
+                          color: const Color(0xFF0F4C81),
+                          borderColor: isDark ? Colors.black : Colors.white,
+                          borderStrokeWidth: 2.5,
+                        ),
                     ],
                   ),
                   MarkerLayer(
@@ -1544,6 +1859,17 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (_selectedDestination?.name != null)
+                          Text(
+                            _selectedDestination!.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         if (!_hasArrived)
                           Text(
                             _navDistToNextManeuverMeters < 30
@@ -1855,6 +2181,97 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 Divider(
                   height: 1,
                   color: isDark ? AppColors.darkBorder : AppColors.border,
+                ),
+                const SizedBox(height: 10),
+                // Barra de herramientas: Velocidad, Voz y Recentrado de cámara
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Indicador de velocidad actual
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.speed_rounded,
+                            size: 16,
+                            color: _currentSpeedKmh > 60
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF0F4C81),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_currentSpeedKmh.toStringAsFixed(0)} km/h',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? AppColors.darkText : AppColors.navy,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Botón de alternar silencio de voz (TTS)
+                        ValueListenableBuilder<bool>(
+                          valueListenable: VoiceNavigationService.instance.isMuted,
+                          builder: (context, isMuted, _) {
+                            return IconButton(
+                              tooltip: isMuted ? 'Activar voz' : 'Silenciar voz',
+                              style: IconButton.styleFrom(
+                                backgroundColor: isDark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF1F5F9),
+                              ),
+                              icon: Icon(
+                                isMuted
+                                    ? Icons.volume_off_rounded
+                                    : Icons.volume_up_rounded,
+                                size: 20,
+                                color: isMuted
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFF0F4C81),
+                              ),
+                              onPressed: () =>
+                                  VoiceNavigationService.instance.toggleMute(),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        // Botón para recentrar la cámara al usuario / vehículo
+                        IconButton(
+                          tooltip: 'Recentrar vehículo',
+                          style: IconButton.styleFrom(
+                            backgroundColor: _isFollowingGps
+                                ? const Color(0xFF0F4C81).withValues(alpha: 0.15)
+                                : (isDark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF1F5F9)),
+                          ),
+                          icon: Icon(
+                            _isFollowingGps
+                                ? Icons.my_location_rounded
+                                : Icons.location_searching_rounded,
+                            size: 20,
+                            color: _isFollowingGps
+                                ? const Color(0xFF0F4C81)
+                                : const Color(0xFF64748B),
+                          ),
+                          onPressed: _recenterNavigation,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 // Fila 2: Botones de control (Simular recorrido / Detener)
