@@ -125,13 +125,22 @@ public class DataMiningService {
                 }
             }
 
-            double criticalRatio = count30d > 0 ? (double) highOrCriticalCount / count30d : 0.25;
-            double momentumRatio = count30d > 0 ? (double) (count7d * 4) / Math.max(1, count30d) : 1.0;
+            double criticalRatio = count30d > 0 ? (double) highOrCriticalCount / count30d : 0.05;
+            double momentumRatio = count30d > 0 ? (double) (count7d * 4) / Math.max(1, count30d) : 0.10;
 
             String predominantType = typeFrequency.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .map(Map.Entry::getKey)
-                    .orElse("ROBO");
+                    .orElseGet(() -> switch (sector) {
+                        case "Centro Histórico" -> "ROBO";
+                        case "Bazurto" -> "PELEA";
+                        case "Olaya Herrera" -> "SOS";
+                        case "Getsemaní" -> "ALTERCADO";
+                        case "Bocagrande" -> "TRAFICO";
+                        case "Manga" -> "OBSTACULO_VIAL";
+                        case "Pie de la Popa" -> "ACCIDENTE_TRANSITO";
+                        default -> "PATRULLAJE_PREVENTIVO";
+                    });
 
             double[] coords = SECTOR_COORDINATES.getOrDefault(sector, new double[]{10.4200, -75.5400});
             String zoneId = zoneMap.getOrDefault(sector.toLowerCase(), "zone_" + sector.toLowerCase().replaceAll("\\s+", ""));

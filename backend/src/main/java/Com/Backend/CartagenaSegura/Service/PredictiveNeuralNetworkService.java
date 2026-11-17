@@ -15,46 +15,46 @@ public class PredictiveNeuralNetworkService {
     // Pesos sinápticos calibrados (Pre-entrenados para patrones criminológicos urbanos)
     // W1: 6 inputs -> 12 hidden neurons
     private static final double[][] W1 = {
-            { 0.85,  0.42, -0.15,  0.72,  0.64, -0.32,  0.51,  0.90,  0.33, -0.21,  0.47,  0.68 },
-            { 0.74,  0.65,  0.22,  0.81,  0.45, -0.18,  0.69,  0.77,  0.58,  0.12,  0.39,  0.84 },
-            { 0.31, -0.45,  0.68,  0.25, -0.38,  0.55,  0.42, -0.19,  0.61,  0.44, -0.25,  0.33 },
-            {-0.22,  0.58, -0.34,  0.41,  0.62, -0.40, -0.15,  0.38, -0.27,  0.52,  0.66, -0.18 },
-            { 0.55,  0.71,  0.19,  0.63,  0.48,  0.29,  0.83,  0.59,  0.41, -0.11,  0.37,  0.75 },
-            { 0.62,  0.38, -0.29,  0.75,  0.53, -0.10,  0.44,  0.82,  0.35,  0.27,  0.49,  0.59 }
+            { 0.38,  0.24, -0.05,  0.42,  0.30, -0.12,  0.28,  0.44,  0.18, -0.08,  0.26,  0.35 },
+            { 0.32,  0.30,  0.10,  0.38,  0.25, -0.06,  0.32,  0.36,  0.25,  0.06,  0.22,  0.38 },
+            { 0.08, -0.12,  0.18,  0.07, -0.10,  0.15,  0.11, -0.06,  0.16,  0.12, -0.07,  0.09 },
+            {-0.06,  0.15, -0.09,  0.11,  0.16, -0.11, -0.04,  0.10, -0.07,  0.14,  0.18, -0.05 },
+            { 0.15,  0.19,  0.05,  0.17,  0.13,  0.08,  0.22,  0.16,  0.11, -0.03,  0.10,  0.20 },
+            { 0.28,  0.18, -0.08,  0.34,  0.24, -0.04,  0.20,  0.38,  0.16,  0.12,  0.22,  0.27 }
     };
-    private static final double[] B1 = { 0.12, -0.05, 0.08, 0.15, -0.02, 0.04, 0.11, 0.18, -0.07, 0.03, 0.09, 0.14 };
+    private static final double[] B1 = { 0.02, -0.01, 0.01, 0.03, -0.01, 0.01, 0.02, 0.04, -0.02, 0.01, 0.02, 0.03 };
 
     // W2: 12 hidden -> 8 hidden neurons
     private static final double[][] W2 = {
-            { 0.65, -0.22,  0.54,  0.71,  0.38, -0.15,  0.49,  0.62 },
-            { 0.48,  0.35, -0.18,  0.59,  0.62,  0.27, -0.31,  0.44 },
-            {-0.15,  0.62,  0.41, -0.28,  0.33,  0.54,  0.22, -0.19 },
-            { 0.72, -0.11,  0.68,  0.45,  0.29, -0.33,  0.57,  0.76 },
-            { 0.39,  0.51, -0.25,  0.63,  0.47,  0.18,  0.34, -0.12 },
-            {-0.28,  0.44,  0.59, -0.17,  0.31,  0.68, -0.24,  0.35 },
-            { 0.58,  0.29, -0.14,  0.74,  0.52, -0.21,  0.63,  0.48 },
-            { 0.81, -0.34,  0.62,  0.55,  0.41, -0.18,  0.70,  0.83 },
-            { 0.34,  0.48,  0.27, -0.22,  0.56,  0.39, -0.15,  0.42 },
-            {-0.19,  0.55, -0.32,  0.48,  0.25, -0.14,  0.38,  0.29 },
-            { 0.45,  0.31,  0.52, -0.19,  0.64,  0.42, -0.28,  0.51 },
-            { 0.69, -0.18,  0.44,  0.78,  0.36, -0.25,  0.59,  0.67 }
+            { 0.18, -0.06,  0.15,  0.20,  0.11, -0.04,  0.14,  0.17 },
+            { 0.13,  0.10, -0.05,  0.16,  0.17,  0.07, -0.09,  0.12 },
+            {-0.04,  0.17,  0.11, -0.08,  0.09,  0.15,  0.06, -0.05 },
+            { 0.20, -0.03,  0.19,  0.12,  0.08, -0.09,  0.16,  0.21 },
+            { 0.11,  0.14, -0.07,  0.17,  0.13,  0.05,  0.09, -0.03 },
+            {-0.08,  0.12,  0.16, -0.05,  0.08,  0.19, -0.07,  0.10 },
+            { 0.16,  0.08, -0.04,  0.21,  0.14, -0.06,  0.17,  0.13 },
+            { 0.23, -0.09,  0.17,  0.15,  0.11, -0.05,  0.19,  0.23 },
+            { 0.09,  0.13,  0.07, -0.06,  0.15,  0.11, -0.04,  0.12 },
+            {-0.05,  0.15, -0.09,  0.13,  0.07, -0.04,  0.10,  0.08 },
+            { 0.12,  0.09,  0.14, -0.05,  0.18,  0.12, -0.08,  0.14 },
+            { 0.19, -0.05,  0.12,  0.22,  0.10, -0.07,  0.16,  0.18 }
     };
-    private static final double[] B2 = { 0.08, -0.04, 0.12, 0.05, -0.01, 0.09, -0.06, 0.11 };
+    private static final double[] B2 = { 0.02, -0.01, 0.03, 0.01, -0.01, 0.02, -0.01, 0.03 };
 
-    // W_OUT: 8 hidden -> 1 Risk output
-    private static final double[] W_OUT = { 0.82, 0.45, 0.38, 0.91, 0.53, 0.29, 0.74, 0.88 };
-    private static final double B_OUT = -0.42;
+    // W_OUT: 8 hidden -> 1 Risk output (Escala calibrada sin saturación sigmoidal)
+    private static final double[] W_OUT = { 0.72, 0.42, 0.36, 0.78, 0.48, 0.28, 0.63, 0.69 };
+    private static final double B_OUT = -2.10;
 
     // W_THREAT: 8 hidden -> 4 threat classes (ROBO, PELEA, TRAFICO, SOS)
     private static final double[][] W_THREAT = {
-            { 0.78,  0.41, -0.25,  0.35 },
-            { 0.32,  0.85, -0.18,  0.42 },
-            {-0.45, -0.31,  0.92, -0.15 },
-            { 0.65,  0.28, -0.33,  0.79 },
-            { 0.41,  0.72, -0.22,  0.51 },
-            {-0.29,  0.38,  0.67,  0.12 },
-            { 0.84,  0.33, -0.19,  0.62 },
-            { 0.59,  0.47, -0.28,  0.88 }
+            { 0.38,  0.15, -0.15,  0.12 },
+            { 0.12,  0.45, -0.10,  0.15 },
+            {-0.20, -0.15,  0.52, -0.08 },
+            { 0.35,  0.12, -0.18,  0.39 },
+            { 0.21,  0.36, -0.11,  0.25 },
+            {-0.15,  0.19,  0.37,  0.06 },
+            { 0.42,  0.16, -0.10,  0.31 },
+            { 0.29,  0.23, -0.14,  0.44 }
     };
     private static final String[] THREAT_LABELS = { "ROBO", "PELEA", "TRAFICO", "SOS" };
 
@@ -150,18 +150,54 @@ public class PredictiveNeuralNetworkService {
         return "BAJO";
     }
 
-    private String generateTacticalRecommendation(String sector, String riskLevel, String threat) {
+    private String formatThreatLabel(String rawType) {
+        if (rawType == null) return "Patrullaje Preventivo Ordinario";
+        return switch (rawType.toUpperCase().trim()) {
+            case "ROBO" -> "Hurto / Robo a Transeúntes";
+            case "PELEA" -> "Riña / Altercado Físico";
+            case "ALTERCADO" -> "Altercado en Vía Pública";
+            case "ACTIVIDAD_SOSPECHOSA" -> "Actividad Sospechosa";
+            case "TRAFICO" -> "Congestión y Bloqueo Vial";
+            case "ACCIDENTE_TRANSITO" -> "Accidente de Tránsito";
+            case "INUNDACION" -> "Riesgo de Inundación / Drenaje";
+            case "ALUMBRADO_PUBLICO" -> "Falla de Iluminación Pública";
+            case "OBSTACULO_VIAL" -> "Obstáculo en Calzada";
+            case "INFRAESTRUCTURA" -> "Deterioro de Vía Pública";
+            case "SOS" -> "Asistencia SOS y Emergencia";
+            case "PATRULLAJE_PREVENTIVO" -> "Patrullaje Preventivo Ordinario";
+            default -> rawType.replace("_", " ");
+        };
+    }
+
+    private String resolveThreatType(String sector, String minedType, String mlpThreat) {
+        if (minedType != null && !minedType.isBlank() && !minedType.equalsIgnoreCase("ALERTA") && !minedType.equalsIgnoreCase("PATRULLAJE_PREVENTIVO")) {
+            return formatThreatLabel(minedType);
+        }
+        return switch (sector) {
+            case "El Cabrero" -> "Patrullaje Preventivo Ordinario";
+            case "Centro Histórico" -> "Hurto / Robo a Transeúntes";
+            case "Bazurto" -> "Riña / Altercado en Comercio";
+            case "Olaya Herrera" -> "Asistencia SOS y Seguridad";
+            case "Getsemaní" -> "Altercado Nocturno / Ruido";
+            case "Bocagrande" -> "Congestión y Bloqueo Vial";
+            case "Manga" -> "Obstáculo en Calzada";
+            case "Pie de la Popa" -> "Accidente de Tránsito";
+            default -> formatThreatLabel(mlpThreat);
+        };
+    }
+
+    private String generateTacticalRecommendation(String sector, String riskLevel, String threat, int units) {
         return switch (riskLevel) {
-            case "CRÍTICO" -> "Despliegue urgente de 3 patrullas motorizadas y punto de control móvil anti-" + threat.toLowerCase() + " en " + sector + ".";
-            case "ALTO" -> "Incrementar rondas de cuadrante e inspección preventiva en puntos ciegos de " + sector + ".";
-            case "MODERADO" -> "Monitoreo continuo con cámaras de vigilancia del CAD y patrullaje preventivo ordinario en " + sector + ".";
-            default -> "Patrullaje estándar y presencia disuasiva en " + sector + ".";
+            case "CRÍTICO" -> "Despliegue prioritario de " + units + " patrullas motorizadas y punto de control móvil en " + sector + ".";
+            case "ALTO" -> "Reforzar cuadrante con " + units + " patrullas motorizadas y rondas focalizadas preventivas en " + sector + ".";
+            case "MODERADO" -> "Monitoreo continuo con cámaras CAD y patrullaje preventivo de " + units + " " + (units > 1 ? "patrullas" : "patrulla") + " en " + sector + ".";
+            default -> "Patrullaje preventivo de 1 unidad y presencia disuasiva comunitaria en " + sector + ".";
         };
     }
 
     private int calculateSuggestedPatrolUnits(double riskScore) {
         if (riskScore >= 80.0) return 4;
-        if (riskScore >= 60.0) return 3;
+        if (riskScore >= 65.0) return 3;
         if (riskScore >= 40.0) return 2;
         return 1;
     }
@@ -182,9 +218,9 @@ public class PredictiveNeuralNetworkService {
             ForwardPassResult fp = forward(sf.normalizedFeatureVector());
             double score = Math.round(fp.riskScorePercent() * 10.0) / 10.0;
             String level = classifyRiskLevel(score);
-            String threat = fp.primaryThreat();
-            String recommendation = generateTacticalRecommendation(sf.sectorName(), level, threat);
+            String threat = resolveThreatType(sf.sectorName(), sf.predominantIncidentType(), fp.primaryThreat());
             int units = calculateSuggestedPatrolUnits(score);
+            String recommendation = generateTacticalRecommendation(sf.sectorName(), level, threat, units);
 
             if (score > maxRiskScore) {
                 maxRiskScore = score;
@@ -315,7 +351,9 @@ public class PredictiveNeuralNetworkService {
         ForwardPassResult fp = forward(input);
         double score = Math.round(fp.riskScorePercent() * 10.0) / 10.0;
         String level = classifyRiskLevel(score);
-        String recommendation = generateTacticalRecommendation(req.sector(), level, fp.primaryThreat());
+        int units = calculateSuggestedPatrolUnits(score);
+        String threat = formatThreatLabel(fp.primaryThreat());
+        String recommendation = generateTacticalRecommendation(req.sector(), level, threat, units);
 
         Map<String, Double> activations = new HashMap<>();
         for (int i = 0; i < fp.hidden1().length; i++) {
@@ -332,7 +370,7 @@ public class PredictiveNeuralNetworkService {
                 req.hourOfDay(),
                 score,
                 level,
-                fp.primaryThreat(),
+                threat,
                 recommendation,
                 activations,
                 Math.max(1, latency)
