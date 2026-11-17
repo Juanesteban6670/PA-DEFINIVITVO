@@ -12,6 +12,7 @@ import 'package:cartagena_segura/core/localization/language_widgets.dart';
 import 'package:cartagena_segura/shared/live_status_badge.dart';
 import 'widgets/admin_ai_operations_center.dart';
 import 'widgets/admin_comments_dialog.dart';
+import 'widgets/admin_predictive_screen.dart';
 
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/pill_badge.dart';
@@ -37,6 +38,7 @@ class AdminShell extends StatelessWidget {
     ('/Admin/Emergency', 'Emergencias', Icons.phone_in_talk_outlined),
     ('/Admin/Reports', 'Reportes', Icons.query_stats_outlined),
     ('/Admin/Ai', 'Inteligencia', Icons.auto_awesome_outlined),
+    ('/Admin/Predictive', 'Modelo Predictivo', Icons.psychology_outlined),
   ];
 
   @override
@@ -242,6 +244,9 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   Widget build(BuildContext context) {
     if (widget.location == '/Admin/Reports') {
       return _reports(context);
+    }
+    if (widget.location == '/Admin/Predictive') {
+      return AdminPredictiveScreen(api: widget.api);
     }
     return FutureBuilder<dynamic>(
       future: _data,

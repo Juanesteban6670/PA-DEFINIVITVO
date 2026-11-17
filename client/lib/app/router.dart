@@ -91,6 +91,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         'Emergency',
         'Reports',
         'Ai',
+        'Predictive',
       ])
         GoRoute(
           path: '/Admin/$section',
