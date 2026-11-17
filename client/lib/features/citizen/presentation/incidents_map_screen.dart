@@ -826,7 +826,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       },
     );
   }
-  }
 
   void _toggleSimulation() {
     if (_safeRoutes == null || _safeRoutes!.isEmpty) return;
