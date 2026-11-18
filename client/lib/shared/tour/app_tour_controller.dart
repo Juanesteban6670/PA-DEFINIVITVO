@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'package:cartagena_segura/core/data/session_controller.dart';
 
 import 'app_tour_keys.dart';
 import 'app_tour_model.dart';
@@ -15,7 +16,7 @@ class AppTourController {
   int _currentStepIndex = 0;
   OverlayEntry? _overlayEntry;
   ValueChanged<int>? _onSwitchTab;
-  FlutterSecureStorage? _storage;
+  SessionStorage? _storage;
 
   bool get isActive => _isActive;
   int get currentStepIndex => _currentStepIndex;
@@ -81,31 +82,31 @@ class AppTourController {
         ),
       ];
 
-  Future<bool> isTourCompleted(FlutterSecureStorage storage) async {
+  Future<bool> isTourCompleted(SessionStorage storage) async {
     try {
-      final value = await storage.read(key: _storageKey);
+      final value = await storage.read(_storageKey);
       return value == 'true';
     } catch (_) {
       return false;
     }
   }
 
-  Future<void> markCompleted(FlutterSecureStorage storage) async {
+  Future<void> markCompleted(SessionStorage storage) async {
     try {
-      await storage.write(key: _storageKey, value: 'true');
+      await storage.write(_storageKey, 'true');
     } catch (_) {}
   }
 
-  Future<void> resetTour(FlutterSecureStorage storage) async {
+  Future<void> resetTour(SessionStorage storage) async {
     try {
-      await storage.delete(key: _storageKey);
+      await storage.delete(_storageKey);
     } catch (_) {}
   }
 
   /// Inicia el recorrido interactivo
   Future<void> startTour(
     BuildContext context, {
-    required FlutterSecureStorage storage,
+    required SessionStorage storage,
     bool force = false,
     ValueChanged<int>? onSwitchTab,
   }) async {

@@ -148,13 +148,15 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
     }
 
     // Clamp para evitar que se desborde fuera de la pantalla
-    top = top.clamp(16.0, screenSize.height - 240);
+    final maxTop = math.max(16.0, screenSize.height - 240);
+    top = top.clamp(16.0, maxTop);
 
     // Centrar horizontalmente respecto al objetivo, o respecto a la pantalla
     double left = (screenSize.width - cardWidth) / 2;
     if (targetRect != null) {
       final idealLeft = targetRect.center.dx - (cardWidth / 2);
-      left = idealLeft.clamp(16.0, screenSize.width - cardWidth - 16.0);
+      final maxLeft = math.max(16.0, screenSize.width - cardWidth - 16.0);
+      left = idealLeft.clamp(16.0, maxLeft);
     }
 
     return Positioned(
