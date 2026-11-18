@@ -13,6 +13,7 @@ import 'package:cartagena_segura/core/localization/locale_controller.dart';
 import 'package:cartagena_segura/shared/live_status_badge.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/theme.dart';
+import 'package:cartagena_segura/shared/tour/app_tour.dart';
 
 import 'analytics_citizen_screen.dart';
 import 'incidents_map_screen.dart';
@@ -57,6 +58,18 @@ class _HomeShellState extends State<HomeShell> {
     });
     _realtimeService?.addAlertListener(_onEmergencyAlertReceived);
     _realtimeService?.connect();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 700), () {
+        if (mounted) {
+          AppTourController.instance.startTour(
+            context,
+            storage: widget.session.storage,
+            onSwitchTab: _selectTab,
+          );
+        }
+      });
+    });
   }
 
   void _onEmergencyAlertReceived(Map<String, dynamic> alert) {
@@ -222,6 +235,7 @@ class _HomeShellState extends State<HomeShell> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: FilledButton.icon(
+                  key: AppTourKeys.sosButtonKey,
                   style: FilledButton.styleFrom(
                     backgroundColor: isDark ? AppColors.darkRed : AppColors.red,
                     foregroundColor: Colors.white,
@@ -370,12 +384,18 @@ class _HomeShellState extends State<HomeShell> {
           label: strings.navHome,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.map_outlined),
+          icon: KeyedSubtree(
+            key: AppTourKeys.navMapKey,
+            child: const Icon(Icons.map_outlined),
+          ),
           selectedIcon: const Icon(Icons.map_rounded),
           label: strings.navMap,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.assignment_outlined),
+          icon: KeyedSubtree(
+            key: AppTourKeys.navReportsKey,
+            child: const Icon(Icons.assignment_outlined),
+          ),
           selectedIcon: const Icon(Icons.assignment_rounded),
           label: strings.navReports,
         ),

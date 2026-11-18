@@ -4,6 +4,7 @@ import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/core/localization/language_widgets.dart';
 import 'package:cartagena_segura/core/localization/locale_controller.dart';
 import 'package:cartagena_segura/shared/theme.dart';
+import 'package:cartagena_segura/shared/tour/app_tour.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.session, super.key});
@@ -279,6 +280,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
               const Center(child: LanguageSelector()),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        LiquidGlassContainer(
+          borderRadius: BorderRadius.circular(20),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.help_outline_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Guía y Ayuda Ciudadana',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.school_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                title: const Text(
+                  'Ver tutorial interactivo de la app',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
+                ),
+                subtitle: const Text(
+                  'Recorre el paso a paso de las funciones para ciudadanos',
+                  style: TextStyle(fontSize: 11.5),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                onTap: () {
+                  AppTourController.instance.startTour(
+                    context,
+                    storage: session.storage,
+                    force: true,
+                  );
+                },
+              ),
             ],
           ),
         ),

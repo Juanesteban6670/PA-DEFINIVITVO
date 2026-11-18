@@ -5,6 +5,7 @@ import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/theme.dart';
+import 'package:cartagena_segura/shared/tour/app_tour_keys.dart';
 
 import 'citizen_chat_screen.dart';
 import 'notifications_screen.dart';
@@ -556,7 +557,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     else
                       for (final inc in filteredIncidents)
                         _buildIncidentCardFromData(inc, isDark),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+                    _buildSafeRouteBanner(isDark),
+                    const SizedBox(height: 16),
                     _buildAiAssistantCard(isDark),
                     const SizedBox(height: 24),
                   ],
@@ -629,85 +632,154 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _buildDesktopActionPanel(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+  Widget _buildSafeRouteBanner(bool isDark) {
+    return KeyedSubtree(
+      key: AppTourKeys.safeRouteKey,
+      child: LiquidGlassContainer(
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-          width: 0.8,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.alt_route_rounded,
+                  color: isDark ? AppColors.brightBlue : AppColors.blue,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Rutas Seguras Inteligentes',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Calcula la ruta más segura evitando zonas de riesgo y con navegación GPS asistida.',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () => widget.onSelectTab(1),
+                icon: const Icon(Icons.explore_rounded, size: 16),
+                label: const Text(
+                  'Abrir Mapa y Navegación',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.alt_route_rounded,
-                color: isDark ? AppColors.brightBlue : AppColors.blue,
-                size: 20,
+    );
+  }
+
+  Widget _buildDesktopActionPanel(bool isDark) {
+    return KeyedSubtree(
+      key: AppTourKeys.safeRouteKey,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.border,
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.alt_route_rounded,
+                  color: isDark ? AppColors.brightBlue : AppColors.blue,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Rutas Seguras Cartagena',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Calcula la ruta más segura evitando zonas de riesgo y con navegación GPS asistida por voz.',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                height: 1.4,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Rutas Seguras Cartagena',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: isDark ? AppColors.darkText : AppColors.navy,
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () => widget.onSelectTab(1),
+                icon: const Icon(Icons.explore_rounded, size: 18),
+                label: const Text(
+                  'Abrir Mapa y Navegación',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.1),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Calcula la ruta más segura evitando zonas de riesgo y con navegación GPS asistida por voz.',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-              height: 1.4,
             ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () => widget.onSelectTab(1),
-              icon: const Icon(Icons.explore_rounded, size: 18),
-              label: const Text(
-                'Abrir Mapa y Navegación',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.1),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAiAssistantCard(bool isDark) {
-    return LiquidGlassContainer(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(18),
+    return KeyedSubtree(
+      key: AppTourKeys.aiAssistantKey,
+      child: LiquidGlassContainer(
+        padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(18),
       child: Row(
         children: [
           Container(
@@ -764,8 +836,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMetricCard({
     required String value,
