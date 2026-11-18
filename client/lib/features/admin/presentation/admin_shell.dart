@@ -43,12 +43,32 @@ class AdminShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = _sections.indexWhere((section) => section.$1 == location);
     final selectedIndex = selected < 0 ? 0 : selected;
     final wide = MediaQuery.sizeOf(context).width >= 850;
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       appBar: AppBar(
-        title: Text(_sections[selectedIndex].$2),
+        backgroundColor: isDark ? AppColors.darkCanvas : Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            color: isDark ? AppColors.darkBorder : AppColors.border,
+          ),
+        ),
+        title: Text(
+          _sections[selectedIndex].$2,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.4,
+            color: isDark ? AppColors.darkText : AppColors.navy,
+          ),
+        ),
         actions: [
           const LanguageToggleButton(),
           const SizedBox(width: 4),
@@ -57,9 +77,28 @@ class AdminShell extends StatelessWidget {
             api: session.api,
             onPressed: () => context.push('/App/Notifications'),
           ),
-          Text(
-            session.user?.fullName ?? '',
-            style: Theme.of(context).textTheme.bodySmall,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCardHover : const Color(0xFFF2F2F7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                session.user?.fullName ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.1,
+                  color: isDark ? AppColors.darkText : AppColors.navy,
+                ),
+              ),
+            ),
           ),
           IconButton(
             tooltip: 'Cerrar sesión',
@@ -67,8 +106,13 @@ class AdminShell extends StatelessWidget {
               await session.logout();
               if (context.mounted) context.go('/');
             },
-            icon: const Icon(Icons.logout),
+            icon: Icon(
+              Icons.logout_rounded,
+              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+              size: 20,
+            ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       drawer: wide
@@ -108,6 +152,7 @@ class AdminShell extends StatelessWidget {
           if (wide)
             NavigationRail(
               selectedIndex: selectedIndex,
+              backgroundColor: isDark ? const Color(0xFF121214) : AppColors.canvas,
               extended: MediaQuery.sizeOf(context).width >= 1100,
               onDestinationSelected: (index) => context.go(_sections[index].$1),
               destinations: [
@@ -118,7 +163,7 @@ class AdminShell extends StatelessWidget {
                   ),
               ],
             ),
-          if (wide) const VerticalDivider(width: 1),
+          if (wide) VerticalDivider(width: 1, color: isDark ? AppColors.darkBorder : AppColors.border),
           Expanded(
             child: AdminSectionPage(
               key: ValueKey(location),

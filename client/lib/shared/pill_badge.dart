@@ -27,17 +27,17 @@ class PillBadge extends StatelessWidget {
       (false, 'REJECTED') => ('Rechazado', AppColors.red),
       (true, 'LOW') => ('Baja', AppColors.green),
       (true, 'MEDIUM') => ('Media', AppColors.amber),
-      (true, 'HIGH') => ('Alta', const Color(0xFFF97316)),
-      (true, 'CRITICAL') => ('Crítica', AppColors.red),
-      _ => (value, AppColors.muted),
+      (true, 'HIGH') => ('Alta', AppColors.amber),
+      (true, 'CRITICAL') => ('Crítica', isDark ? AppColors.darkRed : AppColors.red),
+      _ => (value, isDark ? AppColors.darkTextMuted : AppColors.muted),
     };
 
-    final bgAlpha = isDark ? 0.22 : 0.12;
-    final borderAlpha = isDark ? 0.35 : 0.22;
+    final bgAlpha = isDark ? 0.20 : 0.10;
+    final borderAlpha = isDark ? 0.40 : 0.25;
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 7 : 9,
+        horizontal: compact ? 8 : 10,
         vertical: compact ? 3 : 4,
       ),
       decoration: BoxDecoration(
@@ -45,7 +45,7 @@ class PillBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: color.withValues(alpha: borderAlpha),
-          width: 1,
+          width: 0.8,
         ),
       ),
       child: Row(

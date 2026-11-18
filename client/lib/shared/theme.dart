@@ -2,34 +2,159 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// Paleta de colores oficial inspirada en las directrices de diseño de Apple
+/// (Human Interface Guidelines - HIG para iOS, iPadOS y macOS).
 abstract final class AppColors {
-  // Brand Blues
-  static const navy = Color(0xFF0F172A);
-  static const navyBlue = Color(0xFF1E3A5F);
-  static const blue = Color(0xFF1D4ED8);
-  static const brightBlue = Color(0xFF3B82F6);
-  static const sky = Color(0xFF38BDF8);
+  // Apple Signature Blues
+  static const blue = Color(0xFF0071E3); // Apple Blue (Web, macOS, iOS)
+  static const brightBlue = Color(0xFF0A84FF); // Apple Dark System Blue
+  static const navy = Color(0xFF1D1D1F); // Apple Primary Label Light
+  static const navyBlue = Color(0xFF2C2C2E); // Apple Secondary Label Light / Fill
+  static const sky = Color(0xFF64D2FF); // Apple System Cyan
 
-  // Light Mode Surfaces
-  static const canvas = Color(0xFFF8FAFC);
-  static const surface = Colors.white;
-  static const border = Color(0xFFE2E8F0);
-  static const muted = Color(0xFF94A3B8);
+  // Light Mode Surfaces (Apple Clean Light HIG)
+  static const canvas = Color(0xFFF5F5F7); // Apple System Gray 6 / Signature Canvas
+  static const surface = Colors.white; // Apple Pure White Surface
+  static const border = Color(0xFFE5E5EA); // Apple System Gray 5 Separator / Hairline Border
+  static const borderSubtle = Color(0xFFF2F2F7);
+  static const muted = Color(0xFF86868B); // Apple Secondary Label Light
 
-  // Status & Priority Accents
-  static const red = Color(0xFFEF4444);
-  static const green = Color(0xFF10B981);
-  static const amber = Color(0xFFF59E0B);
+  // Status & Priority Accents (Apple HIG System Colors)
+  static const red = Color(0xFFFF3B30); // Apple System Red
+  static const green = Color(0xFF34C759); // Apple System Green
+  static const amber = Color(0xFFFF9500); // Apple System Orange / Warning
+  static const yellow = Color(0xFFFFCC00); // Apple System Yellow
+  static const purple = Color(0xFFAF52DE); // Apple System Purple
+  static const indigo = Color(0xFF5856D6); // Apple System Indigo
 
-  // Dark Mode Tokens (Deep Obsidian / Cyber Minimalist)
-  static const darkCanvas = Color(0xFF090D16);
-  static const darkSurface = Color(0xFF111827);
-  static const darkCard = Color(0xFF161F33);
-  static const darkCardHover = Color(0xFF1E293B);
-  static const darkBorder = Color(0xFF1F293D);
-  static const darkBorderSubtle = Color(0xFF334155);
-  static const darkText = Color(0xFFF8FAFC);
-  static const darkTextMuted = Color(0xFF94A3B8);
+  // Dark Mode Tokens (Apple Pure OLED Black & Space Gray HIG)
+  static const darkCanvas = Color(0xFF000000); // Apple System Background (Pure OLED Black)
+  static const darkSurface = Color(0xFF1C1C1E); // Apple Secondary System Background
+  static const darkCard = Color(0xFF1C1C1E); // Apple Grouped Card
+  static const darkCardHover = Color(0xFF2C2C2E); // Apple Tertiary System Background
+  static const darkBorder = Color(0xFF38383A); // Apple Dark Separator
+  static const darkBorderSubtle = Color(0xFF2C2C2E); // Apple Dark Subtle Separator
+  static const darkText = Color(0xFFF5F5F7); // Apple Dark Primary Label
+  static const darkTextMuted = Color(0xFF86868B); // Apple Dark Secondary Label
+
+  // Dark System Accents
+  static const darkRed = Color(0xFFFF453A);
+  static const darkGreen = Color(0xFF30D158);
+  static const darkAmber = Color(0xFFFF9F0A);
+  static const darkPurple = Color(0xFFBF5AF2);
+  static const darkYellow = Color(0xFFFFD60A);
+}
+
+/// Fallback tipográfico optimizado para renderizar SF Pro Display/Text nativo de Apple.
+const List<String> appleFontFallbacks = [
+  'SF Pro Display',
+  'SF Pro Text',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  'system-ui',
+  'Segoe UI',
+  'Helvetica Neue',
+  'sans-serif',
+];
+
+TextTheme _buildAppleTextTheme(Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
+  final primaryColor = isDark ? AppColors.darkText : AppColors.navy;
+  final secondaryColor = isDark ? AppColors.darkTextMuted : AppColors.muted;
+
+  return TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.8,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.6,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.5,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.4,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.4,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.2,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    titleSmall: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.1,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.2,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.2,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.0,
+      color: secondaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    labelLarge: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.1,
+      color: primaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.0,
+      color: secondaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+    labelSmall: TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: secondaryColor,
+      fontFamilyFallback: appleFontFallbacks,
+    ),
+  );
 }
 
 ThemeData buildAppTheme() {
@@ -40,7 +165,7 @@ ThemeData buildAppTheme() {
     onSurface: AppColors.navy,
     primary: AppColors.blue,
     onPrimary: Colors.white,
-    secondary: AppColors.brightBlue,
+    secondary: AppColors.navyBlue,
     error: AppColors.red,
   );
 
@@ -49,17 +174,20 @@ ThemeData buildAppTheme() {
     scaffoldBackgroundColor: AppColors.canvas,
     useMaterial3: true,
     brightness: Brightness.light,
+    textTheme: _buildAppleTextTheme(Brightness.light),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.canvas,
       foregroundColor: AppColors.navy,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: false,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         color: AppColors.navy,
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.2,
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.4,
+        fontFamilyFallback: appleFontFallbacks,
       ),
     ),
     cardTheme: CardThemeData(
@@ -68,15 +196,64 @@ ThemeData buildAppTheme() {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border, width: 0.8),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.navy,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.border, width: 0.8),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.blue,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.border, width: 1.0),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
       ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-        side: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: AppColors.border, width: 0.8),
       ),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
@@ -89,37 +266,45 @@ ThemeData buildAppTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      hintStyle: const TextStyle(
+        color: AppColors.muted,
+        fontSize: 14,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
+      ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.border, width: 1.0),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.border, width: 1.0),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF0F4C81), width: 1.8),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.blue, width: 1.8),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.red, width: 1.0),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.red, width: 1.8),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
-      indicatorColor: AppColors.blue.withValues(alpha: 0.08),
+      elevation: 0,
+      indicatorColor: AppColors.blue.withValues(alpha: 0.1),
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          fontFamilyFallback: appleFontFallbacks,
           color: states.contains(WidgetState.selected)
               ? AppColors.blue
               : AppColors.muted,
@@ -127,6 +312,7 @@ ThemeData buildAppTheme() {
       ),
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
+          size: 22,
           color: states.contains(WidgetState.selected)
               ? AppColors.blue
               : AppColors.muted,
@@ -134,38 +320,54 @@ ThemeData buildAppTheme() {
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.canvas,
       elevation: 0,
       indicatorColor: AppColors.blue.withValues(alpha: 0.1),
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       selectedIconTheme: const IconThemeData(color: AppColors.blue, size: 22),
-      unselectedIconTheme: const IconThemeData(color: Color(0xFF64748B), size: 22),
+      unselectedIconTheme: const IconThemeData(color: AppColors.muted, size: 22),
       selectedLabelTextStyle: const TextStyle(
         color: AppColors.blue,
         fontSize: 12,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        fontFamilyFallback: appleFontFallbacks,
       ),
       unselectedLabelTextStyle: const TextStyle(
-        color: Color(0xFF64748B),
+        color: AppColors.muted,
         fontSize: 12,
         fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
       ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: const WidgetStatePropertyAll(Colors.white),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? AppColors.green
+            : const Color(0xFFE5E5EA),
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     dividerTheme: const DividerThemeData(
       color: AppColors.border,
-      thickness: 1,
+      thickness: 0.8,
       space: 1,
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border, width: 0.8),
       ),
       backgroundColor: AppColors.navy,
       contentTextStyle: const TextStyle(
         color: Colors.white,
         fontSize: 13,
         fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
       ),
       elevation: 4,
     ),
@@ -180,8 +382,8 @@ ThemeData buildDarkAppTheme() {
     onSurface: AppColors.darkText,
     primary: AppColors.brightBlue,
     onPrimary: Colors.white,
-    secondary: AppColors.sky,
-    error: AppColors.red,
+    secondary: AppColors.darkTextMuted,
+    error: AppColors.darkRed,
   );
 
   return ThemeData(
@@ -189,17 +391,20 @@ ThemeData buildDarkAppTheme() {
     scaffoldBackgroundColor: AppColors.darkCanvas,
     useMaterial3: true,
     brightness: Brightness.dark,
+    textTheme: _buildAppleTextTheme(Brightness.dark),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.darkCanvas,
       foregroundColor: AppColors.darkText,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: false,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         color: AppColors.darkText,
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.2,
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.4,
+        fontFamilyFallback: appleFontFallbacks,
       ),
     ),
     cardTheme: CardThemeData(
@@ -208,15 +413,64 @@ ThemeData buildDarkAppTheme() {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: const BorderSide(color: AppColors.darkBorder, width: 0.8),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.brightBlue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.darkCard,
+        foregroundColor: AppColors.darkText,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.darkBorder, width: 0.8),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.brightBlue,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.darkBorder, width: 1.0),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          fontFamilyFallback: appleFontFallbacks,
+        ),
       ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: AppColors.darkCard,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-        side: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: AppColors.darkBorder, width: 0.8),
       ),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
@@ -228,38 +482,46 @@ ThemeData buildDarkAppTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.darkSurface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      hintStyle: const TextStyle(color: AppColors.darkTextMuted, fontSize: 14),
+      fillColor: AppColors.darkCardHover,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      hintStyle: const TextStyle(
+        color: AppColors.darkTextMuted,
+        fontSize: 14,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
+      ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.0),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.0),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.brightBlue, width: 1.8),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkRed, width: 1.0),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkRed, width: 1.8),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: AppColors.darkCanvas,
-      indicatorColor: AppColors.brightBlue.withValues(alpha: 0.15),
+      backgroundColor: const Color(0xFF161618),
+      elevation: 0,
+      indicatorColor: AppColors.brightBlue.withValues(alpha: 0.16),
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          fontFamilyFallback: appleFontFallbacks,
           color: states.contains(WidgetState.selected)
               ? AppColors.brightBlue
               : AppColors.darkTextMuted,
@@ -267,6 +529,7 @@ ThemeData buildDarkAppTheme() {
       ),
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
+          size: 22,
           color: states.contains(WidgetState.selected)
               ? AppColors.brightBlue
               : AppColors.darkTextMuted,
@@ -274,38 +537,54 @@ ThemeData buildDarkAppTheme() {
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: AppColors.darkSurface,
+      backgroundColor: const Color(0xFF121214),
       elevation: 0,
-      indicatorColor: AppColors.brightBlue.withValues(alpha: 0.18),
+      indicatorColor: AppColors.brightBlue.withValues(alpha: 0.16),
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       selectedIconTheme: const IconThemeData(color: AppColors.brightBlue, size: 22),
       unselectedIconTheme: const IconThemeData(color: AppColors.darkTextMuted, size: 22),
       selectedLabelTextStyle: const TextStyle(
         color: AppColors.brightBlue,
         fontSize: 12,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        fontFamilyFallback: appleFontFallbacks,
       ),
       unselectedLabelTextStyle: const TextStyle(
         color: AppColors.darkTextMuted,
         fontSize: 12,
         fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
       ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: const WidgetStatePropertyAll(Colors.white),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? AppColors.darkGreen
+            : const Color(0xFF38383A),
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     dividerTheme: const DividerThemeData(
       color: AppColors.darkBorder,
-      thickness: 1,
+      thickness: 0.8,
       space: 1,
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: const BorderSide(color: AppColors.darkBorder, width: 0.8),
       ),
       backgroundColor: AppColors.darkCard,
       contentTextStyle: const TextStyle(
         color: AppColors.darkText,
         fontSize: 13,
         fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        fontFamilyFallback: appleFontFallbacks,
       ),
       elevation: 6,
     ),

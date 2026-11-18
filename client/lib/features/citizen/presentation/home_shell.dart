@@ -148,8 +148,9 @@ class _HomeShellState extends State<HomeShell> {
           backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
           appBar: wideLayout
               ? AppBar(
-            backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+            backgroundColor: isDark ? AppColors.darkCanvas : Colors.white,
             elevation: 0,
+            scrolledUnderElevation: 0,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
               child: Divider(
@@ -167,11 +168,11 @@ class _HomeShellState extends State<HomeShell> {
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.brightBlue.withValues(alpha: 0.12)
-                        : AppColors.blue.withValues(alpha: 0.06),
+                        : AppColors.blue.withValues(alpha: 0.08),
                     border: Border.all(
                       color: isDark
                           ? AppColors.brightBlue.withValues(alpha: 0.25)
-                          : AppColors.blue.withValues(alpha: 0.1),
+                          : AppColors.blue.withValues(alpha: 0.15),
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -187,8 +188,9 @@ class _HomeShellState extends State<HomeShell> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
                           color: isDark ? AppColors.darkText : AppColors.navy,
                         ),
                       ),
@@ -197,11 +199,12 @@ class _HomeShellState extends State<HomeShell> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                           color: isDark
                               ? AppColors.darkTextMuted
-                              : const Color(0xFF64748B),
-                          letterSpacing: 0.4,
+                              : AppColors.muted,
+                          letterSpacing: -0.1,
                         ),
                       ),
                     ],
@@ -220,20 +223,20 @@ class _HomeShellState extends State<HomeShell> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.red,
+                    backgroundColor: isDark ? AppColors.darkRed : AppColors.red,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     visualDensity: VisualDensity.compact,
-                    elevation: 2,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   onPressed: () => _showSosDialog(context),
                   icon: const Icon(Icons.emergency_rounded, size: 16),
                   label: const Text(
                     'SOS 123',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: -0.1),
                   ),
                 ),
               ),
@@ -262,7 +265,7 @@ class _HomeShellState extends State<HomeShell> {
                 onPressed: () => _selectTab(4),
                 icon: CircleAvatar(
                   radius: 16,
-                  backgroundColor: AppColors.blue,
+                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
                   child: Text(
                     (widget.session.user?.username.isNotEmpty ?? false)
                         ? widget.session.user!.username[0].toUpperCase()
@@ -270,7 +273,7 @@ class _HomeShellState extends State<HomeShell> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -284,7 +287,7 @@ class _HomeShellState extends State<HomeShell> {
                     NavigationRail(
                       selectedIndex: _selectedIndex,
                       onDestinationSelected: _selectTab,
-                      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+                      backgroundColor: isDark ? const Color(0xFF121214) : AppColors.canvas,
                       extended: MediaQuery.sizeOf(context).width >= 1000,
                       labelType: MediaQuery.sizeOf(context).width >= 1000
                           ? null
@@ -308,45 +311,47 @@ class _HomeShellState extends State<HomeShell> {
               ? null
               : Container(
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    color: isDark ? const Color(0xFF161618) : Colors.white,
                     border: Border(
                       top: BorderSide(
-                        color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                        width: 0.8,
                       ),
                     ),
                   ),
                   child: NavigationBarTheme(
                     data: NavigationBarThemeData(
-                      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+                      backgroundColor: isDark ? const Color(0xFF161618) : Colors.white,
                       elevation: 0,
                       height: 66,
-                      indicatorColor: isDark
-                          ? AppColors.brightBlue.withValues(alpha: 0.18)
-                          : const Color(0xFFE7F0F8),
+                      indicatorColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.12),
+                      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       iconTheme: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return IconThemeData(
-                            color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                            color: isDark ? AppColors.brightBlue : AppColors.blue,
                             size: 22,
                           );
                         }
                         return IconThemeData(
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                           size: 22,
                         );
                       }),
                       labelTextStyle: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return TextStyle(
-                            color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                            color: isDark ? AppColors.brightBlue : AppColors.blue,
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
                           );
                         }
                         return TextStyle(
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
+                          letterSpacing: -0.1,
                         );
                       }),
                     ),

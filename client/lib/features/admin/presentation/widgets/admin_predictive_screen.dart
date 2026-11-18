@@ -79,10 +79,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
 
   Color _getRiskColor(String level, bool isDark) {
     return switch (level.toUpperCase()) {
-      'CRÍTICO' => isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-      'ALTO' => isDark ? const Color(0xFFFB923C) : const Color(0xFFEA580C),
-      'MODERADO' => isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-      _ => isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+      'CRÍTICO' => isDark ? AppColors.darkRed : AppColors.red,
+      'ALTO' => isDark ? AppColors.darkAmber : AppColors.amber,
+      'MODERADO' => isDark ? AppColors.darkYellow : AppColors.yellow,
+      _ => isDark ? AppColors.darkGreen : AppColors.green,
     };
   }
 
@@ -278,7 +278,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               title: 'Hotspot Más Vulnerable',
               value: data.highestRiskSector,
               subtitle: 'Mayor probabilidad de ocurrencia',
-              accentColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+              accentColor: isDark ? AppColors.darkRed : AppColors.red,
               icon: Icons.warning_amber_rounded,
               isDark: isDark,
             ),
@@ -286,7 +286,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               title: 'Ventana Horaria Crítica',
               value: data.criticalWindow,
               subtitle: 'Pico de probabilidad proyectado',
-              accentColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+              accentColor: isDark ? AppColors.darkAmber : AppColors.amber,
               icon: Icons.access_time_rounded,
               isDark: isDark,
             ),
@@ -294,7 +294,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               title: 'Eficacia Preventiva',
               value: '${data.preventiveEffectiveness}%',
               subtitle: 'Impacto estimado de patrullaje',
-              accentColor: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+              accentColor: isDark ? AppColors.darkGreen : AppColors.green,
               icon: Icons.health_and_safety_outlined,
               isDark: isDark,
             ),
@@ -921,12 +921,13 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                 final sp = data.sectorPredictions[index];
                 final riskColor = _getRiskColor(sp.riskLevel, isDark);
                 return Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkCard : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                      width: 0.8,
                     ),
                   ),
                   child: Column(
@@ -944,38 +945,43 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                                 sp.sector,
                                 style: TextStyle(
                                   fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.3,
                                   color: isDark ? AppColors.darkText : AppColors.navy,
                                 ),
                               ),
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: riskColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: riskColor.withValues(alpha: 0.4)),
+                              color: riskColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: riskColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                width: 0.8,
+                              ),
                             ),
                             child: Text(
                               '${sp.riskScore}% · ${sp.riskLevel}',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.1,
                                 color: riskColor,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      // Progress bar
+                      // Progress bar estilo Apple Capsule
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(999),
                         child: LinearProgressIndicator(
                           value: (sp.riskScore / 100.0).clamp(0.0, 1.0),
-                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          backgroundColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
                           color: riskColor,
-                          minHeight: 6,
+                          minHeight: 5,
                         ),
                       ),
                       Row(
@@ -985,6 +991,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
+                              letterSpacing: -0.1,
                               color: isDark ? AppColors.brightBlue : AppColors.blue,
                             ),
                           ),
@@ -993,7 +1000,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                             '7d: ${sp.incidentsLast7d} | 30d: ${sp.incidentsLast30d}',
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                             ),
                           ),
                         ],
@@ -1004,7 +1012,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
+                          height: 1.3,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                         ),
                       ),
                     ],
@@ -1039,12 +1048,13 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+          width: 0.8,
         ),
       ),
       child: Column(
@@ -1060,7 +1070,8 @@ class _KpiCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    letterSpacing: -0.1,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                   ),
                 ),
               ),
@@ -1071,7 +1082,8 @@ class _KpiCard extends StatelessWidget {
             value,
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
               color: isDark ? AppColors.darkText : AppColors.navy,
             ),
           ),
@@ -1079,7 +1091,8 @@ class _KpiCard extends StatelessWidget {
             subtitle,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.1,
               color: accentColor,
             ),
           ),
@@ -1107,9 +1120,9 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: isDark ? 0.35 : 0.2)),
+        color: color.withValues(alpha: isDark ? 0.18 : 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: isDark ? 0.35 : 0.2), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

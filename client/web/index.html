@@ -20,11 +20,13 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Aplicación ciudadana Cartagena Segura.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0F172A">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F7">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Cartagena Segura">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
@@ -34,12 +36,53 @@
   <title>Cartagena Segura</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    :root {
+      color-scheme: light dark;
+    }
+
     html,
     body {
       width: 100%;
       height: 100%;
       margin: 0;
-      background: #F8FAFC;
+      background: #F5F5F7;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html, body {
+        background: #000000;
+        color: #F5F5F7;
+      }
+    }
+
+    /* Apple-Style Minimalist Floating Scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.4);
+    }
+    @media (prefers-color-scheme: dark) {
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.22);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.42);
+      }
     }
 
     #app-loading {
@@ -50,24 +93,40 @@
       place-content: center;
       justify-items: center;
       gap: 20px;
-      color: #0F172A;
-      background: #F8FAFC;
-      font: 500 14px system-ui, sans-serif;
+      color: #1D1D1F;
+      background: #F5F5F7;
+      font: 500 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      letter-spacing: -0.2px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #app-loading {
+        background: #000000;
+        color: #F5F5F7;
+      }
     }
 
     #app-loading img {
       width: 76px;
       height: 76px;
       border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     .loading-indicator {
       width: 22px;
       height: 22px;
-      border: 2px solid #CBD5E1;
-      border-top-color: #1D4ED8;
+      border: 2px solid #D2D2D7;
+      border-top-color: #0071E3;
       border-radius: 50%;
       animation: loading-spin 700ms linear infinite;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .loading-indicator {
+        border-color: #38383A;
+        border-top-color: #0A84FF;
+      }
     }
 
     @keyframes loading-spin {

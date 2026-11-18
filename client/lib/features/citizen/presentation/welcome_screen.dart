@@ -105,39 +105,39 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('CONGESTION')) {
       return (
         'Tráfico',
-        isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
-        isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
+        isDark ? AppColors.darkAmber : AppColors.amber,
+        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.2 : 0.12),
         Icons.directions_car_rounded,
       );
     }
     if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO')) {
       return (
         'Seguridad',
-        isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-        isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+        isDark ? AppColors.darkRed : AppColors.red,
+        (isDark ? AppColors.darkRed : AppColors.red).withValues(alpha: isDark ? 0.2 : 0.12),
         Icons.shield_outlined,
       );
     }
     if (t.contains('VIA') || t.contains('OBRA') || t.contains('OBSTACULO') || t.contains('PAVIMENT')) {
       return (
         'Vía cerrada',
-        isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
-        isDark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE),
+        isDark ? AppColors.sky : const Color(0xFF0284C7),
+        (isDark ? AppColors.sky : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.12),
         Icons.construction_rounded,
       );
     }
     if (t.contains('ALUMBR') || t.contains('LUZ') || t.contains('INFRA')) {
       return (
         'Servicios',
-        isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
-        isDark ? const Color(0xFF042F2E) : const Color(0xFFCCFBF1),
+        isDark ? AppColors.darkGreen : AppColors.green,
+        (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.12),
         Icons.lightbulb_outline_rounded,
       );
     }
     return (
       'Alerta',
-      isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
-      isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE8F0F8),
+      isDark ? AppColors.brightBlue : AppColors.blue,
+      (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.12),
       Icons.warning_amber_rounded,
     );
   }
@@ -189,9 +189,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               final m1 = _buildMetricCard(
                 value: '$activeCount',
                 label: 'Reportes activos',
-                valColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
-                iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE8F0F8),
-                iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
+                valColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                iconBg: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconColor: isDark ? AppColors.brightBlue : AppColors.blue,
                 icon: Icons.assignment_outlined,
                 isDark: isDark,
                 onTap: () => widget.onSelectTab(2),
@@ -199,9 +199,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               final m2 = _buildMetricCard(
                 value: '$safeZonesCount',
                 label: 'Zonas seguras',
-                valColor: isDark ? const Color(0xFF34D399) : const Color(0xFF087F5B),
-                iconBg: isDark ? const Color(0xFF064E3B) : const Color(0xFFE5F7EF),
-                iconColor: isDark ? const Color(0xFF34D399) : const Color(0xFF087F5B),
+                valColor: isDark ? AppColors.darkGreen : AppColors.green,
+                iconBg: (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconColor: isDark ? AppColors.darkGreen : AppColors.green,
                 icon: Icons.shield_outlined,
                 isDark: isDark,
                 onTap: () => widget.onSelectTab(1),
@@ -209,9 +209,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               final m3 = _buildMetricCard(
                 value: '$mobilityCount',
                 label: 'Alertas movilidad',
-                valColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
-                iconBg: isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4D9),
-                iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
+                valColor: isDark ? AppColors.darkAmber : AppColors.amber,
+                iconBg: (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconColor: isDark ? AppColors.darkAmber : AppColors.amber,
                 icon: Icons.directions_car_outlined,
                 isDark: isDark,
                 onTap: () => setState(() => _selectedSector = 'Bocagrande'),
@@ -219,9 +219,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               final m4 = _buildMetricCard(
                 value: '$resolvedCount',
                 label: 'Resueltos',
-                valColor: isDark ? const Color(0xFF34D399) : const Color(0xFF087F5B),
-                iconBg: isDark ? const Color(0xFF064E3B) : const Color(0xFFE5F7EF),
-                iconColor: isDark ? const Color(0xFF34D399) : const Color(0xFF087F5B),
+                valColor: isDark ? AppColors.darkGreen : AppColors.green,
+                iconBg: (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconColor: isDark ? AppColors.darkGreen : AppColors.green,
                 icon: Icons.check_circle_outline_rounded,
                 isDark: isDark,
                 onTap: () => widget.onSelectTab(2),
@@ -242,9 +242,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               'Hola, $name',
                               style: TextStyle(
                                 fontSize: isWide ? 28 : 24,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                                letterSpacing: -0.4,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.darkText : AppColors.navy,
+                                letterSpacing: -0.5,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -253,7 +253,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 Icon(
                                   Icons.location_on_rounded,
                                   size: 15,
-                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -261,7 +261,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                    letterSpacing: -0.1,
+                                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                                   ),
                                 ),
                                 const SizedBox(width: 14),
@@ -269,9 +270,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF064E3B).withValues(alpha: 0.35)
-                                        : const Color(0xFFE9F7F1),
-                                    borderRadius: BorderRadius.circular(10),
+                                        ? AppColors.darkGreen.withValues(alpha: 0.18)
+                                        : AppColors.green.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.darkGreen.withValues(alpha: 0.35)
+                                          : AppColors.green.withValues(alpha: 0.25),
+                                      width: 0.8,
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -279,8 +286,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       Container(
                                         width: 6,
                                         height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF10B981),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppColors.darkGreen : AppColors.green,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -290,7 +297,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF087554),
+                                          letterSpacing: -0.1,
+                                          color: isDark ? AppColors.darkGreen : AppColors.green,
                                         ),
                                       ),
                                     ],
@@ -302,7 +310,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
@@ -318,9 +326,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           height: 44,
                           decoration: BoxDecoration(
                             color: isDark ? AppColors.darkCard : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+                              color: isDark ? AppColors.darkBorder : AppColors.border,
+                              width: 0.8,
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -335,7 +344,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             children: [
                               Icon(
                                 Icons.notifications_none_rounded,
-                                color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                color: isDark ? AppColors.darkText : AppColors.navy,
                                 size: 22,
                               ),
                               Positioned(
@@ -345,7 +354,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   width: 7,
                                   height: 7,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444),
+                                    color: isDark ? AppColors.darkRed : AppColors.red,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isDark ? AppColors.darkCard : Colors.white,
@@ -414,9 +423,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     'Reportes recientes en la comunidad',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                                      letterSpacing: -0.3,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? AppColors.darkText : AppColors.navy,
+                                      letterSpacing: -0.4,
                                     ),
                                   ),
                                   const Spacer(),
@@ -426,8 +435,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       'Ver todos',
                                       style: TextStyle(
                                         fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: -0.1,
+                                        color: isDark ? AppColors.brightBlue : AppColors.blue,
                                       ),
                                     ),
                                   ),
@@ -510,9 +520,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           'Reportes recientes',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                            letterSpacing: -0.3,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                            color: isDark ? AppColors.darkText : AppColors.navy,
                           ),
                         ),
                         const Spacer(),
@@ -524,8 +534,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               'Ver todos',
                               style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.1,
+                                color: isDark ? AppColors.brightBlue : AppColors.blue,
                               ),
                             ),
                           ),
@@ -564,16 +575,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+          width: 0.8,
         ),
       ),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle_outline_rounded,
-            color: Color(0xFF10B981),
+            color: isDark ? AppColors.darkGreen : AppColors.green,
             size: 28,
           ),
           const SizedBox(height: 8),
@@ -582,7 +594,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+              letterSpacing: -0.1,
+              color: isDark ? AppColors.darkText : AppColors.navy,
             ),
           ),
           const SizedBox(height: 4),
@@ -590,7 +603,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             'Sector seguro y sin novedades reportadas',
             style: TextStyle(
               fontSize: 11,
-              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
             ),
           ),
         ],
@@ -623,7 +636,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         color: isDark ? AppColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+          width: 0.8,
         ),
         boxShadow: [
           BoxShadow(
@@ -640,7 +654,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             children: [
               Icon(
                 Icons.alt_route_rounded,
-                color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                color: isDark ? AppColors.brightBlue : AppColors.blue,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -648,8 +662,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 'Rutas Seguras Cartagena',
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: isDark ? AppColors.darkText : AppColors.navy,
                 ),
               ),
             ],
@@ -659,7 +674,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             'Calcula la ruta más segura evitando zonas de riesgo y con navegación GPS asistida por voz.',
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
               height: 1.4,
             ),
           ),
@@ -668,18 +683,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF1E3A5F) : const Color(0xFF0F4C81),
+                backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
               ),
               onPressed: () => widget.onSelectTab(1),
               icon: const Icon(Icons.explore_rounded, size: 18),
               label: const Text(
                 'Abrir Mapa y Navegación',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.1),
               ),
             ),
           ),
@@ -693,9 +709,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+          width: 0.8,
         ),
         boxShadow: [
           BoxShadow(
@@ -711,12 +728,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE8F0F8),
+              color: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.smart_toy_outlined,
-              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F4C81),
+              color: isDark ? AppColors.brightBlue : AppColors.blue,
               size: 22,
             ),
           ),
@@ -730,7 +747,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                    letterSpacing: -0.2,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -738,7 +756,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   'Orientación en trámites, seguridad y emergencias.',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                   ),
                 ),
               ],
@@ -775,15 +793,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         height: 92,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+            color: isDark ? AppColors.darkBorder : AppColors.border,
+            width: 0.8,
           ),
           boxShadow: [
             BoxShadow(
@@ -802,7 +821,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   value,
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
                     color: valColor,
                     height: 1.1,
                   ),
@@ -815,7 +835,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF526579),
+                    letterSpacing: -0.1,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                   ),
                 ),
               ],
@@ -842,7 +863,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget _buildSectorChip(String label, bool isDark) {
     final isSelected = _selectedSector == label;
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(999),
       onTap: () {
         setState(() {
           _selectedSector = label;
@@ -853,13 +874,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.brightBlue : const Color(0xFF142C40))
+              ? (isDark ? AppColors.brightBlue : AppColors.navy)
               : (isDark ? AppColors.darkCard : Colors.white),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(999),
           border: isSelected
               ? null
               : Border.all(
-                  color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  width: 0.8,
                 ),
         ),
         alignment: Alignment.center,
@@ -868,9 +890,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            letterSpacing: -0.1,
             color: isSelected
                 ? Colors.white
-                : (isDark ? AppColors.darkTextMuted : const Color(0xFF526579)),
+                : (isDark ? AppColors.darkTextMuted : AppColors.muted),
           ),
         ),
       ),
@@ -892,14 +915,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkCard : Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : const Color(0xFFE7ECF1),
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+              width: 0.8,
             ),
             boxShadow: [
               BoxShadow(
@@ -933,6 +957,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
+                        letterSpacing: 0.1,
                         color: categoryColor,
                       ),
                     ),
@@ -942,9 +967,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                        letterSpacing: -0.2,
+                        color: isDark ? AppColors.darkText : AppColors.navy,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -952,7 +978,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       subtitle,
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                        letterSpacing: -0.1,
+                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                       ),
                     ),
                   ],
@@ -964,7 +991,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  letterSpacing: -0.1,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                 ),
               ),
             ],
