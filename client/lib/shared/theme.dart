@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+export 'liquid_glass.dart';
+
 /// Paleta de colores oficial inspirada en las directrices de diseño de Apple
 /// (Human Interface Guidelines - HIG para iOS, iPadOS y macOS).
 abstract final class AppColors {

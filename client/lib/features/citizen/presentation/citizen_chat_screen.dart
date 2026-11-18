@@ -278,6 +278,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
           ],
         ),
         actions: [
+          const LiquidGlassToggleButton(),
+          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Nueva conversación',
             onPressed: _sending || _restoring ? null : _clearConversation,
@@ -316,39 +318,48 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(12, 8, 12, 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _input,
-                          minLines: 1,
-                          maxLines: 4,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _send(),
-                          decoration: const InputDecoration(
-                            hintText: 'Escribe tu pregunta…',
-                            prefixIcon: Icon(Icons.chat_bubble_outline),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  child: LiquidGlassContainer(
+                    borderRadius: BorderRadius.circular(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    elevation: 2,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _input,
+                            minLines: 1,
+                            maxLines: 4,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _send(),
+                            decoration: const InputDecoration(
+                              hintText: 'Escribe tu pregunta…',
+                              prefixIcon: Icon(Icons.chat_bubble_outline),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              filled: false,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filled(
-                        tooltip: 'Enviar mensaje',
-                        onPressed:
-                            _sending || _restoring ? null : () => _send(),
-                        icon: _sending
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.send),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        IconButton.filled(
+                          tooltip: 'Enviar mensaje',
+                          onPressed:
+                              _sending || _restoring ? null : () => _send(),
+                          icon: _sending
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.send),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -504,48 +515,61 @@ class _MessageBubble extends StatelessWidget {
             constraints: BoxConstraints(
               maxWidth: MediaQuery.sizeOf(context).width * 0.88,
             ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.fromUser ? 18 : 4),
-                  bottomRight: Radius.circular(message.fromUser ? 4 : 18),
-                ),
-                border: Border.all(
-                  color: message.error
-                      ? (isDark
-                          ? const Color(0xFF7F1D1D)
-                          : const Color(0xFFFECACA))
-                      : message.fromUser
-                          ? AppColors.brightBlue
-                          : (isDark ? AppColors.darkBorder : AppColors.border),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: message.fromUser
-                  ? SelectableText(
-                      message.text,
-                      style: TextStyle(
-                        color: textColor,
-                        height: 1.4,
-                        fontSize: 14,
-                      ),
-                    )
-                  : _RichMarkdownView(
+            child: (!message.fromUser && !message.error)
+                ? LiquidGlassContainer(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(18),
+                      topRight: Radius.circular(18),
+                      bottomLeft: Radius.circular(4),
+                      bottomRight: Radius.circular(18),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    child: _RichMarkdownView(
                       text: message.text,
                       baseColor: textColor,
                       isDark: isDark,
                     ),
-            ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(message.fromUser ? 18 : 4),
+                        bottomRight: Radius.circular(message.fromUser ? 4 : 18),
+                      ),
+                      border: Border.all(
+                        color: message.error
+                            ? (isDark
+                                ? const Color(0xFF7F1D1D)
+                                : const Color(0xFFFECACA))
+                            : AppColors.brightBlue,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: message.fromUser
+                        ? SelectableText(
+                            message.text,
+                            style: TextStyle(
+                              color: textColor,
+                              height: 1.4,
+                              fontSize: 14,
+                            ),
+                          )
+                        : _RichMarkdownView(
+                            text: message.text,
+                            baseColor: textColor,
+                            isDark: isDark,
+                          ),
+                  ),
           ),
           if (!message.fromUser && !message.error) ...[
             const SizedBox(height: 6),

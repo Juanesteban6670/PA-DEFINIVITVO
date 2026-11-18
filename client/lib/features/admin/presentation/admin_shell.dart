@@ -72,6 +72,8 @@ class AdminShell extends StatelessWidget {
         actions: [
           const LanguageToggleButton(),
           const SizedBox(width: 4),
+          const LiquidGlassToggleButton(),
+          const SizedBox(width: 4),
           const ThemeToggleButton(),
           NotificationsBell(
             api: session.api,

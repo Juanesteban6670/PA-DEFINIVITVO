@@ -207,58 +207,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: const Text('Editar perfil'),
           ),
         const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.palette_outlined,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Apariencia y Tema',
+        LiquidGlassContainer(
+          borderRadius: BorderRadius.circular(20),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.palette_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Apariencia y Tema',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Center(child: ThemeModeSelector()),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.blur_on_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Efecto Liquid Glass (iOS 27)',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Center(child: LiquidGlassSelector()),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.translate_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  ListenableBuilder(
+                    listenable: LocaleController.instance,
+                    builder: (context, _) => Text(
+                      LocaleController.instance.strings.languageTitle,
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Center(child: ThemeModeSelector()),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.translate_rounded,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    ListenableBuilder(
-                      listenable: LocaleController.instance,
-                      builder: (context, _) => Text(
-                        LocaleController.instance.strings.languageTitle,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Center(child: LanguageSelector()),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Center(child: LanguageSelector()),
+            ],
           ),
         ),
         const SizedBox(height: 12),

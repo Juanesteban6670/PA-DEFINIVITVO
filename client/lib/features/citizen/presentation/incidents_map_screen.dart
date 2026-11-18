@@ -2177,23 +2177,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
-          child: Container(
+          child: LiquidGlassContainer(
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 16,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(20),
+            elevation: 3,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

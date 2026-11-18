@@ -245,6 +245,8 @@ class _HomeShellState extends State<HomeShell> {
                 const LanguageToggleButton(),
               ],
               const SizedBox(width: 4),
+              const LiquidGlassToggleButton(),
+              const SizedBox(width: 4),
               const ThemeToggleButton(),
               NotificationsBell(
                 api: api,
@@ -309,23 +311,16 @@ class _HomeShellState extends State<HomeShell> {
               : IndexedStack(index: _selectedIndex, children: pages),
           bottomNavigationBar: wideLayout
               ? null
-              : Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF161618) : Colors.white,
-                    border: Border(
-                      top: BorderSide(
-                        color: isDark ? AppColors.darkBorder : AppColors.border,
-                        width: 0.8,
-                      ),
-                    ),
-                  ),
+              : LiquidGlassContainer(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                  elevation: 2,
                   child: NavigationBarTheme(
                     data: NavigationBarThemeData(
-                      backgroundColor: isDark ? const Color(0xFF161618) : Colors.white,
+                      backgroundColor: Colors.transparent,
                       elevation: 0,
                       height: 66,
-                      indicatorColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.12),
-                      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      indicatorColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.14),
+                      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       iconTheme: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return IconThemeData(
@@ -356,6 +351,7 @@ class _HomeShellState extends State<HomeShell> {
                       }),
                     ),
                     child: NavigationBar(
+                      backgroundColor: Colors.transparent,
                       selectedIndex: _selectedIndex,
                       onDestinationSelected: _selectTab,
                       destinations: _buildNavDestinations(strings),

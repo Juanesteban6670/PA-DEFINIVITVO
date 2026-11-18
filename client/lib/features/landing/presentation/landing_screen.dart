@@ -49,6 +49,8 @@ class LandingScreen extends StatelessWidget {
               ],
               const LanguageToggleButton(),
               const SizedBox(width: 4),
+              const LiquidGlassToggleButton(),
+              const SizedBox(width: 4),
               const ThemeToggleButton(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -774,15 +776,20 @@ class _AnimatedHeroStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 24,
-      runSpacing: 16,
-      children: const [
-        _CounterItem(value: 25, prefix: '+', label: 'Incidentes gestionados'),
-        _CounterItem(value: 10, label: 'Sectores monitoreados'),
-        _TextStatItem(value: '24/7', label: 'Asistencia IA'),
-        _TextStatItem(value: '100%', label: 'Gratuito y público'),
-      ],
+    return LiquidGlassContainer(
+      borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      elevation: 2,
+      child: Wrap(
+        spacing: 24,
+        runSpacing: 16,
+        children: const [
+          _CounterItem(value: 25, prefix: '+', label: 'Incidentes gestionados'),
+          _CounterItem(value: 10, label: 'Sectores monitoreados'),
+          _TextStatItem(value: '24/7', label: 'Asistencia IA'),
+          _TextStatItem(value: '100%', label: 'Gratuito y público'),
+        ],
+      ),
     );
   }
 }

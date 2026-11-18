@@ -705,23 +705,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Widget _buildAiAssistantCard(bool isDark) {
-    return Container(
+    return LiquidGlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-          width: 0.8,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Row(
         children: [
           Container(
@@ -794,24 +780,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
-      child: Container(
+      child: LiquidGlassContainer(
         height: 92,
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.border,
-            width: 0.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(18),
         child: Stack(
           children: [
             Column(
@@ -916,23 +888,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: Container(
+        child: LiquidGlassContainer(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCard : Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
-              width: 0.8,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+          borderRadius: BorderRadius.circular(18),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
