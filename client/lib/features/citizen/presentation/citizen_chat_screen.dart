@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -60,9 +61,22 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     _scrollToEnd();
 
     try {
+      final history = _messages
+          .where((m) => !m.error && m.text.isNotEmpty)
+          .toList();
+      final recentHistory = (history.length > 10
+              ? history.sublist(history.length - 10)
+              : history)
+          .map((m) => {
+                'role': m.fromUser ? 'user' : 'assistant',
+                'content': m.text,
+              })
+          .toList();
+
       final response = await widget.session.api.post('Ai/Chat', {
         'message': text,
         'sessionId': _sessionId,
+        'history': recentHistory,
       });
       if (response is! Map<String, dynamic> ||
           response['reply'] is! String ||
@@ -72,7 +86,26 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         );
       }
       if (!mounted) return;
-      _messages.add(_ChatMessage(text: response['reply'] as String));
+
+      List<Map<String, String>>? actions;
+      if (response['actions'] is List) {
+        actions = (response['actions'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map((item) => {
+                  'type': item['type']?.toString() ?? '',
+                  'label': item['label']?.toString() ?? '',
+                  'payload': item['payload']?.toString() ?? '',
+                })
+            .where((item) => item['label']!.isNotEmpty)
+            .toList();
+      }
+
+      _messages.add(
+        _ChatMessage(
+          text: response['reply'] as String,
+          actions: actions,
+        ),
+      );
       await _saveHistory();
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -142,12 +175,27 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         final restored = savedMessages
             .whereType<Map<String, dynamic>>()
             .map(
-              (item) => _ChatMessage(
-                text: item['text']?.toString() ?? '',
-                fromUser: item['fromUser'] == true,
-                error: item['error'] == true,
-                retry: item['retry']?.toString(),
-              ),
+              (item) {
+                List<Map<String, String>>? actions;
+                if (item['actions'] is List) {
+                  actions = (item['actions'] as List)
+                      .whereType<Map<String, dynamic>>()
+                      .map((act) => {
+                            'type': act['type']?.toString() ?? '',
+                            'label': act['label']?.toString() ?? '',
+                            'payload': act['payload']?.toString() ?? '',
+                          })
+                      .where((act) => act['label']!.isNotEmpty)
+                      .toList();
+                }
+                return _ChatMessage(
+                  text: item['text']?.toString() ?? '',
+                  fromUser: item['fromUser'] == true,
+                  error: item['error'] == true,
+                  retry: item['retry']?.toString(),
+                  actions: actions,
+                );
+              },
             )
             .where((message) => message.text.isNotEmpty)
             .toList();
@@ -184,6 +232,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                   'fromUser': message.fromUser,
                   'error': message.error,
                   'retry': message.retry,
+                  'actions': message.actions,
                 },
               )
               .toList(),
@@ -317,12 +366,14 @@ class _ChatMessage {
     this.fromUser = false,
     this.error = false,
     this.retry,
+    this.actions,
   });
 
   final String text;
   final bool fromUser;
   final bool error;
   final String? retry;
+  final List<Map<String, String>>? actions;
 }
 
 class _MessageBubble extends StatelessWidget {
@@ -333,9 +384,69 @@ class _MessageBubble extends StatelessWidget {
 
   void _callNumber(String number) async {
     final uri = Uri.parse('tel:$number');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    } catch (_) {}
+  }
+
+  void _onActionTap(BuildContext context, Map<String, String> action) {
+    final type = action['type']?.toUpperCase() ?? '';
+    final payload = action['payload'] ?? '';
+    if (type == 'CALL') {
+      _callNumber(payload);
+    } else if (type == 'NAVIGATE') {
+      if (payload.isNotEmpty) {
+        context.push(payload);
+      }
+    } else if (type == 'REPORT') {
+      context.push('/App/Incidents');
+    } else if (payload.startsWith('CALL:')) {
+      _callNumber(payload.replaceFirst('CALL:', ''));
+    } else if (RegExp(r'^\d+$').hasMatch(payload)) {
+      _callNumber(payload);
+    } else {
+      context.push('/App/Incidents');
     }
+  }
+
+  (IconData, Color) _actionStyle(Map<String, String> action) {
+    final type = action['type']?.toUpperCase() ?? '';
+    final payload = action['payload'] ?? '';
+    final label = (action['label'] ?? '').toLowerCase();
+
+    if (type == 'CALL' ||
+        payload.contains('125') ||
+        label.contains('crue') ||
+        label.contains('ambulancia')) {
+      if (payload == '125' ||
+          label.contains('crue') ||
+          label.contains('ambulancia')) {
+        return (Icons.medical_services_outlined, const Color(0xFFDC2626));
+      }
+      if (payload == '127' ||
+          label.contains('tránsito') ||
+          label.contains('datt')) {
+        return (Icons.traffic_outlined, const Color(0xFF2563EB));
+      }
+      if (payload == '155' || label.contains('púrpura')) {
+        return (Icons.shield_outlined, const Color(0xFF9333EA));
+      }
+      if (payload == '119' || label.contains('bomberos')) {
+        return (Icons.fire_truck_outlined, const Color(0xFFEA580C));
+      }
+      return (Icons.phone_in_talk, AppColors.red);
+    }
+    if (type == 'REPORT' ||
+        label.contains('reporte') ||
+        label.contains('radicar')) {
+      return (Icons.add_alert_outlined, const Color(0xFFD97706));
+    }
+    if (type == 'NAVIGATE' || label.contains('mapa')) {
+      return (Icons.map_outlined, const Color(0xFF2563EB));
+    }
+    return (Icons.touch_app_outlined, AppColors.brightBlue);
   }
 
   void _copyToClipboard(BuildContext context) {
@@ -370,6 +481,19 @@ class _MessageBubble extends StatelessWidget {
     final show119Chip = !message.fromUser &&
         !message.error &&
         (message.text.contains('119') || message.text.contains('Bomberos'));
+    final show125Chip = !message.fromUser &&
+        !message.error &&
+        (message.text.contains('125') ||
+            message.text.contains('CRUE') ||
+            message.text.contains('Ambulancia'));
+    final show127Chip = !message.fromUser &&
+        !message.error &&
+        (message.text.contains('127') ||
+            message.text.contains('DATT') ||
+            message.text.contains('Tránsito'));
+    final show155Chip = !message.fromUser &&
+        !message.error &&
+        (message.text.contains('155') || message.text.contains('Púrpura'));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -424,9 +548,11 @@ class _MessageBubble extends StatelessWidget {
             ),
           ),
           if (!message.fromUser && !message.error) ...[
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 IconButton(
                   tooltip: 'Copiar texto',
@@ -436,47 +562,120 @@ class _MessageBubble extends StatelessWidget {
                   constraints: const BoxConstraints(),
                   onPressed: () => _copyToClipboard(context),
                 ),
-                if (show123Chip) ...[
-                  const SizedBox(width: 6),
-                  ActionChip(
-                    avatar: const Icon(
-                      Icons.phone_in_talk,
-                      size: 13,
-                      color: AppColors.red,
-                    ),
-                    label: const Text(
-                      'Llamar al 123',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                if (message.actions != null && message.actions!.isNotEmpty)
+                  ...message.actions!.map((action) {
+                    final (icon, actColor) = _actionStyle(action);
+                    return ActionChip(
+                      avatar: Icon(icon, size: 13, color: actColor),
+                      label: Text(
+                        action['label'] ?? '',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: actColor,
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      onPressed: () => _onActionTap(context, action),
+                    );
+                  })
+                else ...[
+                  if (show123Chip)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.phone_in_talk,
+                        size: 13,
                         color: AppColors.red,
                       ),
+                      label: const Text(
+                        'Llamar al 123',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red,
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _callNumber('123'),
                     ),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    onPressed: () => _callNumber('123'),
-                  ),
-                ],
-                if (show119Chip) ...[
-                  const SizedBox(width: 6),
-                  ActionChip(
-                    avatar: const Icon(
-                      Icons.fire_truck_outlined,
-                      size: 13,
-                      color: Color(0xFFF97316),
-                    ),
-                    label: const Text(
-                      'Llamar al 119',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  if (show119Chip)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.fire_truck_outlined,
+                        size: 13,
                         color: Color(0xFFF97316),
                       ),
+                      label: const Text(
+                        'Llamar al 119',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFF97316),
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _callNumber('119'),
                     ),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    onPressed: () => _callNumber('119'),
-                  ),
+                  if (show125Chip)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.medical_services_outlined,
+                        size: 13,
+                        color: Color(0xFFDC2626),
+                      ),
+                      label: const Text(
+                        'Llamar al CRUE 125',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFDC2626),
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _callNumber('125'),
+                    ),
+                  if (show127Chip)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.traffic_outlined,
+                        size: 13,
+                        color: Color(0xFF2563EB),
+                      ),
+                      label: const Text(
+                        'Llamar a Tránsito 127',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _callNumber('127'),
+                    ),
+                  if (show155Chip)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.shield_outlined,
+                        size: 13,
+                        color: Color(0xFF9333EA),
+                      ),
+                      label: const Text(
+                        'Línea Púrpura 155',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF9333EA),
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _callNumber('155'),
+                    ),
                 ],
               ],
             ),

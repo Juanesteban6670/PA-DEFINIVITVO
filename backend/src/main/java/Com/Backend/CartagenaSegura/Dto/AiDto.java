@@ -9,7 +9,7 @@ import java.util.List;
 public class AiDto {
 
     /**
-     * Petición genérica para Chat y Clasificación
+     * Petición genérica para Chat y Clasificación con soporte de historial conversacional
      */
     @Data
     @NoArgsConstructor
@@ -19,16 +19,57 @@ public class AiDto {
         private String description; // Para clasificación
         private String sessionId;   // Opcional para contexto
         private boolean isAdmin;    // Indica si el usuario es administrador
+        private List<MessageHistory> history; // Historial reciente de la conversación
     }
 
     /**
-     * Respuesta simple del Chatbot
+     * Mensaje en el historial conversacional
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MessageHistory {
+        private String role; // "user" o "assistant"
+        private String content;
+    }
+
+    /**
+     * Respuesta del Chatbot con soporte de acciones rápidas interactivas
      */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatResponse {
         private String reply;
+        private List<ActionPrompt> actions;
+        private String topic;
+
+        public ChatResponse(String reply) {
+            this.reply = reply;
+        }
+
+        public ChatResponse(String reply, List<ActionPrompt> actions) {
+            this.reply = reply;
+            this.actions = actions;
+        }
+
+        public ChatResponse(String reply, List<ActionPrompt> actions, String topic) {
+            this.reply = reply;
+            this.actions = actions;
+            this.topic = topic;
+        }
+    }
+
+    /**
+     * Acción interactiva sugerida por el asistente (Llamada rápida, Reporte, Ruta)
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ActionPrompt {
+        private String type; // "CALL", "NAVIGATE", "REPORT"
+        private String label; // ej: "Llamar al CRUE 125"
+        private String payload; // ej: "125", "/App/Map"
     }
 
     /**

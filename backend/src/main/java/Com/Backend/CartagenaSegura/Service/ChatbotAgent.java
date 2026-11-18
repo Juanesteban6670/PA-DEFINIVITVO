@@ -37,14 +37,21 @@ public class ChatbotAgent {
         """;
 
     /**
-     * Procesa la consulta del usuario enriqueciendo el prompt con el estado actual de la BD.
+     * Procesa la consulta del usuario enriqueciendo el prompt con el estado actual de la BD,
+     * memoria de sesión multi-turno y triaje de emergencias.
      */
-    public AiDto.ChatResponse processMessage(String userMessage, boolean isAdmin, String userName) {
-        log.info("Agente procesando mensaje para {} ({}): {}", userName, isAdmin ? "ADMIN" : "USER", userMessage);
-        
+    public AiDto.ChatResponse processMessage(AiDto.Request request, boolean isAdmin, String userName) {
+        String userMessage = request.getMessage() != null ? request.getMessage() : "";
+        String sessionId = request.getSessionId() != null && !request.getSessionId().isBlank() 
+                ? request.getSessionId() 
+                : "session-" + userName;
+        List<AiDto.MessageHistory> clientHistory = request.getHistory();
+
+        log.info("Agente procesando mensaje para {} ({}) [session: {}]: {}", userName, isAdmin ? "ADMIN" : "USER", sessionId, userMessage);
+
         // 1. Obtener contexto de la BD
         String context = gatherSystemContext();
-        
+
         // 2. Ajustar el rol en el prompt de sistema
         String customSystemPrompt = SYSTEM_PROMPT;
         if (isAdmin) {
@@ -52,13 +59,17 @@ public class ChatbotAgent {
         } else {
             customSystemPrompt += "\n5. El usuario actual es " + userName + " (CIUDADANO). Salúdalo cálidamente por su nombre, sé empático y evita frases genéricas como 'Estimado ciudadano'.";
         }
-        
+
         // 3. Construir el cuerpo del mensaje de usuario
         String userContent = "SITUACIÓN ACTUAL DE LA BASE DE DATOS:\n" + context + 
                             "\n\nPREGUNTA DEL USUARIO: " + userMessage;
-        
-        // 4. Llamar al servicio pasando tanto el mensaje como la personalidad ajustada
-        return aiService.chat(userContent, customSystemPrompt);
+
+        // 4. Llamar al servicio pasando contexto, sesión e historial conversacional
+        return aiService.chatWithContext(userContent, customSystemPrompt, sessionId, clientHistory, userName, isAdmin);
+    }
+
+    public AiDto.ChatResponse processMessage(String userMessage, boolean isAdmin, String userName) {
+        return processMessage(new AiDto.Request(userMessage, null, "default-" + userName, isAdmin, null), isAdmin, userName);
     }
 
     public AiDto.ChatResponse processMessage(String userMessage) {

@@ -40,6 +40,7 @@ public class AiService {
     private final ZoneRepository zoneRepository;
     private final EmergencyContactRepository emergencyContactRepository;
     private final ObjectMapper objectMapper;
+    private final ChatSessionManager sessionManager;
 
     /**
      * MÉTODO CENTRAL (LLAMADA A GROQ)
@@ -121,34 +122,274 @@ public class AiService {
      * CHAT - Versión con RAG híbrido y contingencia heurística inteligente
      */
     public AiDto.ChatResponse chat(String userMessage, String systemMessage) {
-        try {
-            String respuesta = callGroq(List.of(
-                    Map.of("role", "system", "content", systemMessage),
-                    Map.of("role", "user", "content", userMessage)
-            ));
-
-            if (respuesta != null && !respuesta.isBlank()) {
-                return new AiDto.ChatResponse(respuesta);
-            }
-        } catch (Exception ignored) {
-            // Se activa el motor contextual inteligente local
-        }
-
-        return new AiDto.ChatResponse(generateSmartLocalChat(userMessage, systemMessage));
+        return chatWithContext(userMessage, systemMessage, "default-session", null, "Ciudadano", false);
     }
 
     /**
-     * Generador inteligente de respuestas locales basado en datos reales de Cartagena
+     * CHAT - Versión completa con memoria conversacional multi-turno y triaje de emergencias
      */
-    private String generateSmartLocalChat(String rawMessage, String systemContext) {
-        String query = rawMessage;
+    public AiDto.ChatResponse chatWithContext(String userMessage, String systemMessage, String sessionId, List<AiDto.MessageHistory> clientHistory, String userName, boolean isAdmin) {
+        ChatSessionManager.SessionState state = sessionManager.getOrCreate(sessionId);
+
+        // Sincronizar historial cliente si existe
+        if (clientHistory != null && !clientHistory.isEmpty()) {
+            for (AiDto.MessageHistory h : clientHistory) {
+                if (h.getContent() != null && !h.getContent().isBlank()) {
+                    state.addMessage(h.getRole(), h.getContent());
+                }
+            }
+        }
+
+        try {
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", systemMessage));
+            for (AiDto.MessageHistory h : state.getHistory()) {
+                messages.add(Map.of("role", h.getRole(), "content", h.getContent()));
+            }
+            messages.add(Map.of("role", "user", "content", userMessage));
+
+            String respuesta = callGroq(messages);
+            if (respuesta != null && !respuesta.isBlank()) {
+                sessionManager.recordTurn(sessionId, userMessage, respuesta, null, null, null);
+                return new AiDto.ChatResponse(respuesta);
+            }
+        } catch (Exception ignored) {
+            // Se activa el motor contextual inteligente local especializado en Cartagena
+        }
+
+        return generateSmartLocalChat(userMessage, systemMessage, state, userName, isAdmin);
+    }
+
+    public String generateSmartLocalChat(String rawMessage, String systemContext) {
+        AiDto.ChatResponse res = generateSmartLocalChat(rawMessage, systemContext, sessionManager.getOrCreate("legacy"), "Ciudadano", false);
+        return res.getReply();
+    }
+
+    /**
+     * Generador inteligente de respuestas locales basado en datos reales de Cartagena,
+     * protocolos oficiales de emergencia (CRUE, DATT, Policía) y memoria de contexto.
+     */
+    public AiDto.ChatResponse generateSmartLocalChat(String rawMessage, String systemContext, ChatSessionManager.SessionState sessionState, String userName, boolean isAdmin) {
+        String query = rawMessage != null ? rawMessage : "";
         int idx = query.lastIndexOf("PREGUNTA DEL USUARIO:");
         if (idx >= 0) {
             query = query.substring(idx + "PREGUNTA DEL USUARIO:".length());
         }
-        query = query.toLowerCase();
+        query = query.toLowerCase().trim();
 
-        // 1. Detección de zonas de Cartagena
+        String sessId = sessionState != null ? sessionState.getSessionId() : "default";
+
+        // =========================================================================
+        // 1. DETECCIÓN DE PREGUNTAS DE SEGUIMIENTO (Context-Aware Follow-up)
+        // =========================================================================
+        boolean isFollowUp = query.contains("que debo hacer") || query.contains("qué debo hacer") ||
+                query.contains("que hago") || query.contains("qué hago") ||
+                query.contains("como procedo") || query.contains("cómo procedo") ||
+                query.contains("a quien llamo") || query.contains("a quién llamo") ||
+                query.contains("a donde voy") || query.contains("a dónde voy") ||
+                query.contains("que sigue") || query.contains("qué sigue") ||
+                query.contains("y ahora") || query.contains("pasos") ||
+                query.contains("instrucciones") || query.contains("que me recomiendas") ||
+                (query.contains("ayuda") && query.length() < 12);
+
+        if (isFollowUp && sessionState != null && sessionState.getActiveTopic() != null) {
+            String topic = sessionState.getActiveTopic();
+
+            if ("TRAFFIC_ACCIDENT".equals(topic)) {
+                String sub = sessionState.getSubtopic() != null ? sessionState.getSubtopic() : "vehículo";
+                String reply = String.format("""
+                        📋 **Protocolo de Acción Paso a Paso para tu Accidente (%s):**
+
+                        Como acabas de tener un accidente en Cartagena, esta es la secuencia exacta que debes seguir ahora mismo:
+
+                        1. 🛡️ **Verifica tu estado y el de los demás:** Si sientes dolor de cuello o columna, siéntate en un lugar seguro y **no te retires el casco bruscamente**. Si hay heridos que no pueden moverse, no intentes levantarlos a menos que haya riesgo inminente de fuego.
+                        2. 🚑 **Solicita ambulancia al CRUE (Línea 125):** Informa si hay personas sangrando o inconscientes. La atención médica de urgencias en clínicas de Cartagena está cubierta al 100%% por el **SOAT** de los vehículos involucrados, sin costo inicial para ti.
+                        3. 🚔 **Notifica a Tránsito de Cartagena (DATT):** Marca al **127** o al **123** para que acudan agentes a levantar el croquis oficial. No aceptes acuerdos informales o intimidaciones en caliente sin respaldo pericial.
+                        4. 📸 **Documenta la escena:** Antes de que muevan la moto o los carros, toma fotos panorámicas de las placas, la posición en la calzada y las señales viales.
+                        5. ✍️ **Alerta comunitaria:** Puedes radicar el incidente en esta app para prevenir a otros conductores sobre el trancón y activar la vigilancia comunitaria.
+
+                        ¿Hay personas heridas en el lugar en este momento? ¿En qué avenida o sector de Cartagena ocurrió?
+                        """, sub);
+
+                List<AiDto.ActionPrompt> actions = List.of(
+                        new AiDto.ActionPrompt("CALL", "Llamar al CRUE 125 (Ambulancia)", "125"),
+                        new AiDto.ActionPrompt("CALL", "Llamar a Tránsito DATT 127", "127"),
+                        new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                        new AiDto.ActionPrompt("REPORT", "Radicar Reporte Vial", "ACCIDENTE")
+                );
+                sessionManager.recordTurn(sessId, rawMessage, reply, "TRAFFIC_ACCIDENT", sub, sessionState.getLastMentionedZone());
+                return new AiDto.ChatResponse(reply, actions, "TRAFFIC_ACCIDENT");
+            }
+
+            if ("THEFT_ROBBERY".equals(topic)) {
+                String reply = """
+                        📋 **Protocolo de Reacción Inmediata ante Hurto / Robo:**
+
+                        1. 🛡️ **Ponte a salvo de inmediato:** No persigas al sospechoso. Entra a un establecimiento comercial, CAI o lugar concurrido e iluminado.
+                        2. 👮 **Comunícate con la Línea 123:** Indica la dirección exacta o punto de referencia en Cartagena y describe a los sospechosos (vestimenta, placas, moto o a pie) para activar el **Plan Candado** en el cuadrante.
+                        3. 📱 **Bloqueo preventivo de emergencia:**
+                           * Si te hurtaron el celular, llama desde otro teléfono a tu operador móvil para suspender la SIM y reportar el código **IMEI**.
+                           * Ingresa a tu banco virtual desde un dispositivo seguro y bloquea tus tarjetas de crédito y débito.
+                        4. ✍️ **Denuncia legal:** Puedes radicar la denuncia virtual en el portal *A Denunciar* de la Policía/Fiscalía o en la URI de Crespo o Canapote.
+
+                        ¿El hecho acaba de ocurrir? ¿Recuerdas en qué calle o barrio exacto fue?
+                        """;
+                List<AiDto.ActionPrompt> actions = List.of(
+                        new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                        new AiDto.ActionPrompt("REPORT", "Radicar Reporte de Hurto", "ROBO")
+                );
+                sessionManager.recordTurn(sessId, rawMessage, reply, "THEFT_ROBBERY", sessionState.getSubtopic(), sessionState.getLastMentionedZone());
+                return new AiDto.ChatResponse(reply, actions, "THEFT_ROBBERY");
+            }
+
+            if ("MEDICAL_EMERGENCY".equals(topic)) {
+                String reply = """
+                        📋 **Protocolo de Auxilio y Emergencia Médica:**
+
+                        1. 🚑 **Llama de inmediato al 125 (CRUE Distrital):** Da la dirección exacta e indica si la persona respira, está consciente o sangra.
+                        2. 🧘 **Primeros auxilios:** No muevas bruscamente a la persona ni le suministres bebidas, comidas o medicamentos a personas inconscientes.
+                        3. 🏥 **Centros de urgencias principales en Cartagena:**
+                           * Hospital Universitario del Caribe (Zaragocilla) - (605) 672-4340
+                           * Clínica Cartagena del Mar (El Cabrero) - (605) 664-8888
+                           * Clínica Madre Bernarda (La Plazuela) - (605) 661-8000
+                           * Hospital Infantil Napoleón Franco Pareja (Casa del Niño)
+
+                        ¿La persona lesionada está consciente y puede responderte?
+                        """;
+                List<AiDto.ActionPrompt> actions = List.of(
+                        new AiDto.ActionPrompt("CALL", "Llamar al CRUE 125 (Ambulancia)", "125"),
+                        new AiDto.ActionPrompt("CALL", "Llamar a Emergencias 123", "123")
+                );
+                sessionManager.recordTurn(sessId, rawMessage, reply, "MEDICAL_EMERGENCY", sessionState.getSubtopic(), sessionState.getLastMentionedZone());
+                return new AiDto.ChatResponse(reply, actions, "MEDICAL_EMERGENCY");
+            }
+        }
+
+        // =========================================================================
+        // 2. DETECCIÓN DE ACCIDENTE DE TRÁNSITO / VIAL
+        // =========================================================================
+        if (query.contains("accidente") || query.contains("moto") || query.contains("carro") ||
+                query.contains("choque") || query.contains("estrell") || query.contains("me cai") ||
+                query.contains("me caí") || query.contains("atropell") || query.contains("volcadura") ||
+                query.contains("volco") || query.contains("volcó") || query.contains("colision") ||
+                query.contains("colisión") || query.contains("datt") || query.contains("soat")) {
+
+            String subtopic = query.contains("moto") ? "moto" : (query.contains("carro") ? "carro" : "tránsito");
+            String reply = """
+                    🚨 **Atención Inmediata por Accidente de Tránsito en Cartagena:**
+
+                    Lamento mucho escuchar eso. Lo más importante en este momento es tu integridad física y la de quienes te acompañan. Mantén la calma y sigue estos pasos de inmediato:
+
+                    1. 🛡️ **Ponte a salvo de la vía:** Si puedes levantarte o caminar, aléjate del tráfico hacia la acera. Si tú o alguien presenta dolor intenso en la espalda/cuello, **no se muevan** para no agravar posibles lesiones.
+                    2. 🚑 **Solicitar auxilio médico al 125 (CRUE):** Si hay lesionados, marca de inmediato a las ambulancias distritales de Cartagena al **125** o al **(605) 664-5612**. Toda urgencia por accidente vial está respaldada al 100% por el **SOAT**.
+                    3. 🚔 **Notificar al DATT (Tránsito):** Comunícate al **127** o a la línea **123** para que una patrulla del DATT acuda a levantar el croquis oficial del accidente.
+                    4. 📸 **Tomar evidencia:** Toma fotografías de los vehículos, placas y la vía antes de moverlos.
+
+                    ¿Hay personas heridas o sangrando en este momento? ¿En qué calle o sector de Cartagena ocurrió el accidente?
+                    """;
+
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar al CRUE 125 (Ambulancia)", "125"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a Tránsito DATT 127", "127"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a Emergencias 123", "123"),
+                    new AiDto.ActionPrompt("REPORT", "Radicar Reporte de Accidente", "ACCIDENTE")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "TRAFFIC_ACCIDENT", subtopic, null);
+            return new AiDto.ChatResponse(reply, actions, "TRAFFIC_ACCIDENT");
+        }
+
+        // =========================================================================
+        // 3. DETECCIÓN DE HURTO / ROBO / ATRACO
+        // =========================================================================
+        if (query.contains("robo") || query.contains("robaron") || query.contains("atraco") ||
+                query.contains("atracaron") || query.contains("asalto") || query.contains("ladron") ||
+                query.contains("ladrones") || query.contains("hurto") || query.contains("cosquilleo") ||
+                query.contains("raponeo") || query.contains("escopolamina") || query.contains("me quitaron") ||
+                query.contains("fleteo") || query.contains("pistola") || query.contains("arma")) {
+
+            String reply = """
+                    🚨 **Alerta por Hurto / Atraco en Cartagena:**
+
+                    1. 🛡️ **Prioriza tu seguridad:** No intentes perseguir a los delincuentes. Resguárdate de inmediato en un local comercial, hotel o lugar vigilado e iluminado.
+                    2. 👮 **Llama de inmediato a la Línea 123:** Indica tu ubicación actual y la dirección de escape o características de los asaltantes para que el cuadrante policial active el plan candado en la zona.
+                    3. 📱 **Bloqueos preventivos inmediatos:**
+                       * Si te hurtaron el celular, llama a tu operador móvil para suspender la línea y bloquear el código **IMEI**.
+                       * Ingresa a tu banca en línea desde un dispositivo seguro y bloquea tus tarjetas de débito/crédito.
+                    4. ✍️ **Denuncia legal:** Puedes instaurar la denuncia virtual en el portal *A Denunciar* de la Policía/Fiscalía o en la URI (Crespo / Canapote).
+
+                    ¿El hecho acaba de ocurrir? ¿En qué barrio o punto de referencia te encuentras?
+                    """;
+
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                    new AiDto.ActionPrompt("REPORT", "Radicar Reporte de Hurto", "ROBO")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "THEFT_ROBBERY", "hurto", null);
+            return new AiDto.ChatResponse(reply, actions, "THEFT_ROBBERY");
+        }
+
+        // =========================================================================
+        // 4. DETECCIÓN DE EMERGENCIA MÉDICA / SALUD
+        // =========================================================================
+        if (query.contains("ambulancia") || query.contains("herido") || query.contains("desmayo") ||
+                query.contains("infarto") || query.contains("sangre") || query.contains("grave") ||
+                query.contains("no respira") || query.contains("inconsciente") || query.contains("medico") ||
+                query.contains("médico") || query.contains("hospital") || query.contains("clinica") ||
+                query.contains("clínica")) {
+
+            String reply = """
+                    🚨 **Emergencia Médica y Auxilio Distrital:**
+
+                    1. 🚑 **Llama de inmediato al CRUE (125):** Es el Centro Regulador de Urgencias y Emergencias de Cartagena (teléfono fijo: **(605) 664-5612**).
+                    2. 🧘 **Primeros auxilios básicos:**
+                       * Mantén la calma y despeja el área alrededor de la persona.
+                       * Si está inconsciente pero respira, colócala en posición lateral de seguridad.
+                       * No le des líquidos ni alimentos.
+                    3. 🏥 **Urgencias hospitalarias principales:** Hospital Universitario del Caribe (Zaragocilla), Clínica Cartagena del Mar (El Cabrero) y Clínica Madre Bernarda (La Plazuela).
+
+                    ¿Dónde te encuentras ubicado para orientarte sobre el centro médico más cercano?
+                    """;
+
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar al CRUE 125 (Ambulancia)", "125"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a Emergencias 123", "123")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "MEDICAL_EMERGENCY", "salud", null);
+            return new AiDto.ChatResponse(reply, actions, "MEDICAL_EMERGENCY");
+        }
+
+        // =========================================================================
+        // 5. DETECCIÓN DE VIOLENCIA DE GÉNERO / INTRAFAMILIAR
+        // =========================================================================
+        if (query.contains("violencia") || query.contains("me pego") || query.contains("me pegó") ||
+                query.contains("mi pareja") || query.contains("me amenaza") || query.contains("maltrato") ||
+                query.contains("golpe") || query.contains("abuso") || query.contains("linea purpura") ||
+                query.contains("línea púrpura")) {
+
+            String reply = """
+                    💜 **Atención y Acompañamiento a Víctimas de Violencia:**
+
+                    No estás sola(o). Tienes a tu disposición canales oficiales y gratuitos de atención y protección inmediata:
+
+                    * 💜 **Línea Púrpura Nacional:** Marca al **155** (gratuito, 24 horas, atención confidencial con abogadas y psicólogas).
+                    * 🚨 **Línea 123:** Para auxilio urgente y solicitud de la **Patrulla Púrpura** de la Policía Metropolitana de Cartagena.
+                    * 🏛️ **Comisaría de Familia de Cartagena:** Para solicitar medidas de protección inmediata y desalojo del agresor.
+                    * 🏢 **Fiscalía General (URI Canapote / Crespo):** Para radicar denuncia penal por violencia intrafamiliar o lesiones.
+
+                    ¿Te encuentras en un lugar seguro en este momento? ¿Requieres que acuda una patrulla policial?
+                    """;
+
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar Línea Púrpura 155", "155"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "DOMESTIC_VIOLENCE", "violencia", null);
+            return new AiDto.ChatResponse(reply, actions, "DOMESTIC_VIOLENCE");
+        }
+
+        // =========================================================================
+        // 6. DETECCIÓN DE ZONAS Y BARRIOS DE CARTAGENA
+        // =========================================================================
         Map<String, String> zoneAliases = Map.ofEntries(
                 Map.entry("centro", "Centro Histórico y San Diego"),
                 Map.entry("historico", "Centro Histórico y San Diego"),
@@ -175,15 +416,23 @@ public class AiService {
 
         for (Map.Entry<String, String> entry : zoneAliases.entrySet()) {
             if (query.contains(entry.getKey())) {
-                return buildZoneStatusResponse(entry.getValue());
+                String reply = buildZoneStatusResponse(entry.getValue());
+                List<AiDto.ActionPrompt> actions = List.of(
+                        new AiDto.ActionPrompt("NAVIGATE", "Ver Zona en Mapa", "/App/Map"),
+                        new AiDto.ActionPrompt("REPORT", "Reportar Novedad", "GENERAL")
+                );
+                sessionManager.recordTurn(sessId, rawMessage, reply, "ZONE_QUERY", entry.getKey(), entry.getValue());
+                return new AiDto.ChatResponse(reply, actions, "ZONE_QUERY");
             }
         }
 
-        // 2. Preguntas sobre líneas o contactos de emergencia
+        // =========================================================================
+        // 7. LÍNEAS DE EMERGENCIA Y CONTACTO
+        // =========================================================================
         if (query.contains("emergencia") || query.contains("policia") || query.contains("bomberos") ||
-                query.contains("cai") || query.contains("ambulancia") || query.contains("guardacostas") ||
-                query.contains("telefono") || query.contains("numero") || query.contains("llamar") || query.contains("123")) {
-            return """
+                query.contains("cai") || query.contains("guardacostas") || query.contains("telefono") ||
+                query.contains("numero") || query.contains("llamar") || query.contains("123")) {
+            String reply = """
                     🚨 **Líneas de Emergencia Oficiales de Cartagena:**
 
                     * 👮 **Policía Nacional / Emergencias Generales:** Marca al **123** (gratuito desde cualquier celular).
@@ -195,43 +444,69 @@ public class AiService {
 
                     Puedes consultar el directorio completo en la sección **"Emergencias"** de esta aplicación.
                     """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a Bomberos 119", "119"),
+                    new AiDto.ActionPrompt("CALL", "Llamar a CRUE 125", "125")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "EMERGENCY_CONTACTS", null, null);
+            return new AiDto.ChatResponse(reply, actions, "EMERGENCY_CONTACTS");
         }
 
-        // 3. Cómo hacer un reporte ciudadano
+        // =========================================================================
+        // 8. CÓMO HACER UN REPORTE CIUDADANO
+        // =========================================================================
         if (query.contains("reportar") || query.contains("denunciar") || query.contains("crear reporte") ||
                 query.contains("como hago") || query.contains("reporte")) {
-            return """
+            String reply = """
                     📋 **¿Cómo crear un reporte ciudadano en Cartagena Segura?**
 
-                    1. Dirígete a la pestaña **"Reportar"** en la barra inferior.
+                    1. Dirígete a la pestaña **"Reportar"** en la barra de navegación.
                     2. Selecciona la categoría del incidente (*Robo, Accidente, Pelea, Alumbrado, Obstáculo vial, etc.*).
                     3. Agrega una breve descripción de lo que está ocurriendo.
                     4. La app detectará automáticamente tu ubicación por GPS, o puedes tocar un punto en el mapa.
                     5. Opcionalmente adjunta una foto como evidencia y presiona **"Enviar reporte"**.
 
-                    El incidente aparecerá de inmediato en el mapa comunitario y el cuadrante correspondiente será notificado.
+                    El incidente aparecerá de inmediato en el mapa comunitario y los cuadrantes policiales serán notificados.
                     """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("REPORT", "Crear Reporte Ahora", "GENERAL")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "REPORT_INSTRUCTIONS", null, null);
+            return new AiDto.ChatResponse(reply, actions, "REPORT_INSTRUCTIONS");
         }
 
-        // 4. Preguntas sobre rutas seguras
-        if (query.contains("ruta") || query.contains("waze") || query.contains("camino") || query.contains("como llegar") || query.contains("segura")) {
-            return """
-                    🗺️ **Navegación y Rutas Seguras:**
+        // =========================================================================
+        // 9. RUTAS SEGURAS Y NAVEGACIÓN GPS
+        // =========================================================================
+        if (query.contains("ruta") || query.contains("waze") || query.contains("camino") ||
+                query.contains("como llegar") || query.contains("navegacion") || query.contains("navegación")) {
+            String reply = """
+                    🗺️ **Navegación y Rutas Seguras con Guía por Voz:**
 
-                    La función de Rutas Seguras calcula tu trayecto evaluando los índices de criminalidad e incidentes recientes reportados por la ciudadanía.
+                    La función de Rutas Seguras calcula tu trayecto evaluando los índices de criminalidad e incidentes reportados en tiempo real:
 
                     * Ve a la pestaña **Mapa**.
-                    * Toca el botón flotante **"Trazar Ruta Segura"**.
-                    * Elige un destino popular (*Centro Histórico, Bocagrande, Manga, Aeropuerto*) o marca un punto en el mapa.
-                    * El sistema te mostrará 3 opciones de ruta clasificadas por color: **Segura (Verde)**, **Moderada (Naranja)** o **Riesgosa (Roja)**, esquivando automáticamente zonas de alto peligro.
+                    * Toca el botón **"Trazar Ruta Segura"**.
+                    * Elige tu destino (*Centro Histórico, Bocagrande, Manga, Aeropuerto*) o selecciona un punto en el mapa.
+                    * El sistema te mostrará 3 opciones de ruta clasificadas por color: **Segura (Verde)**, **Moderada (Naranja)** o **Riesgosa (Roja)**.
+                    * Inicia la navegación GPS con instrucciones de voz en español y recálculo automático si te desvías.
                     """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("NAVIGATE", "Abrir Mapa de Rutas", "/App/Map")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "SAFE_ROUTES", null, null);
+            return new AiDto.ChatResponse(reply, actions, "SAFE_ROUTES");
         }
 
-        // 5. Estadísticas o estado general de la ciudad
-        if (query.contains("estadistica") || query.contains("resumen") || query.contains("ciudad") || query.contains("cuantos incidentes") || query.contains("estado")) {
+        // =========================================================================
+        // 10. ESTADÍSTICAS O ESTADO DE CARTAGENA
+        // =========================================================================
+        if (query.contains("estadistica") || query.contains("resumen") || query.contains("ciudad") ||
+                query.contains("cuantos incidentes") || query.contains("estado")) {
             long total = incidentRepository.count();
             List<Zone> zones = zoneRepository.findAll();
-            return String.format("""
+            String reply = String.format("""
                     📊 **Estado General de Cartagena en Tiempo Real:**
 
                     * **Total de incidentes registrados:** %d reportes en plataforma.
@@ -241,29 +516,58 @@ public class AiService {
 
                     Recuerda que cada reporte que haces contribuye a mantener las rutas seguras actualizadas para toda la comunidad.
                     """, total, zones.size());
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa de Incidentes", "/App/Map")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "STATISTICS", null, null);
+            return new AiDto.ChatResponse(reply, actions, "STATISTICS");
         }
 
-        // 6. Saludo
-        if (query.contains("hola") || query.contains("buenos") || query.contains("buenas") || query.contains("ayuda") || query.contains("quien eres")) {
-            return """
-                    ¡Hola! Soy **Cartagena Segura AI**, tu asistente oficial de seguridad y convivencia ciudadana.
+        // =========================================================================
+        // 11. SALUDO O BIENVENIDA
+        // =========================================================================
+        if (query.contains("hola") || query.contains("buenos") || query.contains("buenas") || query.contains("quien eres")) {
+            String nameGreeting = (userName != null && !userName.equalsIgnoreCase("Ciudadano")) ? " " + userName : "";
+            String reply = String.format("""
+                    ¡Hola%s! Soy **Cartagena Segura AI**, tu asistente oficial de seguridad y convivencia ciudadana.
 
-                    Estoy conectado en tiempo real con la base de datos distrital. Puedo ayudarte con:
-                    * 🛡️ Consultar el nivel de seguridad de cualquier barrio o zona de Cartagena.
-                    * 🚨 Directorio de teléfonos de emergencia (Policía, Bomberos, CRUE, Guardacostas).
-                    * 🗺️ Cómo trazar Rutas Seguras esquivando zonas peligrosas.
-                    * ✍️ Orientación para radicar reportes ciudadanos.
+                    Estoy conectado en tiempo real con la base de datos distrital de Cartagena. Puedo orientarte sobre:
+                    * 🚨 **Emergencias en curso:** Accidentes de moto/carro, hurtos o auxilio médico inmediato.
+                    * 🛡️ **Seguridad por barrios:** Estado en Centro Histórico, Getsemaní, Bocagrande, Manga, Bazurto, etc.
+                    * 🗺️ **Rutas Seguras:** Cómo desplazarte esquivando sectores peligrosos.
+                    * ✍️ **Reportes:** Cómo radicar novedades en el mapa distrital.
 
-                    ¿Sobre qué sector o tema te gustaría consultar?
-                    """;
+                    ¿Sobre qué situación o sector te gustaría consultar?
+                    """, nameGreeting);
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar al 123", "123"),
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa en Vivo", "/App/Map")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "GREETING", null, null);
+            return new AiDto.ChatResponse(reply, actions, "GREETING");
         }
 
-        // Respuesta estándar empática
-        return """
-                Entiendo tu consulta. Como asistente de **Cartagena Segura**, te recomiendo siempre transitar por avenidas principales iluminadas y revisar el **Mapa en Vivo** antes de desplazarte.
+        // =========================================================================
+        // 12. RESPUESTA DINÁMICA DE ORIENTACIÓN GENERAL (Nunca repetitiva)
+        // =========================================================================
+        String nameRef = (userName != null && !userName.equalsIgnoreCase("Ciudadano")) ? userName : "ciudadano";
+        String reply = String.format("""
+                Hola %s. He recibido tu consulta en **Cartagena Segura**. Para brindarte la orientación más precisa:
 
-                Si tienes una urgencia de seguridad en este momento, comunícate de inmediato con la **Línea 123** de la Policía Nacional. ¿Deseas consultar la situación de algún barrio en específico (*Centro, Getsemaní, Bocagrande, Manga, Bazurto, etc.*)?
-                """;
+                * Si estás presenciando o involucrado en un **accidente de tránsito (moto o carro)**, por favor indícamelo para activar el protocolo con el CRUE (125) y DATT (127).
+                * Si fuiste víctima de un **hurto o situación de peligro**, comunícate de inmediato con la **Línea 123** de la Policía.
+                * Si deseas conocer el **nivel de riesgo de un barrio** (*Bocagrande, Getsemaní, Centro, Manga, Bazurto, Olaya*), solo escribe su nombre.
+
+                ¿Qué novedad o inquietud específica estás experimentando?
+                """, nameRef);
+
+        List<AiDto.ActionPrompt> actions = List.of(
+                new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                new AiDto.ActionPrompt("CALL", "Llamar a CRUE 125", "125"),
+                new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa en Vivo", "/App/Map")
+        );
+        sessionManager.recordTurn(sessId, rawMessage, reply, "GENERAL_GUIDANCE", null, null);
+        return new AiDto.ChatResponse(reply, actions, "GENERAL_GUIDANCE");
     }
 
     private String buildZoneStatusResponse(String zoneName) {
