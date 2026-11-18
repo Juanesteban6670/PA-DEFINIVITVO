@@ -38,7 +38,6 @@ public class AiDto {
      */
     @Data
     @NoArgsConstructor
-    @AllArgsConstructor
     public static class ChatResponse {
         private String reply;
         private List<ActionPrompt> actions;
