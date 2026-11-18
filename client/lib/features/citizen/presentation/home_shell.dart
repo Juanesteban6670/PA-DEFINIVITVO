@@ -296,14 +296,9 @@ class _HomeShellState extends State<HomeShell> {
                       color: isDark ? AppColors.darkBorder : AppColors.border,
                     ),
                     Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1120),
-                          child: IndexedStack(
-                            index: _selectedIndex,
-                            children: pages,
-                          ),
-                        ),
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: pages,
                       ),
                     ),
                   ],

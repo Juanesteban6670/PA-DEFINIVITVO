@@ -18,6 +18,7 @@ import 'package:cartagena_segura/features/citizen/presentation/destination_searc
 import 'package:cartagena_segura/features/citizen/presentation/safe_route_sheet.dart';
 import 'package:cartagena_segura/shared/location_guide_dialog.dart';
 import 'package:cartagena_segura/shared/pill_badge.dart';
+import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 enum MapTileTheme { auto, light, dark, satellite }
@@ -1048,38 +1049,81 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 if (!_isNavigating)
                   Container(
                     color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Mapa de tu ciudad',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Muévete informado. Llega seguro.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: _openDestinationSearch,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.isWide ? 24 : 20,
+                      vertical: 12,
+                    ),
+                    child: context.isWide
+                        ? Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Mapa de la Ciudad',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                      letterSpacing: -0.4,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Muévete informado. Llega seguro.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              SizedBox(
+                                width: 380,
+                                child: InkWell(
+                                  onTap: _openDestinationSearch,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    height: 42,
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? AppColors.darkCard : Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.search_rounded,
+                                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Buscar sector, CAI o dirección...',
+                                            style: TextStyle(
+                                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                              fontSize: 13,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () => _showFilters(context),
                                 borderRadius: BorderRadius.circular(14),
                                 child: Container(
-                                  height: 44,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  width: 42,
+                                  height: 42,
                                   decoration: BoxDecoration(
                                     color: isDark ? AppColors.darkCard : Colors.white,
                                     borderRadius: BorderRadius.circular(14),
@@ -1087,61 +1131,115 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                       color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.search_rounded,
-                                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Buscar sector o dirección',
-                                          style: TextStyle(
-                                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
-                                            fontSize: 13,
+                                  child: Badge(
+                                    isLabelVisible: _typeFilter != null ||
+                                        _statusFilter != null ||
+                                        _priorityFilter != null ||
+                                        _distanceFilterKm != null ||
+                                        _timeFilter != null,
+                                    child: Icon(
+                                      Icons.tune_rounded,
+                                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Mapa de tu ciudad',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Muévete informado. Llega seguro.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: _openDestinationSearch,
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: Container(
+                                        height: 44,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppColors.darkCard : Colors.white,
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
                                           ),
-                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.search_rounded,
+                                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                'Buscar sector o dirección',
+                                                style: TextStyle(
+                                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                                  fontSize: 13,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () => _showFilters(context),
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? AppColors.darkCard : Colors.white,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                        ),
+                                      ),
+                                      child: Badge(
+                                        isLabelVisible: _typeFilter != null ||
+                                            _statusFilter != null ||
+                                            _priorityFilter != null ||
+                                            _distanceFilterKm != null ||
+                                            _timeFilter != null,
+                                        child: Icon(
+                                          Icons.tune_rounded,
+                                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            InkWell(
-                              onTap: () => _showFilters(context),
-                              borderRadius: BorderRadius.circular(14),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: isDark ? AppColors.darkCard : Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
-                                  ),
-                                ),
-                                child: Badge(
-                                  isLabelVisible: _typeFilter != null ||
-                                      _statusFilter != null ||
-                                      _priorityFilter != null ||
-                                      _distanceFilterKm != null ||
-                                      _timeFilter != null,
-                                  child: Icon(
-                                    Icons.tune_rounded,
-                                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            ],
+                          ),
                   ),
                 // Mapa y Controles Flotantes
                 Expanded(

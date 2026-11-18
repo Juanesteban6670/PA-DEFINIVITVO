@@ -5,6 +5,7 @@ import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
+import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/skeleton_loader.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
@@ -146,34 +147,88 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: FutureBuilder<List<Incident>>(
-              future: _incidents,
-              builder: (context, snapshot) {
-                final allIncidents = snapshot.data ?? const <Incident>[];
-                _openInitialIncidentIfAvailable(context, allIncidents);
+        child: ResponsiveContent(
+          maxWidth: Breakpoints.maxContentWidth,
+          padding: EdgeInsets.symmetric(
+            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            vertical: 16.0,
+          ),
+          child: FutureBuilder<List<Incident>>(
+            future: _incidents,
+            builder: (context, snapshot) {
+              final allIncidents = snapshot.data ?? const <Incident>[];
+              _openInitialIncidentIfAvailable(context, allIncidents);
 
-                // Filtrado por estado
-                final filtered = allIncidents.where((item) {
-                  if (_selectedStatusFilter == 'Todos') return true;
-                  if (_selectedStatusFilter == 'En revisión') {
-                    return item.status.toUpperCase() == 'PENDING';
-                  }
-                  if (_selectedStatusFilter == 'En atención') {
-                    return item.status.toUpperCase() == 'IN_PROGRESS';
-                  }
-                  if (_selectedStatusFilter == 'Resueltos') {
-                    return item.status.toUpperCase() == 'RESOLVED';
-                  }
-                  return true;
-                }).toList();
+              // Filtrado por estado
+              final filtered = allIncidents.where((item) {
+                if (_selectedStatusFilter == 'Todos') return true;
+                if (_selectedStatusFilter == 'En revisión') {
+                  return item.status.toUpperCase() == 'PENDING';
+                }
+                if (_selectedStatusFilter == 'En atención') {
+                  return item.status.toUpperCase() == 'IN_PROGRESS';
+                }
+                if (_selectedStatusFilter == 'Resueltos') {
+                  return item.status.toUpperCase() == 'RESOLVED';
+                }
+                return true;
+              }).toList();
 
-                return ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  children: [
-                    // 1. TÍTULO Y SUBTÍTULO (Figma 04 · Reportes)
+              final isWide = context.isWide;
+
+              return ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  // 1. TÍTULO, SUBTÍTULO Y ACCIONES ADAPTATIVAS
+                  if (isWide)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Reportes de Seguridad',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tu voz ayuda a cuidar Cartagena. Monitoreo colaborativo en tiempo real.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0F4C81),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          onPressed: _openReportForm,
+                          icon: const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                          label: const Text(
+                            'Crear nuevo reporte',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    )
+                  else ...[
                     Text(
                       'Reportes',
                       style: TextStyle(
@@ -192,10 +247,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
-                    // 2. BOTÓN PRINCIPAL: + CREAR NUEVO REPORTE
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -226,10 +278,83 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         ),
                       ),
                     ),
+                  ],
 
-                    const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-                    // 3. SEGMENTED TOGGLE: Comunidad | Mis reportes
+                  // 2. CONTROLES: Segmented toggle + Chips de estado
+                  if (isWide)
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 280,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkCard : const Color(0xFFEEF2F6),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _SegmentItem(
+                                    label: 'Comunidad',
+                                    selected: _selectedTab == 0,
+                                    onTap: () => _onTabChanged(0),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _SegmentItem(
+                                    label: 'Mis reportes',
+                                    selected: _selectedTab == 1,
+                                    onTap: () => _onTabChanged(1),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                for (final status in const [
+                                  'Todos',
+                                  'En revisión',
+                                  'En atención',
+                                  'Resueltos',
+                                ]) ...[
+                                  _StatusFilterPill(
+                                    label: status,
+                                    selected: _selectedStatusFilter == status,
+                                    onTap: () => setState(() => _selectedStatusFilter = status),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.darkCard : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${allIncidents.length} reportes',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else ...[
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -255,10 +380,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
-                    // 4. SECCIÓN "Cerca de ti" / Estado con chips de filtro
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -280,10 +402,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
-
-                    // CHIPS DE ESTADO: Todos, En revisión, En atención, Resueltos
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -304,55 +423,83 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         ],
                       ),
                     ),
+                  ],
 
-                    const SizedBox(height: 14),
+                  const SizedBox(height: 18),
 
-                    // ESTADOS DE CARGA / LISTADO
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      const Column(
-                        children: [
-                          SkeletonIncidentCard(),
-                          SizedBox(height: 10),
-                          SkeletonIncidentCard(),
-                          SizedBox(height: 10),
-                          SkeletonIncidentCard(),
-                        ],
-                      )
-                    else if (snapshot.hasError)
-                      _ReportsError(
-                        message: snapshot.error.toString(),
-                        onRetry: _reload,
-                      )
-                    else if (filtered.isEmpty)
-                      _EmptyReports(
-                        isMyReports: _selectedTab == 1,
-                        onCreate: _openReportForm,
-                      )
-                    else ...[
-                      for (final incident in filtered)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _FigmaReportCard(
-                            incident: incident,
-                            onTap: () => _showDetails(incident),
-                          ),
-                        ),
-                    ],
-
-                    // Reportes pendientes en almacenamiento local (si está en Mis reportes)
-                    if (_selectedTab == 1)
-                      FutureBuilder<List<ReportDraft>>(
-                        future: _pending,
-                        builder: (context, pendingSnapshot) {
-                          final pending = pendingSnapshot.data ?? const <ReportDraft>[];
-                          if (pending.isEmpty) return const SizedBox.shrink();
-                          return _PendingReports(
-                            drafts: pending,
-                            onRetry: _retryPending,
-                            onDelete: _deletePending,
+                  // ESTADOS DE CARGA / LISTADO
+                  if (snapshot.connectionState == ConnectionState.waiting)
+                    const Column(
+                      children: [
+                        SkeletonIncidentCard(),
+                        SizedBox(height: 10),
+                        SkeletonIncidentCard(),
+                        SizedBox(height: 10),
+                        SkeletonIncidentCard(),
+                      ],
+                    )
+                  else if (snapshot.hasError)
+                    _ReportsError(
+                      message: snapshot.error.toString(),
+                      onRetry: _reload,
+                    )
+                  else if (filtered.isEmpty)
+                    _EmptyReports(
+                      isMyReports: _selectedTab == 1,
+                      onCreate: _openReportForm,
+                    )
+                  else
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final availableWidth = constraints.maxWidth;
+                        final cols = availableWidth >= 1100 ? 3 : (availableWidth >= 680 ? 2 : 1);
+                        if (cols == 1) {
+                          return Column(
+                            children: [
+                              for (final incident in filtered)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _FigmaReportCard(
+                                    incident: incident,
+                                    onTap: () => _showDetails(incident),
+                                  ),
+                                ),
+                            ],
                           );
-                        },
-                      ),
+                        }
+                        const spacing = 16.0;
+                        final cardWidth = (availableWidth - (spacing * (cols - 1))) / cols;
+                        return Wrap(
+                          spacing: spacing,
+                          runSpacing: spacing,
+                          children: [
+                            for (final incident in filtered)
+                              SizedBox(
+                                width: cardWidth,
+                                child: _FigmaReportCard(
+                                  incident: incident,
+                                  onTap: () => _showDetails(incident),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+
+                  // Reportes pendientes en almacenamiento local (si está en Mis reportes)
+                  if (_selectedTab == 1)
+                    FutureBuilder<List<ReportDraft>>(
+                      future: _pending,
+                      builder: (context, pendingSnapshot) {
+                        final pending = pendingSnapshot.data ?? const <ReportDraft>[];
+                        if (pending.isEmpty) return const SizedBox.shrink();
+                        return _PendingReports(
+                          drafts: pending,
+                          onRetry: _retryPending,
+                          onDelete: _deletePending,
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: 18),
 
@@ -408,9 +555,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   void _openInitialIncidentIfAvailable(
     BuildContext context,
@@ -428,107 +574,166 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
   void _showDetails(Incident incident) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      backgroundColor: isDark ? AppColors.darkCard : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                incident.type,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
+    final isWide = context.isWide;
+
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: isDark ? AppColors.darkCard : Colors.white,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 580, maxHeight: 680),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _StatusBadge(status: incident.status, isDark: isDark),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'Prioridad: ${incident.priority}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          incident.type,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                          ),
+                        ),
                       ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: _buildDetailsBody(incident, isDark),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                incident.description.isEmpty ? 'Sin descripción' : incident.description,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? AppColors.darkText : const Color(0xFF334155),
-                  height: 1.5,
-                ),
-              ),
-              if (incident.location.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.place_outlined,
-                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        incident.location,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (incident.createdAt != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Enviado: ${_formatDate(incident.createdAt!)}',
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-              if (incident.latitude != null && incident.longitude != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'GPS: ${incident.latitude}, ${incident.longitude}',
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
-      ),
+      );
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        backgroundColor: isDark ? AppColors.darkCard : Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (context) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  incident.type,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildDetailsBody(incident, isDark),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildDetailsBody(Incident incident, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            _StatusBadge(status: incident.status, isDark: isDark),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                'Prioridad: ${incident.priority}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          incident.description.isEmpty ? 'Sin descripción' : incident.description,
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? AppColors.darkText : const Color(0xFF334155),
+            height: 1.5,
+          ),
+        ),
+        if (incident.location.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.place_outlined,
+                color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  incident.location,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        if (incident.createdAt != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Enviado: ${_formatDate(incident.createdAt!)}',
+            style: TextStyle(
+              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+              fontSize: 12,
+            ),
+          ),
+        ],
+        if (incident.latitude != null && incident.longitude != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'GPS: ${incident.latitude}, ${incident.longitude}',
+            style: TextStyle(
+              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

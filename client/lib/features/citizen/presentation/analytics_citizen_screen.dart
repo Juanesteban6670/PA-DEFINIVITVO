@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/incident_repository.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class AnalyticsCitizenScreen extends StatefulWidget {
@@ -136,10 +137,13 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: FutureBuilder<List<Incident>>(
+        child: ResponsiveContent(
+          maxWidth: Breakpoints.maxContentWidth,
+          padding: EdgeInsets.symmetric(
+            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            vertical: 16.0,
+          ),
+          child: FutureBuilder<List<Incident>>(
               future: _futureIncidents,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -888,9 +892,8 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildPeriodOption(String title, bool isDark) {
     final isSelected = _selectedPeriod == title && _customDateRange == null;
