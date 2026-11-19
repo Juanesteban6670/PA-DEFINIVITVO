@@ -1267,6 +1267,7 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   }
 
   Widget _emergency(BuildContext context, List<Map<String, dynamic>> contacts) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final visible = _filter(contacts, const ['name', 'phone', 'type', 'zone']);
     return _page(
       context,
