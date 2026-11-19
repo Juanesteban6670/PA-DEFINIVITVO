@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/ai_model_card_view.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/ai_prediction_breakdown.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/neural_network_visualizer.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class AdminAiOperationsCenter extends StatefulWidget {
@@ -168,6 +171,9 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
                   const SizedBox(width: 6),
                   _tabButton(3, Icons.auto_awesome_rounded,
                       'Copiloto y Clasificador', isDark),
+                  const SizedBox(width: 6),
+                  _tabButton(4, Icons.hub_rounded,
+                      'Red Neuronal & Modelo (XAI)', isDark),
                 ],
               ),
             ),
@@ -263,9 +269,53 @@ class _AdminAiOperationsCenterState extends State<AdminAiOperationsCenter> {
             anomalyScore, threatStatus);
       case 3:
         return _buildCopilotTab(isDark, isMobile);
+      case 4:
+        return _buildNeuralModelTab(isDark, isMobile);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  // ===========================================================================
+  // TAB 4: RED NEURONAL Y OBSERVABILIDAD DEL MODELO (XAI)
+  // ===========================================================================
+  Widget _buildNeuralModelTab(bool isDark, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        NeuralNetworkVisualizer(
+          riskScore: 68.5,
+          riskLevel: 'ALTO',
+          primaryThreat: 'Hurto / Robo a Transeúntes',
+          activations: const {
+            'capa_oculta_1_n1': 0.78,
+            'capa_oculta_1_n2': 0.65,
+            'capa_oculta_1_n3': 0.42,
+            'capa_oculta_1_n4': 0.88,
+            'capa_oculta_2_n1': 0.72,
+            'capa_oculta_2_n2': 0.55,
+            'capa_oculta_2_n3': 0.81,
+          },
+          sector: 'Centro Histórico',
+          hourOfDay: 21,
+          crowdLevel: 'ALTO',
+          weather: 'DESPEJADO',
+          isWeekend: true,
+        ),
+        const SizedBox(height: 20),
+        const AiPredictionBreakdown(
+          predictedRiskScore: 68.5,
+          riskLevel: 'ALTO',
+          primaryThreat: 'Hurto / Robo a Transeúntes',
+          confidenceMargin: 4.2,
+          modelCertaintyScore: 95.8,
+          sector: 'Centro Histórico',
+          hourOfDay: 21,
+        ),
+        const SizedBox(height: 20),
+        AiModelCardView(api: widget.api),
+      ],
+    );
   }
 
   // ===========================================================================

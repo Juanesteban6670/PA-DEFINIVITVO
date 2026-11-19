@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/models.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/ai_model_card_view.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/ai_prediction_breakdown.dart';
+import 'package:cartagena_segura/features/admin/presentation/widgets/neural_network_visualizer.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 class AdminPredictiveScreen extends StatefulWidget {
@@ -16,6 +19,7 @@ class AdminPredictiveScreen extends StatefulWidget {
 
 class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
   late Future<RiskForecastResponse> _forecastFuture;
+  int _selectedView = 0; // 0: Simulador & Red Neuronal, 1: Ficha Técnica & Observabilidad
 
   // Variables del Simulador
   String _simSector = 'Centro Histórico';
@@ -139,22 +143,31 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
           children: [
             // 1. ENCABEZADO Y STATUS DEL MODELO
             _buildHeader(data, isDark),
+            const SizedBox(height: 16),
+
+            // Selector de Vistas de IA (Liquid Glass)
+            _buildViewSelector(isDark),
             const SizedBox(height: 20),
 
-            // 2. TARJETAS KPI DISTRITALES
-            _buildKpiGrid(data, isDark),
-            const SizedBox(height: 24),
+            if (_selectedView == 0) ...[
+              // 2. TARJETAS KPI DISTRITALES
+              _buildKpiGrid(data, isDark),
+              const SizedBox(height: 24),
 
-            // 3. GRÁFICO DINÁMICO FL_CHART (Curva predictiva 12 horas)
-            _buildChartSection(data, isDark),
-            const SizedBox(height: 24),
+              // 3. GRÁFICO DINÁMICO FL_CHART (Curva predictiva 12 horas)
+              _buildChartSection(data, isDark),
+              const SizedBox(height: 24),
 
-            // 4. SIMULADOR TÁCTICO INTERACTIVO
-            _buildSimulatorCard(isDark),
-            const SizedBox(height: 24),
+              // 4. SIMULADOR TÁCTICO INTERACTIVO + RED NEURONAL + XAI
+              _buildSimulatorCard(isDark),
+              const SizedBox(height: 24),
 
-            // 5. MATRIZ DE RIESGO Y DESPLIEGUE POR SECTOR
-            _buildSectorMatrix(data, isDark),
+              // 5. MATRIZ DE RIESGO Y DESPLIEGUE POR SECTOR
+              _buildSectorMatrix(data, isDark),
+            ] else ...[
+              // FICHA TÉCNICA Y OBSERVABILIDAD DEL MODELO DE IA
+              AiModelCardView(api: widget.api),
+            ],
           ],
         );
       },
@@ -541,7 +554,122 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                     );
             },
           ),
+          const SizedBox(height: 24),
+
+          // Grafo Sináptico Interactivo de la Red Neuronal (60 FPS)
+          NeuralNetworkVisualizer(
+            riskScore: _simResult?.predictedRiskScore ?? 62.0,
+            riskLevel: _simResult?.riskLevel ?? 'ALTO',
+            primaryThreat: _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
+            activations: _simResult?.neuralActivations ?? const {},
+            sector: _simSector,
+            hourOfDay: _simHour.round(),
+            crowdLevel: _simCrowd,
+            weather: _simWeather,
+            isWeekend: _simWeekend,
+          ),
+          const SizedBox(height: 24),
+
+          // Desglose Multivariable XAI (Explainable AI & Ponderación SHAP-like)
+          AiPredictionBreakdown(
+            predictedRiskScore: _simResult?.predictedRiskScore ?? 62.0,
+            riskLevel: _simResult?.riskLevel ?? 'ALTO',
+            primaryThreat: _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
+            confidenceMargin: _simResult?.confidenceMargin ?? 4.2,
+            modelCertaintyScore: _simResult?.modelCertaintyScore ?? 95.8,
+            featureContributions: _simResult?.featureContributions ?? const [],
+            sector: _simSector,
+            hourOfDay: _simHour.round(),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildViewSelector(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _viewTabButton(
+              index: 0,
+              icon: Icons.hub_rounded,
+              label: 'Simulador Táctico & Red Neuronal',
+              isDark: isDark,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _viewTabButton(
+              index: 1,
+              icon: Icons.fact_check_outlined,
+              label: 'Ficha Técnica y Observabilidad (Model Card)',
+              isDark: isDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _viewTabButton({
+    required int index,
+    required IconData icon,
+    required String label,
+    required bool isDark,
+  }) {
+    final active = _selectedView == index;
+    return InkWell(
+      onTap: () => setState(() => _selectedView = index),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: active
+              ? (isDark
+                  ? AppColors.blue.withValues(alpha: 0.35)
+                  : AppColors.blue)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? AppColors.brightBlue : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: active
+                  ? Colors.white
+                  : (isDark ? AppColors.darkTextMuted : AppColors.navy),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                  color: active
+                      ? Colors.white
+                      : (isDark ? AppColors.darkText : AppColors.navy),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

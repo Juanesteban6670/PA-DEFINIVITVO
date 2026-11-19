@@ -55,6 +55,14 @@ public class PredictiveDto {
             String weatherCondition
     ) {}
 
+    public record FeatureContribution(
+            String featureName,
+            double contributionPercent,
+            String category,
+            String description,
+            boolean isRiskAccelerator
+    ) {}
+
     public record SimulationResponse(
             String sector,
             int hourOfDay,
@@ -63,6 +71,47 @@ public class PredictiveDto {
             String primaryThreat,
             String tacticalAdvice,
             Map<String, Double> neuralActivations,
-            long inferenceLatencyMs
+            long inferenceLatencyMs,
+            double confidenceMargin,
+            double modelCertaintyScore,
+            List<FeatureContribution> featureContributions
+    ) {}
+
+    public record ConfusionMatrixCell(
+            String actualClass,
+            String predictedClass,
+            int sampleCount,
+            double percentage
+    ) {}
+
+    public record DataDriftItem(
+            String incidentType,
+            double baselineRatioPercent,
+            double recentRatioPercent,
+            double shiftDeltaPercent
+    ) {}
+
+    public record AiModelCardResponse(
+            String modelName,
+            String architecture,
+            String version,
+            String optimizer,
+            String lossFunction,
+            double learningRate,
+            int inputNodes,
+            List<Integer> hiddenLayers,
+            int outputNodes,
+            double accuracyScore,
+            double precisionScore,
+            double recallScore,
+            double f1Score,
+            double aucRocScore,
+            long averageLatencyMs,
+            double dataDriftIndex,
+            String dataDriftStatus,
+            List<DataDriftItem> dataDriftComparison,
+            List<ConfusionMatrixCell> confusionMatrix,
+            List<String> inputFeatureNames,
+            List<String> outputCategoryNames
     ) {}
 }

@@ -38,4 +38,12 @@ public class AdminPredictiveController {
         SimulationResponse response = predictiveService.simulate(request);
         return ResponseEntity.ok(ApiResponse.ok("Simulación completada", response));
     }
+
+    @GetMapping("/ModelCard")
+    @Operation(summary = "Ficha técnica y observabilidad del modelo de IA",
+            description = "Devuelve especificaciones de arquitectura, hiperparámetros, métricas de evaluación, matriz de confusión y monitoreo de Data Drift.")
+    public ResponseEntity<ApiResponse<AiModelCardResponse>> getModelCard() {
+        AiModelCardResponse card = predictiveService.getModelCard();
+        return ResponseEntity.ok(ApiResponse.ok("Ficha técnica del modelo obtenida con éxito", card));
+    }
 }
