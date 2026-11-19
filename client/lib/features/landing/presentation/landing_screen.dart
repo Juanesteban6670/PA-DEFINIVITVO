@@ -19,17 +19,38 @@ class LandingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 900;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final wide = screenWidth >= 900;
+    final isMobile = screenWidth < 600;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             pinned: true,
+            titleSpacing: isMobile ? 12 : 16,
             title: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset('assets/brand/app-icon.png', width: 36, height: 36),
-                const SizedBox(width: 10),
-                const Text('Cartagena Segura'),
+                Image.asset(
+                  'assets/brand/app-icon.png',
+                  width: isMobile ? 28 : 36,
+                  height: isMobile ? 28 : 36,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Cartagena Segura',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -47,16 +68,68 @@ class LandingScreen extends StatelessWidget {
                   child: const Text('Nuestra misión'),
                 ),
               ],
-              const LanguageToggleButton(),
-              const SizedBox(width: 4),
-              const LiquidGlassToggleButton(),
-              const SizedBox(width: 4),
-              const ThemeToggleButton(),
+              if (isMobile) ...[
+                PopupMenuButton<String>(
+                  tooltip: 'Ajustes',
+                  icon: Icon(
+                    Icons.tune_rounded,
+                    size: 20,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          ThemeToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Tema Claro/Oscuro', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          LiquidGlassToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Efecto Cristal', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          LanguageToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Idioma / Language', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                const LanguageToggleButton(),
+                const SizedBox(width: 4),
+                const LiquidGlassToggleButton(),
+                const SizedBox(width: 4),
+                const ThemeToggleButton(),
+              ],
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12),
                 child: FilledButton(
+                  style: isMobile
+                      ? FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          visualDensity: VisualDensity.compact,
+                        )
+                      : null,
                   onPressed: () => context.go('/Login'),
-                  child: const Text('Ingresar'),
+                  child: Text(
+                    'Ingresar',
+                    style: TextStyle(fontSize: isMobile ? 12 : 14),
+                  ),
                 ),
               ),
             ],

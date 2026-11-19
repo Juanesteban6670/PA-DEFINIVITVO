@@ -85,27 +85,33 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final isCompact = screenHeight < 720;
+    final emblemSize = isCompact ? 68.0 : 92.0;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: isCompact ? 12 : 20,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 393),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 12),
+                  SizedBox(height: isCompact ? 4 : 12),
                   // Emblema de confianza (Figma Frame 2:193)
                   Center(
                     child: Container(
-                      width: 96,
-                      height: 96,
+                      width: emblemSize,
+                      height: emblemSize,
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkCard : const Color(0xFFE7F0F8),
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular(isCompact ? 20 : 28),
                         border: Border.all(
                           color: isDark ? AppColors.darkBorder : Colors.transparent,
                         ),
@@ -117,20 +123,20 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(18),
+                      padding: EdgeInsets.all(isCompact ? 12 : 16),
                       child: Image.asset(
                         'assets/brand/app-icon.png',
                         fit: BoxFit.contain,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: isCompact ? 12 : 20),
                   // Título institucional
                   Text(
                     'Cartagena Segura',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: isCompact ? 24 : 28,
                       fontWeight: FontWeight.w800,
                       color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
                       letterSpacing: -0.6,
@@ -141,12 +147,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     'Movilidad y alertas en tiempo real',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isCompact ? 13 : 14,
                       fontWeight: FontWeight.w400,
                       color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: isCompact ? 18 : 28),
                   // Encabezado de acceso
                   Text(
                     _registering

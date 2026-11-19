@@ -62,46 +62,93 @@ class AdminShell extends StatelessWidget {
         ),
         title: Text(
           _sections[selectedIndex].$2,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 17,
+            fontSize: wide ? 17 : 15,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.4,
             color: isDark ? AppColors.darkText : AppColors.navy,
           ),
         ),
         actions: [
-          const LanguageToggleButton(),
-          const SizedBox(width: 4),
-          const LiquidGlassToggleButton(),
-          const SizedBox(width: 4),
-          const ThemeToggleButton(),
+          if (wide) ...[
+            const LanguageToggleButton(),
+            const SizedBox(width: 4),
+            const LiquidGlassToggleButton(),
+            const SizedBox(width: 4),
+            const ThemeToggleButton(),
+          ] else ...[
+            PopupMenuButton<String>(
+              tooltip: 'Ajustes',
+              icon: Icon(
+                Icons.tune_rounded,
+                size: 20,
+                color: isDark ? AppColors.darkText : AppColors.navy,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  child: Row(
+                    children: [
+                      ThemeToggleButton(),
+                      SizedBox(width: 10),
+                      Text('Tema Claro/Oscuro', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  child: Row(
+                    children: [
+                      LiquidGlassToggleButton(),
+                      SizedBox(width: 10),
+                      Text('Efecto Cristal', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  child: Row(
+                    children: [
+                      LanguageToggleButton(),
+                      SizedBox(width: 10),
+                      Text('Idioma', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
           NotificationsBell(
             api: session.api,
             onPressed: () => context.push('/App/Notifications'),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCardHover : const Color(0xFFF2F2F7),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.border,
-                  width: 0.8,
+          if (wide) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardHover : const Color(0xFFF2F2F7),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 0.8,
+                  ),
                 ),
-              ),
-              child: Text(
-                session.user?.fullName ?? '',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.1,
-                  color: isDark ? AppColors.darkText : AppColors.navy,
+                child: Text(
+                  session.user?.fullName ?? '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.1,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
           IconButton(
             tooltip: 'Cerrar sesión',
             onPressed: () async {
@@ -114,7 +161,7 @@ class AdminShell extends StatelessWidget {
               size: 20,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       drawer: wide
@@ -348,32 +395,86 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     Widget? action,
   }) =>
       ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              if (isNarrow) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: Theme.of(context).textTheme.headlineSmall),
-                    const SizedBox(height: 4),
-                    Text(subtitle),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Actualizar',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: _reload,
+                          icon: const Icon(Icons.refresh, size: 20),
+                        ),
+                        LiveStatusBadge(
+                          realtimeService: _realtimeService,
+                          compact: true,
+                        ),
+                      ],
+                    ),
+                    if (action != null) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(width: double.infinity, child: action),
+                    ],
                   ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'Actualizar',
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh),
-              ),
-              const SizedBox(width: 4),
-              LiveStatusBadge(realtimeService: _realtimeService),
-              const SizedBox(width: 8),
-              // ignore: use_null_aware_elements
-              if (action != null) action,
-            ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(subtitle),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Actualizar',
+                    onPressed: _reload,
+                    icon: const Icon(Icons.refresh),
+                  ),
+                  const SizedBox(width: 4),
+                  LiveStatusBadge(realtimeService: _realtimeService),
+                  const SizedBox(width: 8),
+                  if (action != null) action,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 18),
           child,
@@ -684,23 +785,30 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                     child: Icon(Icons.report_gmailerrorred_outlined),
                   ),
                   onTap: () => _showIncident(context, incident),
-                  title: Row(
+                  title: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
-                      Expanded(
-                        child: Text(
-                          _string(incident['type'], 'Incidente'),
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                      Text(
+                        _string(incident['type'], 'Incidente'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      PillBadge(
-                        value: _string(incident['status'], 'PENDING'),
-                        compact: true,
-                      ),
-                      const SizedBox(width: 6),
-                      PillBadge(
-                        value: _string(incident['priority'], 'MEDIUM'),
-                        isPriority: true,
-                        compact: true,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PillBadge(
+                            value: _string(incident['status'], 'PENDING'),
+                            compact: true,
+                          ),
+                          const SizedBox(width: 4),
+                          PillBadge(
+                            value: _string(incident['priority'], 'MEDIUM'),
+                            isPriority: true,
+                            compact: true,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1179,18 +1287,38 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
             for (final contact in visible)
               Card(
                 child: ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.phone_in_talk_outlined),
+                  leading: CircleAvatar(
+                    backgroundColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.15),
+                    child: Icon(
+                      Icons.phone_in_talk_outlined,
+                      color: isDark ? AppColors.brightBlue : AppColors.blue,
+                    ),
                   ),
-                  title: Text(_string(contact['name'], 'Contacto')),
+                  title: Text(
+                    _string(contact['name'], 'Contacto'),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   subtitle: Text(
                     '${_string(contact['type'])} · ${_string(contact['zone'])}\n${_string(contact['phone'])}',
                   ),
                   isThreeLine: true,
-                  trailing: IconButton(
-                    tooltip: 'Desactivar contacto',
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _deleteContact(context, contact),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Llamar inmediatamente',
+                        icon: const Icon(Icons.phone, color: AppColors.green),
+                        onPressed: () {
+                          final p = _string(contact['phone']).replaceAll(RegExp(r'[^\d+]'), '');
+                          if (p.isNotEmpty) launchUrl(Uri.parse('tel:$p'));
+                        },
+                      ),
+                      IconButton(
+                        tooltip: 'Desactivar contacto',
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _deleteContact(context, contact),
+                      ),
+                    ],
                   ),
                 ),
               ),

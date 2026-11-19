@@ -159,8 +159,7 @@ class _HomeShellState extends State<HomeShell> {
 
         return Scaffold(
           backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
-          appBar: wideLayout
-              ? AppBar(
+          appBar: AppBar(
             backgroundColor: isDark ? AppColors.darkCanvas : Colors.white,
             elevation: 0,
             scrolledUnderElevation: 0,
@@ -171,13 +170,14 @@ class _HomeShellState extends State<HomeShell> {
                 color: isDark ? AppColors.darkBorder : AppColors.border,
               ),
             ),
-            titleSpacing: 16,
+            titleSpacing: wideLayout ? 16 : 10,
             title: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 34,
-                  height: 34,
-                  padding: const EdgeInsets.all(6),
+                  width: wideLayout ? 34 : 28,
+                  height: wideLayout ? 34 : 28,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.brightBlue.withValues(alpha: 0.12)
@@ -187,39 +187,41 @@ class _HomeShellState extends State<HomeShell> {
                           ? AppColors.brightBlue.withValues(alpha: 0.25)
                           : AppColors.blue.withValues(alpha: 0.15),
                     ),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(wideLayout ? 10 : 8),
                   ),
                   child: Image.asset('assets/brand/app-icon.png'),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
+                const SizedBox(width: 8),
+                Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Cartagena Segura',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: wideLayout ? 15 : 14,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.3,
                           color: isDark ? AppColors.darkText : AppColors.navy,
                         ),
                       ),
-                      Text(
-                        'Ciudadano',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppColors.darkTextMuted
-                              : AppColors.muted,
-                          letterSpacing: -0.1,
+                      if (wideLayout)
+                        Text(
+                          'Ciudadano',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.muted,
+                            letterSpacing: -0.1,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -231,15 +233,15 @@ class _HomeShellState extends State<HomeShell> {
                     realtimeService: _realtimeService, compact: true),
                 const SizedBox(width: 4),
               ],
-              // Botón SOS de Pánico
+              // Botón SOS de Pánico (Visible SIEMPRE en móvil y PC)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(vertical: wideLayout ? 10 : 12),
                 child: FilledButton.icon(
                   key: AppTourKeys.sosButtonKey,
                   style: FilledButton.styleFrom(
                     backgroundColor: isDark ? AppColors.darkRed : AppColors.red,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: wideLayout ? 12 : 8),
                     visualDensity: VisualDensity.compact,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -247,21 +249,62 @@ class _HomeShellState extends State<HomeShell> {
                     ),
                   ),
                   onPressed: () => _showSosDialog(context),
-                  icon: const Icon(Icons.emergency_rounded, size: 16),
-                  label: const Text(
-                    'SOS 123',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: -0.1),
+                  icon: const Icon(Icons.emergency_rounded, size: 15),
+                  label: Text(
+                    wideLayout ? 'SOS 123' : 'SOS',
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: -0.1),
                   ),
                 ),
               ),
               if (wideLayout) ...[
                 const SizedBox(width: 4),
                 const LanguageToggleButton(),
+                const SizedBox(width: 4),
+                const LiquidGlassToggleButton(),
+                const SizedBox(width: 4),
+                const ThemeToggleButton(),
+              ] else ...[
+                PopupMenuButton<String>(
+                  tooltip: 'Ajustes',
+                  icon: Icon(
+                    Icons.tune_rounded,
+                    size: 20,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          ThemeToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Tema', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          LiquidGlassToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Efecto Cristal', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      child: Row(
+                        children: [
+                          LanguageToggleButton(),
+                          SizedBox(width: 10),
+                          Text('Idioma', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
-              const SizedBox(width: 4),
-              const LiquidGlassToggleButton(),
-              const SizedBox(width: 4),
-              const ThemeToggleButton(),
               NotificationsBell(
                 api: api,
                 onPressed: () {
@@ -280,23 +323,23 @@ class _HomeShellState extends State<HomeShell> {
                 tooltip: 'Perfil',
                 onPressed: () => _selectTab(4),
                 icon: CircleAvatar(
-                  radius: 16,
+                  radius: wideLayout ? 16 : 14,
                   backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
                   child: Text(
                     (widget.session.user?.username.isNotEmpty ?? false)
                         ? widget.session.user!.username[0].toUpperCase()
                         : 'U',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: wideLayout ? 12 : 11,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
             ],
-          ) : null,
+          ),
           body: wideLayout
               ? Row(
                   children: [

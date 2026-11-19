@@ -249,24 +249,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Row(
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
                               children: [
-                                Icon(
-                                  Icons.location_on_rounded,
-                                  size: 15,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_rounded,
+                                      size: 15,
+                                      color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Cartagena de Indias, Bolívar',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: -0.1,
+                                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Cartagena de Indias, Bolívar',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: -0.1,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(

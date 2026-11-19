@@ -221,10 +221,14 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Encabezado del Visualizador Sináptico
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -240,20 +244,21 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                       size: 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Grafo Sináptico y Red Neuronal Deep MLP',
+                        'Grafo Sináptico y Red Neuronal',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: isDark ? AppColors.darkText : AppColors.navy,
                         ),
                       ),
                       Text(
-                        'Flujo feedforward en tiempo real (60 FPS) • Topología 6 -> 8 -> 6 -> 5',
+                        'Feedforward 60 FPS • Topología 6 -> 8 -> 6 -> 5',
                         style: TextStyle(
                           fontSize: 11,
                           color: isDark
@@ -348,24 +353,31 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
               builder: (context, child) {
                 return LayoutBuilder(
                   builder: (context, constraints) {
-                    final size = constraints.biggest;
-                    return GestureDetector(
-                      onTapUp: (details) {
-                        _handleTap(details.localPosition, size, inputs, h1, h2, outputs);
-                      },
-                      child: CustomPaint(
-                        size: size,
-                        painter: _NeuralNetworkPainter(
-                          pulseProgress: _pulseController.value,
-                          inputs: inputs,
-                          h1: h1,
-                          h2: h2,
-                          outputs: outputs,
-                          weights01: _weights01,
-                          weights12: _weights12,
-                          weights23: _weights23,
-                          isDark: isDark,
-                          selectedNodeId: _selectedNode?.id,
+                    final canvasWidth = math.max(constraints.maxWidth, 360.0);
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: canvasWidth,
+                        height: 380,
+                        child: GestureDetector(
+                          onTapUp: (details) {
+                            _handleTap(details.localPosition, Size(canvasWidth, 380), inputs, h1, h2, outputs);
+                          },
+                          child: CustomPaint(
+                            size: Size(canvasWidth, 380),
+                            painter: _NeuralNetworkPainter(
+                              pulseProgress: _pulseController.value,
+                              inputs: inputs,
+                              h1: h1,
+                              h2: h2,
+                              outputs: outputs,
+                              weights01: _weights01,
+                              weights12: _weights12,
+                              weights23: _weights23,
+                              isDark: isDark,
+                              selectedNodeId: _selectedNode?.id,
+                            ),
+                          ),
                         ),
                       ),
                     );
