@@ -59,6 +59,16 @@ jobs:
           git commit -m "ci: capture build error log" || true
           git push origin apk-build-log --force || true
 
+      - name: Locate APK file
+        id: apk-path
+        run: |
+          APK_PATH=$(find client/build build -name "app-release.apk" 2>/dev/null | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find . -name "app-release.apk" | head -n 1)
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -66,3 +76,23 @@ jobs:
           path: "**/app-release.apk"
           retention-days: 14
           if-no-files-found: error
+
+      - name: Update Release Tag and Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-latest
+          name: "Cartagena Segura Android App (Release Oficial)"
+          body: |
+            ## 🛡️ Cartagena Segura — APK Nativo para Android
+            
+            Versión oficial compilada en modo **Release (AOT)** conectada en tiempo real a la plataforma en la nube:
+            * **API REST:** `https://pa-definivitvo.onrender.com/api`
+            * **WebSockets / Alertas en tiempo real:** `wss://pa-definivitvo.onrender.com/ws`
+            
+            ### 📲 Descarga Directa:
+            Haz clic en el archivo **`app-release.apk`** para descargarlo e instalarlo directamente en tu teléfono Android sin necesidad de descomprimir archivos.
+          draft: false
+          prerelease: false
+          files: ${{ steps.apk-path.outputs.path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
