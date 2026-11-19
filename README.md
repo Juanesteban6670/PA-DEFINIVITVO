@@ -11,7 +11,7 @@ El ecosistema de **Cartagena Segura** se encuentra completamente desplegado e in
 | Servicio / Recurso | Plataforma | Enlace de Acceso Directo | Descripción |
 | :--- | :--- | :--- | :--- |
 | 🚀 **Aplicación Web Oficial** | **Render Cloud** | [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com) | Despliegue en vivo 24/7 del cliente Web PWA y API REST |
-| 📲 **App Móvil Android (APK)** | **GitHub Actions CI/CD** | [Descargar APK (Release v1.0)](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44437194996) | Paquete APK de producción (~58.9 MB) listo para instalar en cualquier teléfono Android |
+| 📲 **App Móvil Android (APK)** | **GitHub Actions CI/CD** | [Descargar APK Responsive (Build #44450340300)](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44450340300) | Paquete APK Release optimizado 100% responsive (~58.9 MB) para cualquier teléfono Android |
 | ⚙️ **Panel de Despliegue & Métricas** | **Render Dashboard** | [https://dashboard.render.com](https://dashboard.render.com) | Administración del servicio `cartagena-segura`, logs y compilación continua |
 | 📖 **Documentación Swagger / OpenAPI** | **Springdoc OpenAPI 3** | [https://pa-definivitvo.onrender.com/swagger-ui/index.html](https://pa-definivitvo.onrender.com/swagger-ui/index.html) | Catálogo interactivo de endpoints REST y esquemas de datos |
 | 🩺 **Monitoreo de Salud (Healthcheck)** | **Spring Boot Actuator** | [https://pa-definivitvo.onrender.com/actuator/health](https://pa-definivitvo.onrender.com/actuator/health) | Sonda en tiempo real del estado del sistema y conexiones |
@@ -172,11 +172,11 @@ La base de datos incluye semillas iniciales de prueba para evaluar los diferente
 ### 🤖 1. Descarga del APK Nativo para Android (Recomendado)
 El cliente para Android ha sido compilado de forma nativa en modo **Release** conectándose directamente a la API en producción en Render (`https://pa-definivitvo.onrender.com/api` y WebSockets `wss://pa-definivitvo.onrender.com/ws`):
 
-* 📦 **Enlace de Descarga Directa:** [Descargar Cartagena Segura APK (Release v1.0 - Build #44437194996)](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44437194996)
+* 📦 **Enlace de Descarga Directa:** [Descargar Cartagena Segura APK Responsive (Build #44450340300)](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44450340300)
 * 🔄 **Historial de Compilaciones del APK:** [Ver todos los builds en GitHub Actions](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/workflows/build-apk.yml)
 
 #### Pasos de Instalación en tu celular:
-1. Accede al enlace de la ejecución [Build #44437194996](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44437194996).
+1. Accede al enlace de la ejecución [Build #44450340300](https://github.com/Juanesteban6670/PA-DEFINIVITVO/actions/runs/44450340300).
 2. Al final de la página, en la sección **Artifacts**, haz clic en **`cartagena-segura-apk`** (descarga un archivo `.zip` de ~58.9 MB).
 3. Descomprime el archivo para obtener el instalador `app-release.apk`.
 4. Abre `app-release.apk` en tu dispositivo y pulsa en **Instalar** (permite *"Instalar aplicaciones de fuentes desconocidas"* si el sistema lo solicita).
