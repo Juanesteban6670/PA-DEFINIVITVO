@@ -46,7 +46,7 @@ jobs:
         working-directory: client
         run: |
           set -o pipefail
-          flutter build apk --release --dart-define=API_BASE_URL=https://pa-definivitvo.onrender.com/api 2>&1 | tee ../flutter_build.log
+          flutter build apk --release --android-skip-build-dependency-validation --dart-define=API_BASE_URL=https://pa-definivitvo.onrender.com/api 2>&1 | tee ../flutter_build.log
 
       - name: Publish build failure log
         if: failure()
