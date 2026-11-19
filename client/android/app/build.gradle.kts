@@ -45,18 +45,27 @@ android {
         versionName = flutter.versionName
     }
 
+    val hasReleaseKey = releaseStoreFile?.let(::file)?.isFile == true &&
+        releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
+
     signingConfigs {
         create("release") {
-            if (releaseStoreFile != null) storeFile = file(releaseStoreFile)
-            storePassword = releaseStorePassword
-            keyAlias = releaseKeyAlias
-            keyPassword = releaseKeyPassword
+            if (hasReleaseKey) {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
@@ -68,8 +77,8 @@ tasks.configureEach {
             if (keystore == null || !keystore.isFile ||
                 releaseStorePassword == null || releaseKeyAlias == null ||
                 releaseKeyPassword == null) {
-                throw GradleException(
-                    "Configura ANDROID_KEYSTORE_PATH, ANDROID_STORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD, o mobile/android/key.properties. No se usa firma debug para release.",
+                logger.info(
+                    "Aviso: No se configuró un keystore de producción. Se aplicará firma debug para pruebas del APK.",
                 )
             }
         }

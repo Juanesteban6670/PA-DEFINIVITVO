@@ -257,12 +257,18 @@ class RealtimeAlertService {
   String _buildWebSocketUrl(String path) {
     var base = baseUrl.trim();
     if (base.isEmpty || base == '/api') {
-      final host = kIsWeb ? Uri.base.host : 'localhost:8080';
-      final isSecure = kIsWeb && Uri.base.scheme == 'https';
+      if (!kIsWeb) {
+        return 'wss://pa-definivitvo.onrender.com$path';
+      }
+      final host = Uri.base.host;
+      final isSecure = Uri.base.scheme == 'https';
       final scheme = isSecure ? 'wss' : 'ws';
-      final port = (kIsWeb && Uri.base.hasPort) ? ':${Uri.base.port}' : '';
+      final port = Uri.base.hasPort ? ':${Uri.base.port}' : '';
       return '$scheme://$host$port$path';
     }
+
+    // Remover sub-ruta /api final para que el WebSocket apunte al endpoint raíz /ws
+    base = base.replaceFirst(RegExp(r'/api/?$'), '');
 
     if (base.startsWith('https://')) {
       return base.replaceFirst('https://', 'wss://') + path;
