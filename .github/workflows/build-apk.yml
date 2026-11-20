@@ -1,82 +1,43 @@
-name: Publish Cartagena Segura Android 1.2.1
-
+name: Promote Android 1.2.1 to the permanent link
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publicar el APK firmado de la versión 1.2.1
+        description: Actualizar el enlace fijo de Android a v1.2.1
         type: boolean
         default: false
-
 permissions:
   contents: write
-
 concurrency:
-  group: cartagena-android-1-2-1-migration
-
+  group: cartagena-android-1-2-1-promotion
 jobs:
-  release:
+  promote:
     if: inputs.publish && github.ref == 'refs/heads/codex/android-1.2.1-release'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: 29c8fd9c717bfcdddeb70a6ac17e59a081884b0c
-          persist-credentials: false
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.47.9"
-          cache: true
-          cache-dependency-path: client/pubspec.lock
-      - name: Build the signed APK
-        working-directory: client
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          for name in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
-            test -n "${!name}"
-          done
-          umask 077
-          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/cartagena-release.p12"
-          trap 'rm -f "$ANDROID_KEYSTORE_PATH"' EXIT
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
-          flutter pub get --enforce-lockfile
-          flutter build apk --release --no-pub --android-skip-build-dependency-validation \
-            --build-name=1.2.1 --build-number=4 \
-            --dart-define=API_BASE_URL=https://pa-definivitvo.onrender.com/api
-      - name: Verify the key transition and packaged logo
-        run: |
-          set -euo pipefail
-          apk=client/build/app/outputs/flutter-apk/app-release.apk
-          export PATH="$ANDROID_HOME/build-tools/36.0.0:$PATH"
-          apksigner verify --print-certs "$apk" > "$RUNNER_TEMP/certificate.txt"
-          grep -Fx 'Signer #1 certificate SHA-256 digest: 903da575d8ac3c981e7c464e94434648fd24027eab6ec79ef3ca9cd7db09caa3' "$RUNNER_TEMP/certificate.txt"
-          aapt2 dump badging "$apk" > "$RUNNER_TEMP/package.txt"
-          grep -F "package: name='com.cartagenasegura.cartagena_segura' versionCode='4' versionName='1.2.1'" "$RUNNER_TEMP/package.txt"
-          aapt2 dump resources "$apk" > "$RUNNER_TEMP/resources.txt"
-          grep -F 'mipmap/ic_launcher_foreground' "$RUNNER_TEMP/resources.txt"
-          unzip -p "$apk" assets/flutter_assets/assets/brand/app-icon.png | cmp client/assets/brand/app-icon.png -
-      - name: Upload and publish the verified versioned release
+      - name: Verify and promote the published APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          apk=client/build/app/outputs/flutter-apk/app-release.apk
-          release="repos/$GITHUB_REPOSITORY/releases/452244968"
-          gh api "$release" > "$RUNNER_TEMP/release.json"
-          jq -e '.draft and .tag_name == "v1.2.1"' "$RUNNER_TEMP/release.json" >/dev/null
-          digest=$(sha256sum "$apk" | awk '{print $1}')
-          gh release upload v1.2.1 "$apk" --repo "$GITHUB_REPOSITORY" --clobber
-          remote_digest=$(gh api "$release/assets" --jq '.[] | select(.name=="app-release.apk" and .state=="uploaded") | .digest')
-          test "$remote_digest" = "sha256:$digest"
-          jq -r '.body | split("SHA-256 del APK:")[0]' "$RUNNER_TEMP/release.json" > "$RUNNER_TEMP/notes.md"
-          printf 'SHA-256 del APK: `%s`.\n' "$digest" >> "$RUNNER_TEMP/notes.md"
-          gh api --method PATCH "$release" -F draft=false -f make_latest=true -F body=@"$RUNNER_TEMP/notes.md" --jq '.html_url'
+          base="repos/$GITHUB_REPOSITORY/releases"
+          digest=ba87fded227df8b410279bd64d5bd436b552a8b0ee10b124bd5572f4e7ef5be3
+          old_digest=09dd7c515c26e01b79ef44eaa9dd90cb131a4a50ef001cec90017fd23a1c2106
+          staging=cartagena-1.2.1-staging.apk
+          cd "$RUNNER_TEMP"
+          gh api "$base/452244968" | jq -e --arg d "sha256:$digest" '.tag_name == "v1.2.1" and (.draft | not) and any(.assets[]; .name == "app-release.apk" and .digest == $d)' >/dev/null
+          gh release download v1.2.1 --repo "$GITHUB_REPOSITORY" --pattern app-release.apk --output "$staging"
+          printf '%s  %s\n' "$digest" "$staging" | sha256sum -c
+          gh api "$base/450845320" | jq -e --arg d "sha256:$old_digest" '.tag_name == "app-latest" and any(.assets[]; .id == 766070513 and .name == "app-release.apk" and .digest == $d)' >/dev/null
+          gh release upload app-latest "$staging" --repo "$GITHUB_REPOSITORY" --clobber
+          staged=$(gh api "$base/450845320/assets" --jq ".[] | select(.name == \"$staging\" and .digest == \"sha256:$digest\") | .id")
+          test -n "$staged"
+          gh api -X PATCH "$base/assets/766070513" -f name=cartagena-legacy-removal.apk >/dev/null
+          if ! gh api -X PATCH "$base/assets/$staged" -f name=app-release.apk >/dev/null; then
+            gh api -X PATCH "$base/assets/766070513" -f name=app-release.apk >/dev/null
+            exit 1
+          fi
+          gh api "$base/assets/$staged" | jq -e --arg d "sha256:$digest" '.name == "app-release.apk" and .digest == $d' >/dev/null
+          gh api -X DELETE "$base/assets/766070513"
+          gh api "$base/452244968" --jq '.body' > notes.md
+          gh api -X PATCH "$base/450845320" -f name='Cartagena Segura para Android · Descarga permanente' -f make_latest=false -F body=@notes.md --jq '.html_url'
