@@ -103,6 +103,7 @@ void main() {
         );
       }),
     );
+    api.token = 'citizen-test-token';
     addTearDown(api.close);
     final refresh = ValueNotifier<int>(0);
     addTearDown(refresh.dispose);
@@ -120,7 +121,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomSheet), findsOneWidget);
+    final details = find.byType(Dialog);
+    expect(details, findsOneWidget);
+    expect(find.descendant(of: details, matching: find.text('Robo')), findsOneWidget);
   });
 }
 

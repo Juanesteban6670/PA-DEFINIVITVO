@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -43,6 +45,7 @@ class _HomeShellState extends State<HomeShell> {
   final _incidentRefresh = ValueNotifier<int>(0);
   late final ReportDraftStore _drafts;
   RealtimeAlertService? _realtimeService;
+  Timer? _tourStartTimer;
 
   @override
   void initState() {
@@ -60,7 +63,8 @@ class _HomeShellState extends State<HomeShell> {
     _realtimeService?.connect();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      _tourStartTimer = Timer(const Duration(milliseconds: 700), () {
         if (mounted) {
           AppTourController.instance.startTour(
             context,
@@ -102,6 +106,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
+    _tourStartTimer?.cancel();
     _realtimeService?.dispose();
     _incidentRefresh.dispose();
     super.dispose();

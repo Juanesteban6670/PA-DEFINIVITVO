@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:cartagena_segura/shared/liquid_glass.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 import 'app_tour_model.dart';

@@ -360,14 +360,16 @@ class _SignInScreenState extends State<SignInScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        _registering
-                                            ? 'Crear cuenta ciudadana'
-                                            : 'Iniciar sesión',
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.1,
+                                      Flexible(
+                                        child: Text(
+                                          _registering
+                                              ? 'Crear cuenta ciudadana'
+                                              : 'Iniciar sesión',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.1,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 10),
@@ -382,8 +384,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         const SizedBox(height: 24),
                         // Alternar registro / login (Figma 2:218 y 2:219)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               _registering

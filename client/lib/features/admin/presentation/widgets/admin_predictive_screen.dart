@@ -689,7 +689,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: _simSector,
+          initialValue: _simSector,
           isDense: true,
           decoration: InputDecoration(
             filled: true,
@@ -768,7 +768,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   const Text('Aglomeración', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
-                    value: _simCrowd,
+                    initialValue: _simCrowd,
                     isDense: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -796,7 +796,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   const Text('Clima', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
-                    value: _simWeather,
+                    initialValue: _simWeather,
                     isDense: true,
                     decoration: InputDecoration(
                       filled: true,

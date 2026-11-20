@@ -601,7 +601,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       if (hDist <= 350.0) {
         approaching = hazard;
         VoiceNavigationService.instance.announceHazard(
-          hazardType: hazard.type ?? 'peligro reportado',
+          hazardType: hazard.type,
           distanceMeters: hDist,
         );
         break;
@@ -1028,12 +1028,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             .where(
               (incident) =>
                   incident.latitude != null && incident.longitude != null,
-            )
-            .toList();
-        final withoutLocation = filtered
-            .where(
-              (incident) =>
-                  incident.latitude == null || incident.longitude == null,
             )
             .toList();
 
@@ -3327,12 +3321,14 @@ class _FigmaMapIncidentCard extends StatelessWidget {
               children: [
                 const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
                 const SizedBox(width: 8),
-                Text(
-                  'Cartagena sin alertas críticas cercanas',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                Flexible(
+                  child: Text(
+                    'Cartagena sin alertas críticas cercanas',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                    ),
                   ),
                 ),
               ],
