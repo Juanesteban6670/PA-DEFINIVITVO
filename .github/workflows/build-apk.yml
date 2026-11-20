@@ -1,63 +1,39 @@
-name: Build Android APK
+name: Publish Cartagena Segura Android 1.2.1
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "client/**"
-      - ".github/workflows/build-apk.yml"
-      - "scripts/verify_android_update.sh"
-  pull_request:
-    paths:
-      - "client/**"
-      - ".github/workflows/build-apk.yml"
-      - "scripts/verify_android_update.sh"
   workflow_dispatch:
     inputs:
       publish:
-        description: Reemplazar el APK de app-latest
+        description: Publicar el APK firmado de la versión 1.2.1
         type: boolean
         default: false
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: android-apk-${{ github.workflow }}-${{ github.ref }}
+  group: cartagena-android-1-2-1-migration
 
 jobs:
-  build-apk:
-    name: Build Android Release APK
+  release:
+    if: inputs.publish && github.ref == 'refs/heads/codex/android-1.2.1-release'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
+          ref: 29c8fd9c717bfcdddeb70a6ac17e59a081884b0c
+          persist-credentials: false
+      - uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
+          distribution: temurin
           java-version: "17"
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.47.9"
           cache: true
           cache-dependency-path: client/pubspec.lock
-
-      - name: Accept Android licenses
-        run: yes | flutter doctor --android-licenses || true
-
-      - name: Install Flutter dependencies
+      - name: Build the signed APK
         working-directory: client
-        run: flutter pub get
-
-      - name: Configure official signing
-        if: github.event_name == 'workflow_dispatch' && inputs.publish
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -66,72 +42,41 @@ jobs:
         run: |
           set -euo pipefail
           for name in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
-            if [[ -z "${!name}" ]]; then
-              echo "::error::Missing signing configuration: $name"
-              exit 1
-            fi
+            test -n "${!name}"
           done
           umask 077
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/cartagena-release.jks"
-
-      - name: Build Android APK (Release)
-        working-directory: client
-        env:
-          ANDROID_STORE_PASSWORD: ${{ inputs.publish && secrets.ANDROID_STORE_PASSWORD || '' }}
-          ANDROID_KEY_ALIAS: ${{ inputs.publish && secrets.ANDROID_KEY_ALIAS || '' }}
-          ANDROID_KEY_PASSWORD: ${{ inputs.publish && secrets.ANDROID_KEY_PASSWORD || '' }}
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/cartagena-release.p12"
+          trap 'rm -f "$ANDROID_KEYSTORE_PATH"' EXIT
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          flutter pub get --enforce-lockfile
+          flutter build apk --release --no-pub --android-skip-build-dependency-validation \
+            --build-name=1.2.1 --build-number=4 \
+            --dart-define=API_BASE_URL=https://pa-definivitvo.onrender.com/api
+      - name: Verify the key transition and packaged logo
         run: |
-          if [[ -f "$RUNNER_TEMP/cartagena-release.jks" ]]; then
-            export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/cartagena-release.jks"
-          fi
-          flutter build apk --release --android-skip-build-dependency-validation --dart-define=API_BASE_URL=https://pa-definivitvo.onrender.com/api
-
-      - name: Verify compatibility with current release
-        if: github.event_name == 'workflow_dispatch' && inputs.publish
-        run: |
-          curl --fail --silent --show-error --location --retry 3 \
-            "https://github.com/$GITHUB_REPOSITORY/releases/download/app-latest/app-release.apk" \
-            --output "$RUNNER_TEMP/current.apk"
+          set -euo pipefail
+          apk=client/build/app/outputs/flutter-apk/app-release.apk
           export PATH="$ANDROID_HOME/build-tools/36.0.0:$PATH"
-          bash scripts/verify_android_update.sh "$RUNNER_TEMP/current.apk" client/build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cartagena-segura-apk
-          path: client/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 14
-          if-no-files-found: error
-
-  publish:
-    name: Publish verified APK
-    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
-    needs: build-apk
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: cartagena-segura-apk
-      - name: Update Release Tag and Publish Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: app-latest
-          name: "Cartagena Segura Android App (Release Oficial)"
-          body: |
-            ## 🛡️ Cartagena Segura — APK Nativo para Android
-            
-            Versión oficial compilada en modo **Release (AOT)** conectada en tiempo real a la plataforma en la nube:
-            * **API REST:** `https://pa-definivitvo.onrender.com/api`
-            * **WebSockets / Alertas en tiempo real:** `wss://pa-definivitvo.onrender.com/ws`
-            
-            ### 📲 Descarga Directa:
-            Haz clic en el archivo **`app-release.apk`** para descargarlo e instalarlo directamente en tu teléfono Android sin necesidad de descomprimir archivos.
-          draft: false
-          prerelease: false
-          target_commitish: ${{ github.sha }}
-          fail_on_unmatched_files: true
-          files: app-release.apk
+          apksigner verify --print-certs "$apk" > "$RUNNER_TEMP/certificate.txt"
+          grep -Fx 'Signer #1 certificate SHA-256 digest: 903da575d8ac3c981e7c464e94434648fd24027eab6ec79ef3ca9cd7db09caa3' "$RUNNER_TEMP/certificate.txt"
+          aapt2 dump badging "$apk" > "$RUNNER_TEMP/package.txt"
+          grep -F "package: name='com.cartagenasegura.cartagena_segura' versionCode='4' versionName='1.2.1'" "$RUNNER_TEMP/package.txt"
+          aapt2 dump resources "$apk" > "$RUNNER_TEMP/resources.txt"
+          grep -F 'mipmap/ic_launcher_foreground' "$RUNNER_TEMP/resources.txt"
+          unzip -p "$apk" assets/flutter_assets/assets/brand/app-icon.png | cmp client/assets/brand/app-icon.png -
+      - name: Upload and publish the verified versioned release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          apk=client/build/app/outputs/flutter-apk/app-release.apk
+          release="repos/$GITHUB_REPOSITORY/releases/452244968"
+          gh api "$release" > "$RUNNER_TEMP/release.json"
+          jq -e '.draft and .tag_name == "v1.2.1"' "$RUNNER_TEMP/release.json" >/dev/null
+          digest=$(sha256sum "$apk" | awk '{print $1}')
+          gh release upload v1.2.1 "$apk" --repo "$GITHUB_REPOSITORY" --clobber
+          remote_digest=$(gh api "$release/assets" --jq '.[] | select(.name=="app-release.apk" and .state=="uploaded") | .digest')
+          test "$remote_digest" = "sha256:$digest"
+          jq -r '.body | split("SHA-256 del APK:")[0]' "$RUNNER_TEMP/release.json" > "$RUNNER_TEMP/notes.md"
+          printf 'SHA-256 del APK: `%s`.\n' "$digest" >> "$RUNNER_TEMP/notes.md"
+          gh api --method PATCH "$release" -F draft=false -f make_latest=true -F body=@"$RUNNER_TEMP/notes.md" --jq '.html_url'
