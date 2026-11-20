@@ -136,3 +136,11 @@ jobs:
           cmp "$RUNNER_TEMP/cartagena-index.html" "$RUNNER_TEMP/cartagena-login.html"
           curl --fail --silent --show-error "$base/favicon.png" -o "$RUNNER_TEMP/cartagena-favicon.png"
           cmp client/web/favicon.png "$RUNNER_TEMP/cartagena-favicon.png"
+          curl --fail --silent --show-error "$base/api/Auth/Register" \
+            -H 'Content-Type: application/json' \
+            --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!","email":"render-smoke@example.com","fullName":"Render Smoke Test","phone":"3001234567"}' \
+            -o "$RUNNER_TEMP/cartagena-register.json"
+          curl --fail --silent --show-error "$base/api/Auth/Login" \
+            -H 'Content-Type: application/json' \
+            --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!"}' |
+            python3 -c 'import json,sys; data = json.load(sys.stdin); assert data["success"] and data["data"]["token"]'
