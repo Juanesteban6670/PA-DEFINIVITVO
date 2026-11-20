@@ -471,7 +471,7 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                   const SizedBox(width: 4),
                   LiveStatusBadge(realtimeService: _realtimeService),
                   const SizedBox(width: 8),
-                  if (action != null) action,
+                  ?action,
                 ],
               );
             },

@@ -263,13 +263,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                                     ),
                                     const SizedBox(width: 4),
-                                    Text(
-                                      'Cartagena de Indias, Bolívar',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: -0.1,
-                                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                    Flexible(
+                                      child: Text(
+                                        'Cartagena de Indias, Bolívar',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: -0.1,
+                                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -427,13 +429,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text(
-                                    'Reportes recientes en la comunidad',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? AppColors.darkText : AppColors.navy,
-                                      letterSpacing: -0.4,
+                                  Flexible(
+                                    child: Text(
+                                      'Reportes recientes en la comunidad',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? AppColors.darkText : AppColors.navy,
+                                        letterSpacing: -0.4,
+                                      ),
                                     ),
                                   ),
                                   const Spacer(),
@@ -522,7 +526,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 22),
-                    Row(
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
                       children: [
                         Text(
                           'Reportes recientes',
@@ -533,7 +540,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             color: isDark ? AppColors.darkText : AppColors.navy,
                           ),
                         ),
-                        const Spacer(),
                         InkWell(
                           onTap: () => widget.onSelectTab(2),
                           child: Padding(
@@ -656,13 +662,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Rutas Seguras Inteligentes',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
+                Flexible(
+                  child: Text(
+                    'Rutas Seguras Inteligentes',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: isDark ? AppColors.darkText : AppColors.navy,
+                    ),
                   ),
                 ),
               ],
@@ -734,13 +742,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Rutas Seguras Cartagena',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
+                Flexible(
+                  child: Text(
+                    'Rutas Seguras Cartagena',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: isDark ? AppColors.darkText : AppColors.navy,
+                    ),
                   ),
                 ),
               ],

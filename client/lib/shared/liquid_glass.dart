@@ -175,33 +175,12 @@ abstract final class LiquidGlassTokens {
                 .withValues(alpha: isFull ? 0.52 : 0.80),
           ];
 
-    // Borde biselado con gradiente especular (luz superior brillante)
     final border = customBorder ??
-        Border(
-          top: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: isFull ? 0.28 : 0.18)
-                : Colors.white.withValues(alpha: isFull ? 0.95 : 0.80),
-            width: isFull ? 1.2 : 0.9,
+        Border.all(
+          color: Colors.white.withValues(
+            alpha: isDark ? (isFull ? 0.20 : 0.14) : (isFull ? 0.75 : 0.60),
           ),
-          left: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: isFull ? 0.20 : 0.14)
-                : Colors.white.withValues(alpha: isFull ? 0.75 : 0.60),
-            width: isFull ? 1.0 : 0.8,
-          ),
-          right: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: isFull ? 0.14 : 0.10)
-                : Colors.white.withValues(alpha: isFull ? 0.50 : 0.40),
-            width: isFull ? 1.0 : 0.8,
-          ),
-          bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: isFull ? 0.10 : 0.08)
-                : Colors.black.withValues(alpha: isFull ? 0.06 : 0.04),
-            width: isFull ? 1.0 : 0.8,
-          ),
+          width: isFull ? 1 : 0.8,
         );
 
     return BoxDecoration(
@@ -356,7 +335,6 @@ class _LiquidGlassCardState extends State<LiquidGlassCard> {
     return ListenableBuilder(
       listenable: LiquidGlassController.instance,
       builder: (context, _) {
-        final mode = LiquidGlassController.instance.mode;
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
         Widget content = LiquidGlassContainer(

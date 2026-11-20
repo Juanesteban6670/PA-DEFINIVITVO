@@ -8,6 +8,7 @@ on:
       - "client/**"
       - "backend/**"
       - "compose.yaml"
+      - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
       - ".github/workflows/web-backend.yml"
@@ -16,6 +17,7 @@ on:
       - "client/**"
       - "backend/**"
       - "compose.yaml"
+      - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
       - ".github/workflows/web-backend.yml"
@@ -99,3 +101,46 @@ jobs:
 
       - name: Build application images
         run: docker compose build backend flutter-web
+
+
+      - name: Build the Render image
+        run: docker build --file Dockerfile.cloud --tag cartagena-render:ci .
+
+      - name: Smoke test the Render image
+        run: |
+          set -euo pipefail
+          override="$RUNNER_TEMP/cartagena-render.compose.yaml"
+          cat > "$override" <<'YAML'
+          services:
+            backend:
+              image: cartagena-render:ci
+              ports:
+                - "127.0.0.1:18080:8080"
+          YAML
+          compose=(docker compose -f compose.yaml -f "$override")
+          cleanup() {
+            local result=$?
+            if (( result != 0 )); then
+              "${compose[@]}" logs --tail=80 postgres mongo backend
+            fi
+            "${compose[@]}" down --volumes
+          }
+          trap cleanup EXIT
+          "${compose[@]}" up --no-build --wait --wait-timeout 360 backend
+          base=http://127.0.0.1:18080
+          curl --fail --silent --show-error "$base/actuator/health" |
+            python3 -c 'import json,sys; assert json.load(sys.stdin)["status"] == "UP"'
+          curl --fail --silent --show-error "$base/" -o "$RUNNER_TEMP/cartagena-index.html"
+          grep -q 'flutter_bootstrap.js' "$RUNNER_TEMP/cartagena-index.html"
+          curl --fail --silent --show-error "$base/Login" -o "$RUNNER_TEMP/cartagena-login.html"
+          cmp "$RUNNER_TEMP/cartagena-index.html" "$RUNNER_TEMP/cartagena-login.html"
+          curl --fail --silent --show-error "$base/favicon.png" -o "$RUNNER_TEMP/cartagena-favicon.png"
+          cmp client/web/favicon.png "$RUNNER_TEMP/cartagena-favicon.png"
+          curl --fail --silent --show-error "$base/api/Auth/Register" \
+            -H 'Content-Type: application/json' \
+            --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!","email":"render-smoke@example.com","fullName":"Render Smoke Test","phone":"3001234567"}' \
+            -o "$RUNNER_TEMP/cartagena-register.json"
+          curl --fail --silent --show-error "$base/api/Auth/Login" \
+            -H 'Content-Type: application/json' \
+            --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!"}' |
+            python3 -c 'import json,sys; data = json.load(sys.stdin); assert data["success"] and data["data"]["token"]'
