@@ -189,9 +189,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 final t = i.type.toUpperCase();
                 return t.contains('TRAF') || t.contains('TRANSIT') || t.contains('VIA') || t.contains('OBSTACULO');
               }).length;
-              final safeZonesCount = _zones.isNotEmpty
-                  ? _zones.where((z) => z is Map && (z['riskLevel'] == 'LOW' || z['active'] == true)).length
-                  : 5;
+              final safeZonesCount = _zones.where((zone) =>
+                  zone is Map && zone['riskLevel'] == 'LOW' &&
+                  zone['active'] != false).length;
 
               // Filtrar incidentes por sector seleccionado
               final filteredIncidents = _selectedSector == 'Todos'
