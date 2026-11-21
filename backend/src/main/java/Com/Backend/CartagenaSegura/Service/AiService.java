@@ -500,23 +500,24 @@ public class AiService {
         }
 
         // =========================================================================
-        // 10. ESTADÍSTICAS O ESTADO DE CARTAGENA
+        // 10. ESTADÍSTICAS Y DASHBOARD INTERACTIVO
         // =========================================================================
-        if (query.contains("estadistica") || query.contains("resumen") || query.contains("ciudad") ||
-                query.contains("cuantos incidentes") || query.contains("estado")) {
+        if (query.contains("estadistica") || query.contains("resumen") || query.contains("grafico") ||
+                query.contains("kpi") || query.contains("cuantos incidentes") || query.contains("dashboard")) {
             long total = incidentRepository.count();
             List<Zone> zones = zoneRepository.findAll();
             String reply = String.format("""
-                    📊 **Estado General de Cartagena en Tiempo Real:**
+                    📊 **Panel de Estadísticas y Análisis de Cartagena Segura:**
 
                     * **Total de incidentes registrados:** %d reportes en plataforma.
-                    * **Zonas monitoreadas activamente:** %d sectores de Cartagena.
-                    * **Sectores con mayor índice de seguridad:** Bocagrande, Manga y Crespo.
-                    * **Sectores con vigilancia reforzada:** Mercado de Bazurto y Olaya Herrera.
+                    * **Zonas monitoreadas activamente:** %d sectores distritales.
+                    * **Métricas clave:** Puedes consultar el tiempo promedio de atención, distribución por categoría y evolución temporal.
+                    * **Gráficos interactivos:** Disponibles en la sección **Estadísticas**, incluyendo gráfico de barras por incidente, cronología semanal/mensual, gráfica circular de tipos y ranking de sectores por concentración.
 
-                    Recuerda que cada reporte que haces contribuye a mantener las rutas seguras actualizadas para toda la comunidad.
+                    ¿Deseas abrir el panel de estadísticas para filtrar por barrio o fecha?
                     """, total, zones.size());
             List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("NAVIGATE", "Abrir Panel de Estadísticas", "/App/Analytics"),
                     new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa de Incidentes", "/App/Map")
             );
             sessionManager.recordTurn(sessId, rawMessage, reply, "STATISTICS", null, null);
@@ -524,41 +525,116 @@ public class AiService {
         }
 
         // =========================================================================
-        // 11. SALUDO O BIENVENIDA
+        // 11. RECOMENDACIONES PREVENTIVAS Y SEGURIDAD CIUDADANA
         // =========================================================================
-        if (query.contains("hola") || query.contains("buenos") || query.contains("buenas") || query.contains("quien eres")) {
+        if (query.contains("prevencion") || query.contains("prevención") || query.contains("consejo") ||
+                query.contains("recomendacion") || query.contains("recomendación") || query.contains("seguro") ||
+                query.contains("cuidarme") || query.contains("evitar robo")) {
+            String reply = """
+                    🛡️ **Recomendaciones Preventivas de Seguridad en Cartagena:**
+
+                    1. 📱 **En vías públicas y transporte:** Evita el uso descuidado del teléfono celular al caminar por sectores de alta afluencia o tráfico lento (esquinas, semáforos, paraderos).
+                    2. 🚶 **Zonas turísticas y nocturnas:** En Centro Histórico y Getsemaní, transita por calles iluminadas y concurridas. Al tomar transporte en la noche, utiliza servicios oficiales o taxis autorizados.
+                    3. 💳 **Retiros y compras:** En cajeros automáticos del Centro o centros comerciales, no aceptes ayuda de extraños ni expongas sumas elevadas de dinero.
+                    4. 🚨 **Alertas GPS activas:** Mantén activadas las notificaciones de proximidad en esta app para que te avisemos cuando te aproximes a una zona con concentración de incidentes.
+                    5. 👥 **Solidaridad ciudadana:** Si presencias una situación sospechosa, radica un reporte en Cartagena Segura o avisa al cuadrante policial más cercano marcando al 123.
+
+                    ¿Deseas consultar las medidas de seguridad de algún barrio en específico?
+                    """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("CALL", "Llamar a Policía 123", "123"),
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa de Incidentes", "/App/Map")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "PREVENTION_TIPS", null, null);
+            return new AiDto.ChatResponse(reply, actions, "PREVENTION_TIPS");
+        }
+
+        // =========================================================================
+        // 12. ALERTAS DE PROXIMIDAD GPS INTELIGENTES
+        // =========================================================================
+        if (query.contains("alerta gps") || query.contains("proximidad") || query.contains("geocerca") ||
+                query.contains("alerta inteligente") || query.contains("zona peligrosa")) {
+            String reply = """
+                    📍 **Sistema de Alertas Geográficas Inteligentes:**
+
+                    Cartagena Segura cuenta con monitoreo inteligente de proximidad en segundo plano:
+                    * **Detección GPS:** Con los permisos de ubicación, la app calcula tu distancia a los focos de incidentes registrados en la base de datos real.
+                    * **Clasificación de riesgo:** Evalúa la antigüedad, tipo de incidente y densidad para clasificar la zona como **Riesgo Alto**, **Medio** o **Bajo**.
+                    * **Protección anti-spam:** Cuenta con un filtro inteligente de 30 minutos para no saturarte con alertas repetidas de la misma zona.
+                    * **Personalización:** Puedes configurar en cualquier momento la sensibilidad y distancia de aviso (300m, 500m o 1000m) desde tus preferencias.
+
+                    ¿Quieres verificar los reportes actuales cerca de tu posición?
+                    """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Zonas en Mapa", "/App/Map"),
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Todos los Reportes", "/App/Incidents/Explorer")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "PROXIMITY_ALERTS", null, null);
+            return new AiDto.ChatResponse(reply, actions, "PROXIMITY_ALERTS");
+        }
+
+        // =========================================================================
+        // 13. EXPLORADOR DE TODOS LOS REPORTES
+        // =========================================================================
+        if (query.contains("todos los reportes") || query.contains("explorador") || query.contains("historial") ||
+                query.contains("buscar reporte") || query.contains("filtrar")) {
+            String reply = """
+                    🔎 **Explorador Completo de Reportes Ciudadanos:**
+
+                    Puedes consultar todo el historial de incidentes de Cartagena con herramientas avanzadas:
+                    * **Búsqueda en tiempo real:** Escribe palabras clave, direcciones o tipos de novedad.
+                    * **Filtros dinámicos:** Filtra por categoría (*Robo, Accidente, Alumbrado, etc.*), estado (*Pendiente, En Investigación, Resuelto*) o sector.
+                    * **Detalle completo:** Toca cualquier tarjeta para visualizar fecha exacta, coordenadas, estado de atención y fotos de evidencia adjuntas.
+
+                    ¿Deseas acceder al explorador de reportes ahora?
+                    """;
+            List<AiDto.ActionPrompt> actions = List.of(
+                    new AiDto.ActionPrompt("NAVIGATE", "Abrir Explorador de Reportes", "/App/Incidents/Explorer"),
+                    new AiDto.ActionPrompt("REPORT", "Crear Nuevo Reporte", "GENERAL")
+            );
+            sessionManager.recordTurn(sessId, rawMessage, reply, "REPORTS_EXPLORER", null, null);
+            return new AiDto.ChatResponse(reply, actions, "REPORTS_EXPLORER");
+        }
+
+        // =========================================================================
+        // 14. SALUDO O BIENVENIDA
+        // =========================================================================
+        if (query.contains("hola") || query.contains("buenos") || query.contains("buenas") || query.contains("quien eres") || query.contains("quién eres")) {
             String nameGreeting = (userName != null && !userName.equalsIgnoreCase("Ciudadano")) ? " " + userName : "";
             String reply = String.format("""
-                    ¡Hola%s! Soy **Cartagena Segura AI**, tu asistente oficial de seguridad y convivencia ciudadana.
+                    ¡Hola%s! Soy tu **Asistente Cartagena Segura**, el asistente virtual oficial de seguridad, movilidad y convivencia de Cartagena.
 
-                    Estoy conectado en tiempo real con la base de datos distrital de Cartagena. Puedo orientarte sobre:
-                    * 🚨 **Emergencias en curso:** Accidentes de moto/carro, hurtos o auxilio médico inmediato.
-                    * 🛡️ **Seguridad por barrios:** Estado en Centro Histórico, Getsemaní, Bocagrande, Manga, Bazurto, etc.
-                    * 🗺️ **Rutas Seguras:** Cómo desplazarte esquivando sectores peligrosos.
-                    * ✍️ **Reportes:** Cómo radicar novedades en el mapa distrital.
+                    Estoy conectado en tiempo real con la base de datos distrital. Puedo orientarte sobre:
+                    * 🚨 **Emergencias y protocolos:** Qué hacer ante accidentes de tránsito (DATT 127/CRUE 125) o hurtos (Línea 123).
+                    * 🛡️ **Seguridad por barrios:** Consulta el nivel de riesgo en Bocagrande, Centro, Getsemaní, Manga, Bazurto, Olaya, etc.
+                    * 📝 **Reportes ciudadanos:** Cómo radicar novedades con ubicación y fotos de evidencia.
+                    * 📊 **Estadísticas y Alertas GPS:** Cómo consultar métricas y recibir avisos de zonas de riesgo.
 
-                    ¿Sobre qué situación o sector te gustaría consultar?
+                    ¿En qué puedo orientarte hoy?
                     """, nameGreeting);
             List<AiDto.ActionPrompt> actions = List.of(
                     new AiDto.ActionPrompt("CALL", "Llamar al 123", "123"),
-                    new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa en Vivo", "/App/Map")
+                    new AiDto.ActionPrompt("NAVIGATE", "Ver Mapa en Vivo", "/App/Map"),
+                    new AiDto.ActionPrompt("NAVIGATE", "Explorador de Reportes", "/App/Incidents/Explorer")
             );
             sessionManager.recordTurn(sessId, rawMessage, reply, "GREETING", null, null);
             return new AiDto.ChatResponse(reply, actions, "GREETING");
         }
 
         // =========================================================================
-        // 12. RESPUESTA DINÁMICA DE ORIENTACIÓN GENERAL (Nunca repetitiva)
+        // 15. RESPUESTA DINÁMICA DE ORIENTACIÓN GENERAL (Nunca repetitiva)
         // =========================================================================
         String nameRef = (userName != null && !userName.equalsIgnoreCase("Ciudadano")) ? userName : "ciudadano";
         String reply = String.format("""
-                Hola %s. He recibido tu consulta en **Cartagena Segura**. Para brindarte la orientación más precisa:
+                Hola %s. He recibido tu mensaje en el **Asistente Cartagena Segura**.
 
-                * Si estás presenciando o involucrado en un **accidente de tránsito (moto o carro)**, por favor indícamelo para activar el protocolo con el CRUE (125) y DATT (127).
-                * Si fuiste víctima de un **hurto o situación de peligro**, comunícate de inmediato con la **Línea 123** de la Policía.
-                * Si deseas conocer el **nivel de riesgo de un barrio** (*Bocagrande, Getsemaní, Centro, Manga, Bazurto, Olaya*), solo escribe su nombre.
+                Para darte la orientación más precisa:
+                * Si estás involucrado en una **emergencia o accidente**, marca de inmediato a la **Línea 123** de la Policía o al **125** (Ambulancias CRUE).
+                * Si deseas saber cómo **radicar un reporte**, escribe *"¿cómo reportar?"*.
+                * Si deseas consultar la **seguridad de un barrio**, escribe su nombre (ej: *Bocagrande, Centro Histórico, Getsemaní, Manga, Bazurto*).
+                * También puedes pedirme **consejos de prevención** o consultar las **estadísticas** del distrito.
 
-                ¿Qué novedad o inquietud específica estás experimentando?
+                ¿Qué novedad o inquietud deseas consultar?
                 """, nameRef);
 
         List<AiDto.ActionPrompt> actions = List.of(

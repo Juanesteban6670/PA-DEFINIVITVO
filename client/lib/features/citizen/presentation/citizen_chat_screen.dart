@@ -36,7 +36,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     _messages.add(
       const _ChatMessage(
         text:
-            'Hola. Soy el asistente de Cartagena Segura. Puedo orientarte sobre reportes, zonas de riesgo y servicios de emergencia. Si hay peligro inmediato, llama al 123.',
+            '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nPuedo orientarte en tiempo real sobre cómo realizar reportes ciudadanos, consultar zonas de atención, estadísticas distritales y protocolos de emergencia en Cartagena de Indias.\n\n*Si estás en una situación de peligro inminente o requieres auxilio urgente, comunícate de inmediato a la Línea 123.*',
       ),
     );
     _restoreHistory();
@@ -145,7 +145,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         ..add(
           const _ChatMessage(
             text:
-                'Conversación nueva. ¿En qué puedo orientarte sobre seguridad ciudadana?',
+                '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nConversación reiniciada. ¿En qué puedo orientarte hoy sobre seguridad, convivencia o trámites de la app?',
           ),
         );
     });
@@ -263,8 +263,34 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     });
   }
 
+  Widget _buildChip(String label, String query) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ActionChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.darkText : AppColors.navy,
+          ),
+        ),
+        backgroundColor: isDark ? AppColors.darkCard : Colors.white,
+        side: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+          width: 0.8,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        visualDensity: VisualDensity.compact,
+        onPressed: _sending || _restoring ? null : () => _send(query),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: const Column(
@@ -278,8 +304,6 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
           ],
         ),
         actions: [
-          const LiquidGlassToggleButton(),
-          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Nueva conversación',
             onPressed: _sending || _restoring ? null : _clearConversation,
@@ -291,15 +315,69 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
+            constraints: const BoxConstraints(maxWidth: 780),
             child: Column(
               children: [
+                // Banner de Emergencia Inmediata
+                Container(
+                  margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF3B1212) : const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.emergency_rounded, color: AppColors.red, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '¿Peligro o emergencia? Llama al 123.',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: () async {
+                          final uri = Uri.parse('tel:123');
+                          try {
+                            if (await canLaunchUrl(uri)) await launchUrl(uri);
+                          } catch (_) {}
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.red,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.phone_in_talk, size: 11, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('123', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Historial de Conversación
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                    itemCount:
-                        _messages.length + (_sending || _restoring ? 1 : 0),
+                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                    itemCount: _messages.length + (_sending || _restoring ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == _messages.length && _restoring) {
                         return const Center(child: CircularProgressIndicator());
@@ -317,11 +395,30 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                     },
                   ),
                 ),
+                // Chips de Sugerencias Rápidas
+                Container(
+                  height: 38,
+                  margin: const EdgeInsets.only(bottom: 6),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    children: [
+                      _buildChip('📝 ¿Cómo reportar?', '¿Cómo realizo un reporte ciudadano en Cartagena Segura?'),
+                      _buildChip('⚠️ Zonas de riesgo', '¿Cuáles son las zonas de riesgo en Cartagena?'),
+                      _buildChip('🚨 Líneas de emergencia', '¿Cuáles son las líneas de emergencia oficiales?'),
+                      _buildChip('🛡️ Consejos preventivos', 'Dame recomendaciones preventivas de seguridad en Cartagena'),
+                      _buildChip('📊 Estadísticas distritales', '¿Cómo consulto las estadísticas y gráficos?'),
+                      _buildChip('📍 Alertas GPS', '¿Cómo funcionan las alertas geográficas inteligentes?'),
+                      _buildChip('🔎 Explorador de reportes', '¿Cómo uso el explorador de reportes?'),
+                    ],
+                  ),
+                ),
+                // Campo de Entrada de Mensaje
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                   child: LiquidGlassContainer(
                     borderRadius: BorderRadius.circular(24),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     elevation: 2,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -333,9 +430,17 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                             maxLines: 4,
                             textInputAction: TextInputAction.send,
                             onSubmitted: (_) => _send(),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Escribe tu pregunta…',
-                              prefixIcon: Icon(Icons.chat_bubble_outline),
+                              hintStyle: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 19,
+                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                              ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -346,6 +451,10 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                         const SizedBox(width: 6),
                         IconButton.filled(
                           tooltip: 'Enviar mensaje',
+                          style: IconButton.styleFrom(
+                            backgroundColor: isDark ? AppColors.brightBlue : AppColors.navy,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed:
                               _sending || _restoring ? null : () => _send(),
                           icon: _sending
@@ -354,9 +463,10 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    color: Colors.white,
                                   ),
                                 )
-                              : const Icon(Icons.send),
+                              : const Icon(Icons.send_rounded, size: 18),
                         ),
                       ],
                     ),
@@ -888,11 +998,25 @@ class _TypingIndicatorState extends State<_TypingIndicator>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: (isDark ? AppColors.brightBlue : AppColors.navy).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.smart_toy_rounded,
+                  size: 12,
+                  color: isDark ? AppColors.brightBlue : AppColors.navy,
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Cartagena Segura IA',
+                'Asistente Cartagena Segura está escribiendo...',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
                   color: isDark ? AppColors.darkTextMuted : AppColors.muted,
                 ),
               ),

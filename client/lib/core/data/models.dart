@@ -125,6 +125,11 @@ class AppNotification {
     this.type = '',
     this.relatedEntityId,
     this.createdAt,
+    this.category,
+    this.location,
+    this.reportedBy,
+    this.hasPhotos = false,
+    this.incidentStatus,
   });
 
   final String id;
@@ -134,6 +139,11 @@ class AppNotification {
   final String type;
   final String? relatedEntityId;
   final DateTime? createdAt;
+  final String? category;
+  final String? location;
+  final String? reportedBy;
+  final bool hasPhotos;
+  final String? incidentStatus;
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       AppNotification(
@@ -144,6 +154,11 @@ class AppNotification {
         type: json['type']?.toString() ?? '',
         relatedEntityId: json['relatedEntityId']?.toString(),
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+        category: json['category']?.toString(),
+        location: json['location']?.toString(),
+        reportedBy: json['reportedBy']?.toString(),
+        hasPhotos: json['hasPhotos'] == true,
+        incidentStatus: json['incidentStatus']?.toString(),
       );
 }
 

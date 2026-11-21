@@ -103,6 +103,14 @@ public class IncidentService {
                 Com.Backend.CartagenaSegura.Model.Notification.NotificationType.INCIDENT_CREATED,
                 saved.getId(), "Incident");
 
+        // Notificar en tiempo real a administradores con metadatos completos
+        notificationService.notifyAdmins(
+                "Nuevo reporte: " + req.type(),
+                "Reportado en " + req.location() + (saved.getImageUrls() != null && !saved.getImageUrls().isEmpty() ? " (con evidencia fotográfica)" : ""),
+                saved,
+                reportedBy
+        );
+
         logService.log("CREATE_INCIDENT", reportedBy,
                 "Incidente creado: " + req.type() + " en " + req.location(),
                 "Incident", saved.getId());
@@ -203,6 +211,14 @@ public class IncidentService {
                     Com.Backend.CartagenaSegura.Model.Notification.NotificationType.INCIDENT_UPDATED,
                     id, "Incident");
         }
+
+        // Notificar a administradores del cambio de estado
+        notificationService.notifyAdmins(
+                "Estado de incidente actualizado: " + updated.getType(),
+                "Ubicación: " + updated.getLocation() + " · Nuevo estado: " + updated.getStatus().name() + " (por @" + changedBy + ")",
+                updated,
+                incident.getReportedBy()
+        );
 
         logService.log("UPDATE_INCIDENT_STATUS", changedBy,
                 "Estado cambiado de " + oldStatus + " a " + req.status(),

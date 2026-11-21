@@ -12,6 +12,10 @@ import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/core/localization/app_strings.dart';
 import 'package:cartagena_segura/core/localization/language_widgets.dart';
 import 'package:cartagena_segura/core/localization/locale_controller.dart';
+import 'package:cartagena_segura/core/services/app_sync_service.dart';
+import 'package:cartagena_segura/core/services/proximity_alert_service.dart';
+import 'package:cartagena_segura/core/services/version_check_service.dart';
+import 'package:cartagena_segura/features/citizen/presentation/widgets/proximity_alert_dialog.dart';
 import 'package:cartagena_segura/shared/live_status_badge.dart';
 import 'package:cartagena_segura/shared/notifications_bell.dart';
 import 'package:cartagena_segura/shared/theme.dart';
@@ -40,7 +44,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   late int _selectedIndex = widget.initialIndex;
   final _incidentRefresh = ValueNotifier<int>(0);
   late final ReportDraftStore _drafts;
@@ -50,6 +54,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _drafts = ReportDraftStore(
       storage: widget.session.storage,
       owner: widget.session.user?.username ?? 'ciudadano',
@@ -62,7 +67,22 @@ class _HomeShellState extends State<HomeShell> {
     _realtimeService?.addAlertListener(_onEmergencyAlertReceived);
     _realtimeService?.connect();
 
+    // Iniciar sincronización periódica en segundo plano
+    AppSyncService.instance.startPeriodicSync(
+      api: widget.session.api,
+      incidentRefresh: _incidentRefresh,
+    );
+
+    // Iniciar monitoreo inteligente de proximidad geográfica (Geofencing)
+    ProximityAlertService.instance.startMonitoring(
+      api: widget.session.api,
+      onAlertTriggered: _onProximityAlertTriggered,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Chequeo de actualizaciones de versión
+      VersionCheckService.instance.checkForUpdates(context, widget.session.api);
+
       if (!mounted) return;
       _tourStartTimer = Timer(const Duration(milliseconds: 700), () {
         if (mounted) {
@@ -74,6 +94,77 @@ class _HomeShellState extends State<HomeShell> {
         }
       });
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Al volver a abrir la aplicación desde segundo plano:
+      // Sincronizar reportes, estados y notificaciones sin perder la sesión
+      AppSyncService.instance.syncAll(
+        api: widget.session.api,
+        incidentRefresh: _incidentRefresh,
+        isBackground: false,
+      );
+      ProximityAlertService.instance.checkProximity(
+        api: widget.session.api,
+        onAlertTriggered: _onProximityAlertTriggered,
+      );
+      if (mounted) {
+        VersionCheckService.instance.checkForUpdates(context, widget.session.api);
+      }
+    }
+  }
+
+  void _onProximityAlertTriggered(ProximityZoneAlert alert) {
+    if (!mounted) return;
+    final isHigh = alert.riskLevel == 'ALTO';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: isHigh ? const Color(0xFFC0392B) : const Color(0xFFD97706),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 7),
+        content: Row(
+          children: [
+            Icon(
+              isHigh ? Icons.warning_rounded : Icons.shield_outlined,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '⚠️ ZONA DE RIESGO: ${alert.zoneName}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                  ),
+                  Text(
+                    'A ~${alert.formattedDistance} · Nivel ${alert.riskLevel} · ${alert.recentTypes.join(", ")}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'VER',
+          textColor: Colors.white,
+          onPressed: () {
+            ProximityAlertDialog.show(
+              context,
+              alert: alert,
+              onViewOnMap: () => _selectTab(1),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _onEmergencyAlertReceived(Map<String, dynamic> alert) {
@@ -107,6 +198,9 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void dispose() {
     _tourStartTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    AppSyncService.instance.stopPeriodicSync();
+    ProximityAlertService.instance.stopMonitoring();
     _realtimeService?.dispose();
     _incidentRefresh.dispose();
     super.dispose();

@@ -77,6 +77,30 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     }
   }
 
+  Future<void> _handlePullToRefresh() async {
+    try {
+      final incFuture = _loadCurrentList();
+      final pendingFuture = widget.drafts.readPending();
+      final results = await Future.wait([incFuture, pendingFuture]);
+      if (mounted) {
+        setState(() {
+          _incidents = Future.value(results[0] as List<Incident>);
+          _pending = Future.value(results[1] as List<ReportDraft>);
+        });
+        widget.incidentRefresh.value++;
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo refrescar los reportes: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   void _onTabChanged(int index) {
     if (_selectedTab != index) {
       setState(() {
@@ -176,9 +200,14 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
               final isWide = context.isWide;
 
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: [
+              return RefreshIndicator(
+                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                backgroundColor: isDark ? AppColors.darkCard : Colors.white,
+                onRefresh: _handlePullToRefresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  children: [
                   // 1. TÍTULO, SUBTÍTULO Y ACCIONES ADAPTATIVAS
                   if (isWide)
                     Row(
@@ -550,7 +579,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
                     const SizedBox(height: 20),
                   ],
-                );
+                ),
+              );
               },
             ),
           ),

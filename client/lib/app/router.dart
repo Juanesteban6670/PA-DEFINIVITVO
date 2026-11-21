@@ -5,6 +5,8 @@ import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/features/admin/presentation/admin_shell.dart';
 import 'package:cartagena_segura/features/auth/presentation/password_recovery_screen.dart';
 import 'package:cartagena_segura/features/auth/presentation/sign_in_screen.dart';
+import 'package:cartagena_segura/features/citizen/presentation/all_reports_explorer_screen.dart';
+import 'package:cartagena_segura/features/citizen/presentation/citizen_chat_screen.dart';
 import 'package:cartagena_segura/features/citizen/presentation/home_shell.dart';
 import 'package:cartagena_segura/features/citizen/presentation/notifications_screen.dart';
 import 'package:cartagena_segura/features/landing/presentation/landing_screen.dart';
@@ -56,6 +58,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           initialIndex: 2,
           initialIncidentId: state.uri.queryParameters['id'],
         ),
+      ),
+      GoRoute(
+        path: '/App/Incidents/Explorer',
+        builder: (context, state) => AllReportsExplorerScreen(session: session),
+      ),
+      GoRoute(
+        path: '/App/Chat',
+        builder: (context, state) => CitizenChatScreen(session: session),
       ),
       GoRoute(
         path: '/App/Analytics',

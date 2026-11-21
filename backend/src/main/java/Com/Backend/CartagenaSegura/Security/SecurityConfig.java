@@ -100,9 +100,10 @@ public class SecurityConfig {
                                 "/ws-sockjs",
                                 "/ws-sockjs/**"
                         ).permitAll()
-                        // ===== Auth - publico =====
+                        // ===== Auth y Sistema - publico =====
                         .requestMatchers(HttpMethod.PUT, "/api/Auth/Profile").authenticated()
                         .requestMatchers("/api/Auth/**").permitAll()
+                        .requestMatchers("/api/System/**").permitAll()
                         
                         // ===== Estadisticas publicas para Landing Page (Solo GET) =====
                         .requestMatchers(HttpMethod.GET, "/api/Incidents").permitAll()

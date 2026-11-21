@@ -23,6 +23,13 @@ public class Notification {
     private String relatedEntityId;   // ID del incidente, zona, etc.
     private String relatedEntityType; // "Incident", "Zone", etc.
 
+    // Metadatos enriquecidos del incidente para administradores y ciudadanos
+    private String category;
+    private String location;
+    private String reportedBy;
+    private boolean hasPhotos = false;
+    private String incidentStatus = "PENDING";
+
     private boolean read = false;
 
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -70,6 +77,21 @@ public class Notification {
 
     public String getRelatedEntityType() { return relatedEntityType; }
     public void setRelatedEntityType(String relatedEntityType) { this.relatedEntityType = relatedEntityType; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getReportedBy() { return reportedBy; }
+    public void setReportedBy(String reportedBy) { this.reportedBy = reportedBy; }
+
+    public boolean isHasPhotos() { return hasPhotos; }
+    public void setHasPhotos(boolean hasPhotos) { this.hasPhotos = hasPhotos; }
+
+    public String getIncidentStatus() { return incidentStatus; }
+    public void setIncidentStatus(String incidentStatus) { this.incidentStatus = incidentStatus; }
 
     public boolean isRead() { return read; }
     public void setRead(boolean read) { this.read = read; }

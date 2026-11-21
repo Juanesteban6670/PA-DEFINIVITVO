@@ -1,21 +1,35 @@
 package Com.Backend.CartagenaSegura.Service;
 
+import Com.Backend.CartagenaSegura.Model.Incident;
 import Com.Backend.CartagenaSegura.Model.Notification;
+import Com.Backend.CartagenaSegura.Model.User;
 import Com.Backend.CartagenaSegura.Repository.NotificationRepository;
+import Com.Backend.CartagenaSegura.Repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            @Autowired(required = false) SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public void notifyUser(String userId, String title, String message,
@@ -25,6 +39,44 @@ public class NotificationService {
                 userId, title, message, type, relatedEntityId, relatedEntityType
         );
         notificationRepository.save(notification);
+    }
+
+    public void notifyAdmins(String title, String message, Incident incident, String reportedBy) {
+        try {
+            List<User> admins = userRepository.findAllAdminsAndOfficers();
+            for (User admin : admins) {
+                Notification notification = new Notification(
+                        admin.getUsername(),
+                        title,
+                        message,
+                        Notification.NotificationType.INCIDENT_CREATED,
+                        incident.getId(),
+                        "Incident"
+                );
+                notification.setCategory(incident.getType() != null ? incident.getType() : "Seguridad");
+                notification.setLocation(incident.getLocation() != null ? incident.getLocation() : "Cartagena");
+                notification.setReportedBy(reportedBy != null ? reportedBy : "Ciudadano");
+                notification.setHasPhotos(incident.getImageUrls() != null && !incident.getImageUrls().isEmpty());
+                notification.setIncidentStatus(incident.getStatus() != null ? incident.getStatus().name() : "PENDING");
+                notificationRepository.save(notification);
+            }
+
+            if (messagingTemplate != null) {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("title", title);
+                payload.put("message", message);
+                payload.put("category", incident.getType());
+                payload.put("location", incident.getLocation());
+                payload.put("reportedBy", reportedBy);
+                payload.put("hasPhotos", incident.getImageUrls() != null && !incident.getImageUrls().isEmpty());
+                payload.put("incidentStatus", incident.getStatus() != null ? incident.getStatus().name() : "PENDING");
+                payload.put("incidentId", incident.getId());
+                payload.put("timestamp", System.currentTimeMillis());
+
+                messagingTemplate.convertAndSend("/topic/admin/notifications", payload);
+                messagingTemplate.convertAndSend("/topic/notifications", payload);
+            }
+        } catch (Exception ignored) {}
     }
 
     public List<Notification> getByUser(String userId) {

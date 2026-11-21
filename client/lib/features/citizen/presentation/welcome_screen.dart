@@ -7,8 +7,10 @@ import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 import 'package:cartagena_segura/shared/tour/app_tour_keys.dart';
 
+import 'all_reports_explorer_screen.dart';
 import 'citizen_chat_screen.dart';
 import 'notifications_screen.dart';
+import 'widgets/incident_compact_card.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
@@ -85,61 +87,46 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
   }
 
-  String _formatTimeAgo(DateTime? date) {
-    if (date == null) return 'Reciente';
-    final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 60) {
-      final mins = diff.inMinutes <= 0 ? 1 : diff.inMinutes;
-      return 'Hace $mins min';
+  Future<void> _handlePullToRefresh() async {
+    try {
+      final incFuture = loadIncidents(widget.session.api, mine: false);
+      final zonesFuture = widget.session.api.get('Zones').catchError((_) => null);
+      final results = await Future.wait([incFuture, zonesFuture]);
+
+      if (mounted) {
+        setState(() {
+          _incidents = Future.value(results[0] as List<Incident>);
+          final res = results[1];
+          final list = res is List
+              ? res
+              : (res is Map<String, dynamic> && res['data'] is List ? res['data'] as List : null);
+          if (list != null) {
+            _zones = list;
+          }
+        });
+        widget.incidentRefresh.value++;
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo refrescar: $error'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
-    if (diff.inHours < 24) {
-      return 'Hace ${diff.inHours} h';
-    }
-    if (diff.inDays == 1) {
-      return 'Ayer';
-    }
-    return 'Hace ${diff.inDays} d';
   }
 
-  (String, Color, Color, IconData) _getCategoryMeta(String type, bool isDark) {
-    final t = type.toUpperCase();
-    if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('CONGESTION')) {
-      return (
-        'Tráfico',
-        isDark ? AppColors.darkAmber : AppColors.amber,
-        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.2 : 0.12),
-        Icons.directions_car_rounded,
-      );
-    }
-    if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO')) {
-      return (
-        'Seguridad',
-        isDark ? AppColors.darkRed : AppColors.red,
-        (isDark ? AppColors.darkRed : AppColors.red).withValues(alpha: isDark ? 0.2 : 0.12),
-        Icons.shield_outlined,
-      );
-    }
-    if (t.contains('VIA') || t.contains('OBRA') || t.contains('OBSTACULO') || t.contains('PAVIMENT')) {
-      return (
-        'Vía cerrada',
-        isDark ? AppColors.sky : const Color(0xFF0284C7),
-        (isDark ? AppColors.sky : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.12),
-        Icons.construction_rounded,
-      );
-    }
-    if (t.contains('ALUMBR') || t.contains('LUZ') || t.contains('INFRA')) {
-      return (
-        'Servicios',
-        isDark ? AppColors.darkGreen : AppColors.green,
-        (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.12),
-        Icons.lightbulb_outline_rounded,
-      );
-    }
-    return (
-      'Alerta',
-      isDark ? AppColors.brightBlue : AppColors.blue,
-      (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.12),
-      Icons.warning_amber_rounded,
+  void _openAllReports(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => AllReportsExplorerScreen(
+          session: widget.session,
+          initialSector: _selectedSector == 'Todos' ? null : _selectedSector,
+        ),
+      ),
     );
   }
 
@@ -228,9 +215,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 onTap: () => widget.onSelectTab(2),
               );
 
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: [
+              return RefreshIndicator(
+                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                backgroundColor: isDark ? AppColors.darkCard : Colors.white,
+                onRefresh: _handlePullToRefresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  children: [
                   // Encabezado adaptable
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,7 +434,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   ),
                                   const Spacer(),
                                   InkWell(
-                                    onTap: () => widget.onSelectTab(2),
+                                    onTap: () => _openAllReports(context),
                                     child: Text(
                                       'Ver todos',
                                       style: TextStyle(
@@ -481,14 +473,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 LayoutBuilder(
                                   builder: (context, constraints) {
                                     final w = (constraints.maxWidth - 14) / 2;
+                                    final recentIncidents = filteredIncidents.take(4).toList();
                                     return Wrap(
                                       spacing: 14,
                                       runSpacing: 12,
                                       children: [
-                                        for (final inc in filteredIncidents)
+                                        for (final inc in recentIncidents)
                                           SizedBox(
                                             width: w,
-                                            child: _buildIncidentCardFromData(inc, isDark),
+                                            child: IncidentCompactCard(
+                                              incident: inc,
+                                              isDark: isDark,
+                                              onTap: () => IncidentCompactCard.showDetail(
+                                                context,
+                                                inc,
+                                                api: widget.session.api,
+                                              ),
+                                            ),
                                           ),
                                       ],
                                     );
@@ -541,7 +542,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => widget.onSelectTab(2),
+                          onTap: () => _openAllReports(context),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                             child: Text(
@@ -567,9 +568,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       )
                     else if (filteredIncidents.isEmpty)
                       _buildEmptySectorBanner(isDark)
-                    else
-                      for (final inc in filteredIncidents)
-                        _buildIncidentCardFromData(inc, isDark),
+                    else ...[
+                      for (final inc in filteredIncidents.take(4))
+                        IncidentCompactCard(
+                          incident: inc,
+                          isDark: isDark,
+                          onTap: () => IncidentCompactCard.showDetail(
+                            context,
+                            inc,
+                            api: widget.session.api,
+                          ),
+                        ),
+                    ],
                     const SizedBox(height: 18),
                     _buildSafeRouteBanner(isDark),
                     const SizedBox(height: 16),
@@ -577,8 +587,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     const SizedBox(height: 24),
                   ],
                 ],
-              );
-            },
+              ),
+            );
+          },
           ),
         ),
       ),
@@ -624,24 +635,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildIncidentCardFromData(Incident inc, bool isDark) {
-    final (catName, catColor, catBg, catIcon) = _getCategoryMeta(inc.type, isDark);
-    final title = inc.description.isNotEmpty ? inc.description : inc.type;
-    final subtitle = '${inc.location} · ${_formatTimeAgo(inc.createdAt)}';
-
-    return _buildIncidentCard(
-      category: catName,
-      categoryColor: catColor,
-      iconBg: catBg,
-      icon: catIcon,
-      title: title,
-      subtitle: subtitle,
-      distance: inc.status == 'RESOLVED' ? 'Resuelto' : 'En proceso',
-      isDark: isDark,
-      onTap: () => widget.onSelectTab(1),
     );
   }
 
@@ -818,7 +811,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Asistente Ciudadano IA',
+                  'Asistente Cartagena Segura IA',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -828,7 +821,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Orientación en trámites, seguridad y emergencias.',
+                  'Orientación inteligente en seguridad y emergencias.',
                   style: TextStyle(
                     fontSize: 11,
                     color: isDark ? AppColors.darkTextMuted : AppColors.muted,
@@ -956,94 +949,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             color: isSelected
                 ? Colors.white
                 : (isDark ? AppColors.darkTextMuted : AppColors.muted),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIncidentCard({
-    required String category,
-    required Color categoryColor,
-    required Color iconBg,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String distance,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: LiquidGlassContainer(
-          padding: const EdgeInsets.all(14),
-          borderRadius: BorderRadius.circular(18),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Icono de categoría
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(icon, color: categoryColor, size: 20),
-              ),
-              const SizedBox(width: 12),
-              // Textos
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.1,
-                        color: categoryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                        color: isDark ? AppColors.darkText : AppColors.navy,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 11,
-                        letterSpacing: -0.1,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Distancia / Estado
-              Text(
-                distance,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: -0.1,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                ),
-              ),
-            ],
           ),
         ),
       ),

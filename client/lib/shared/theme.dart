@@ -4,50 +4,53 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 export 'liquid_glass.dart';
 
-/// Paleta de colores oficial inspirada en las directrices de diseño de Apple
-/// (Human Interface Guidelines - HIG para iOS, iPadOS y macOS).
+/// Paleta de colores oficial de Cartagena Segura
 abstract final class AppColors {
-  // Apple Signature Blues
-  static const blue = Color(0xFF0071E3); // Apple Blue (Web, macOS, iOS)
-  static const brightBlue = Color(0xFF0A84FF); // Apple Dark System Blue
-  static const navy = Color(0xFF1D1D1F); // Apple Primary Label Light
-  static const navyBlue = Color(0xFF2C2C2E); // Apple Secondary Label Light / Fill
-  static const sky = Color(0xFF64D2FF); // Apple System Cyan
+  // Identidad Visual Cartagena Segura
+  static const navy = Color(0xFF063970); // Azul oscuro institucional (#063970)
+  static const blue = Color(0xFF0B5CAD); // Azul principal (#0B5CAD)
+  static const brightBlue = Color(0xFF0B5CAD); // Azul vibrante (#0B5CAD)
+  static const navyBlue = Color(0xFF063970); // Azul oscuro
+  static const sky = Color(0xFF38BDF8); // Azul cielo / acento
 
-  // Light Mode Surfaces (Apple Clean Light HIG)
-  static const canvas = Color(0xFFF5F5F7); // Apple System Gray 6 / Signature Canvas
-  static const surface = Colors.white; // Apple Pure White Surface
-  static const border = Color(0xFFE5E5EA); // Apple System Gray 5 Separator / Hairline Border
-  static const borderSubtle = Color(0xFFF2F2F7);
-  static const muted = Color(0xFF86868B); // Apple Secondary Label Light
+  // Superficies claras y fondos
+  static const canvas = Color(0xFFF5F7FA); // Fondo claro (#F5F7FA)
+  static const surface = Colors.white; // Superficie blanca
+  static const border = Color(0xFFE2E8F0); // Borde claro elegante
+  static const borderSubtle = Color(0xFFF1F5F9);
 
-  // Status & Priority Accents (Apple HIG System Colors)
-  static const red = Color(0xFFFF3B30); // Apple System Red
-  static const green = Color(0xFF34C759); // Apple System Green
-  static const amber = Color(0xFFFF9500); // Apple System Orange / Warning
-  static const yellow = Color(0xFFFFCC00); // Apple System Yellow
-  static const purple = Color(0xFFAF52DE); // Apple System Purple
-  static const indigo = Color(0xFF5856D6); // Apple System Indigo
+  // Tipografía y textos oficiales
+  static const textPrimary = Color(0xFF172033); // Texto principal (#172033)
+  static const muted = Color(0xFF667085); // Texto secundario (#667085)
+  static const textSecondary = Color(0xFF667085); // Alias para texto secundario
 
-  // Dark Mode Tokens (Apple Pure OLED Black & Space Gray HIG)
-  static const darkCanvas = Color(0xFF000000); // Apple System Background (Pure OLED Black)
-  static const darkSurface = Color(0xFF1C1C1E); // Apple Secondary System Background
-  static const darkCard = Color(0xFF1C1C1E); // Apple Grouped Card
-  static const darkCardHover = Color(0xFF2C2C2E); // Apple Tertiary System Background
-  static const darkBorder = Color(0xFF38383A); // Apple Dark Separator
-  static const darkBorderSubtle = Color(0xFF2C2C2E); // Apple Dark Subtle Separator
-  static const darkText = Color(0xFFF5F5F7); // Apple Dark Primary Label
-  static const darkTextMuted = Color(0xFF86868B); // Apple Dark Secondary Label
+  // Acentos y estados
+  static const yellow = Color(0xFFFFB703); // Amarillo Cartagena Segura (#FFB703)
+  static const amber = Color(0xFFFFB703); // Amarillo acento (#FFB703)
+  static const red = Color(0xFFDC2626); // Rojo alerta
+  static const green = Color(0xFF16A34A); // Verde atendido / resuelto
+  static const purple = Color(0xFF9333EA); // Púrpura
+  static const indigo = Color(0xFF4F46E5); // Índigo
+
+  // Dark Mode Tokens
+  static const darkCanvas = Color(0xFF0F172A); // Fondo oscuro slate profundo
+  static const darkSurface = Color(0xFF1E293B); // Superficie tarjeta oscura
+  static const darkCard = Color(0xFF1E293B); // Tarjeta oscura
+  static const darkCardHover = Color(0xFF334155); // Hover tarjeta oscura
+  static const darkBorder = Color(0xFF334155); // Separador oscuro
+  static const darkBorderSubtle = Color(0xFF1E293B);
+  static const darkText = Color(0xFFF8FAFC); // Texto principal oscuro
+  static const darkTextMuted = Color(0xFF94A3B8); // Texto secundario oscuro
 
   // Dark System Accents
-  static const darkRed = Color(0xFFFF453A);
-  static const darkGreen = Color(0xFF30D158);
-  static const darkAmber = Color(0xFFFF9F0A);
-  static const darkPurple = Color(0xFFBF5AF2);
-  static const darkYellow = Color(0xFFFFD60A);
+  static const darkRed = Color(0xFFEF4444);
+  static const darkGreen = Color(0xFF22C55E);
+  static const darkAmber = Color(0xFFFFB703);
+  static const darkPurple = Color(0xFFA855F7);
+  static const darkYellow = Color(0xFFFFB703);
 }
 
-/// Fallback tipográfico optimizado para renderizar SF Pro Display/Text nativo de Apple.
+/// Fallback tipográfico optimizado para renderizar la tipografía corporativa.
 const List<String> appleFontFallbacks = [
   'SF Pro Display',
   'SF Pro Text',
@@ -61,8 +64,8 @@ const List<String> appleFontFallbacks = [
 
 TextTheme _buildAppleTextTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
-  final primaryColor = isDark ? AppColors.darkText : AppColors.navy;
-  final secondaryColor = isDark ? AppColors.darkTextMuted : AppColors.muted;
+  final primaryColor = isDark ? AppColors.darkText : AppColors.textPrimary;
+  final secondaryColor = isDark ? AppColors.darkTextMuted : AppColors.textSecondary;
 
   return TextTheme(
     displayLarge: TextStyle(
@@ -164,10 +167,10 @@ ThemeData buildAppTheme() {
     seedColor: AppColors.blue,
     brightness: Brightness.light,
     surface: Colors.white,
-    onSurface: AppColors.navy,
+    onSurface: AppColors.textPrimary,
     primary: AppColors.blue,
     onPrimary: Colors.white,
-    secondary: AppColors.navyBlue,
+    secondary: AppColors.navy,
     error: AppColors.red,
   );
 
