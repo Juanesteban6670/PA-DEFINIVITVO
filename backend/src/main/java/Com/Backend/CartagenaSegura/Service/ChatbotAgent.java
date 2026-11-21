@@ -6,7 +6,6 @@ import Com.Backend.CartagenaSegura.Model.Zone;
 import Com.Backend.CartagenaSegura.Repository.IncidentRepository;
 import Com.Backend.CartagenaSegura.Repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
  * Agente Inteligente para la gestión de conversaciones del dominio de seguridad.
  * Implementa RAG (Retrieval Augmented Generation) básico consultando la BD local.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatbotAgent {
@@ -47,7 +45,6 @@ public class ChatbotAgent {
                 : "session-" + userName;
         List<AiDto.MessageHistory> clientHistory = request.getHistory();
 
-        log.info("Agente procesando mensaje para {} ({}) [session: {}]: {}", userName, isAdmin ? "ADMIN" : "USER", sessionId, userMessage);
 
         // 1. Obtener contexto de la BD
         String context = gatherSystemContext();
