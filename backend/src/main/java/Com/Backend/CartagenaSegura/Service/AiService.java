@@ -90,10 +90,9 @@ public class AiService {
             }
 
             String responseStr = response.toString();
-            log.info("GROQ RESPONSE >>> {}", responseStr);
 
             if (status >= 400) {
-                throw new RuntimeException("Error Groq HTTP " + status + ": " + responseStr);
+                throw new RuntimeException("Error Groq HTTP " + status);
             }
 
             JsonNode json = objectMapper.readTree(responseStr);

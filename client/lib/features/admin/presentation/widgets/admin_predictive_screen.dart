@@ -338,8 +338,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 10,
+            spacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +356,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Inferencia de la Red Neuronal vs. Línea Base Histórica por hora',
+                    'Índice estimado de riesgo (0–100) · Referencia calculada, sin observaciones',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
@@ -362,17 +364,18 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   ),
                 ],
               ),
-              Row(
+              Wrap(
+                spacing: 14,
+                runSpacing: 6,
                 children: [
                   _LegendIndicator(
                     color: isDark ? AppColors.brightBlue : AppColors.blue,
                     text: 'Red Neuronal (Predicción)',
                     isDark: isDark,
                   ),
-                  const SizedBox(width: 14),
                   _LegendIndicator(
                     color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    text: 'Promedio Histórico',
+                    text: 'Referencia calculada',
                     isDark: isDark,
                     isDashed: true,
                   ),

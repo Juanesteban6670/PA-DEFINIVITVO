@@ -1,6 +1,12 @@
 package Com.Backend.CartagenaSegura.Service;
 
+import Com.Backend.CartagenaSegura.Model.Incident;
+import Com.Backend.CartagenaSegura.Model.Notification;
 import Com.Backend.CartagenaSegura.Repository.NotificationRepository;
+import Com.Backend.CartagenaSegura.Repository.UserRepository;
+import org.springframework.dao.DuplicateKeyException;
+import java.util.HashSet;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,8 +27,34 @@ class NotificationServiceOwnershipTest {
     @Mock
     private NotificationRepository notificationRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private NotificationService service;
+
+    @Test
+    void persistsOneNotificationPerAdminAndIncidentEvenWhenRetried() {
+        Incident incident = new Incident("ROBO", "Reporte", "Centro", null, null,
+                "citizen", Incident.Priority.HIGH);
+        incident.setId("report-id");
+        when(userRepository.findAdministratorUsernames()).thenReturn(List.of("admin-1", "admin-2"));
+        var deliveredIds = new HashSet<String>();
+        when(notificationRepository.insert(any(Notification.class))).thenAnswer(call -> {
+            Notification notification = call.getArgument(0);
+            assertEquals("report-id", notification.getRelatedEntityId());
+            assertEquals(Notification.NotificationType.ADMIN_INCIDENT_CREATED, notification.getType());
+            if (!deliveredIds.add(notification.getId())) {
+                throw new DuplicateKeyException("already delivered");
+            }
+            return notification;
+        });
+
+        service.notifyAdministratorsOfNewIncident(incident);
+        service.notifyAdministratorsOfNewIncident(incident);
+
+        assertEquals(2, deliveredIds.size());
+    }
 
     @Test
     void refusesToMarkAnotherUsersNotificationAsRead() {

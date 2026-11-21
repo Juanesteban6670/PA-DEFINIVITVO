@@ -9,6 +9,7 @@ import 'package:cartagena_segura/shared/tour/app_tour_keys.dart';
 
 import 'citizen_chat_screen.dart';
 import 'notifications_screen.dart';
+import 'zone_proximity_alerts.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
@@ -28,6 +29,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   late Future<List<Incident>> _incidents;
+  Future<void>? _refreshInProgress;
   List<dynamic> _zones = [];
   String _selectedSector = 'Todos';
 
@@ -76,12 +78,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.dispose();
   }
 
-  void _reload() {
-    if (mounted) {
-      setState(() {
-        _incidents = loadIncidents(widget.session.api, mine: false);
-        _loadZones();
-      });
+  Future<void> _reload() => _refreshInProgress ??=
+      _refresh().whenComplete(() => _refreshInProgress = null);
+
+  Future<void> _refresh() async {
+    try {
+      final data = await loadIncidents(widget.session.api, mine: false);
+      if (mounted) {
+        setState(() {
+          _incidents = Future.value(data);
+        });
+      }
+      await _loadZones();
+    } on Exception {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No se pudieron actualizar los datos.'),
+            action: SnackBarAction(label: 'Reintentar', onPressed: _reload),
+          ),
+        );
+      }
     }
   }
 
@@ -154,7 +171,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
-        child: ResponsiveContent(
+        child: RefreshIndicator(
+          onRefresh: _reload,
+          child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
             horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
@@ -183,6 +202,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       final sec = _selectedSector.toLowerCase();
                       return loc.contains(sec) || desc.contains(sec);
                     }).toList();
+
+              final recentIncidents = latestIncidents(filteredIncidents);
 
               final isWide = context.isWide;
               final isDesktop = context.isDesktop;
@@ -229,8 +250,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               );
 
               return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.zero,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: 'Actualizar',
+                      onPressed: _reload,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ),
+                  ZoneProximityAlerts(zones: _zones),
                   // Encabezado adaptable
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,14 +499,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              if (snapshot.connectionState == ConnectionState.waiting)
+                              if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData)
                                 const Center(
                                   child: Padding(
                                     padding: EdgeInsets.all(24),
                                     child: CircularProgressIndicator(),
                                   ),
                                 )
-                              else if (filteredIncidents.isEmpty)
+                              else if (snapshot.hasError)
+                      TextButton(onPressed: _reload, child: const Text('Reintentar'))
+                    else if (filteredIncidents.isEmpty)
                                 _buildEmptySectorBanner(isDark)
                               else
                                 LayoutBuilder(
@@ -485,7 +518,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       spacing: 14,
                                       runSpacing: 12,
                                       children: [
-                                        for (final inc in filteredIncidents)
+                                        for (final inc in recentIncidents)
                                           SizedBox(
                                             width: w,
                                             child: _buildIncidentCardFromData(inc, isDark),
@@ -558,17 +591,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (snapshot.connectionState == ConnectionState.waiting)
+                    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData)
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.all(24),
                           child: CircularProgressIndicator(),
                         ),
                       )
+                    else if (snapshot.hasError)
+                      TextButton(onPressed: _reload, child: const Text('Reintentar'))
                     else if (filteredIncidents.isEmpty)
                       _buildEmptySectorBanner(isDark)
                     else
-                      for (final inc in filteredIncidents)
+                      for (final inc in recentIncidents)
                         _buildIncidentCardFromData(inc, isDark),
                     const SizedBox(height: 18),
                     _buildSafeRouteBanner(isDark),
@@ -579,6 +614,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ],
               );
             },
+          ),
           ),
         ),
       ),
@@ -629,7 +665,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Widget _buildIncidentCardFromData(Incident inc, bool isDark) {
     final (catName, catColor, catBg, catIcon) = _getCategoryMeta(inc.type, isDark);
-    final title = inc.description.isNotEmpty ? inc.description : inc.type;
+    final title = inc.type;
     final subtitle = '${inc.location} · ${_formatTimeAgo(inc.createdAt)}';
 
     return _buildIncidentCard(
@@ -639,7 +675,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       icon: catIcon,
       title: title,
       subtitle: subtitle,
-      distance: inc.status == 'RESOLVED' ? 'Resuelto' : 'En proceso',
+      distance: switch (inc.status.toUpperCase()) {
+        'RESOLVED' => 'Resuelto',
+        'IN_PROGRESS' => 'En atención',
+        _ => 'En revisión',
+      },
       isDark: isDark,
       onTap: () => widget.onSelectTab(1),
     );
@@ -1024,6 +1064,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11,
                         letterSpacing: -0.1,

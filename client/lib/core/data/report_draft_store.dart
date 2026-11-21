@@ -95,6 +95,25 @@ class ReportDraftStore {
 
   String get _draftKey => 'report.draft.$owner';
   String get _queueKey => 'report.outbox.$owner';
+  String get _reminderKey => 'report.reminder.$owner';
+
+  Future<({String draftId, DateTime dueAt})?> readReminder() async {
+    final raw = await storage.read(_reminderKey);
+    if (raw == null) return null;
+    final parts = raw.split('|');
+    if (parts.length != 2) return null;
+    final dueAt = DateTime.tryParse(parts[1]);
+    return dueAt == null ? null : (draftId: parts[0], dueAt: dueAt);
+  }
+
+  Future<void> scheduleReminder(ReportDraft draft, DateTime dueAt) =>
+      storage.write(_reminderKey, '${draft.idempotencyKey}|${dueAt.toIso8601String()}');
+
+  Future<void> cancelReminder() => storage.delete(_reminderKey);
+
+  Future<void> _cancelReminderFor(String draftId) async {
+    if ((await readReminder())?.draftId == draftId) await cancelReminder();
+  }
 
   Future<ReportDraft?> readDraft() async {
     final json = await storage.read(_draftKey);
@@ -109,7 +128,11 @@ class ReportDraftStore {
   Future<void> saveDraft(ReportDraft draft) =>
       storage.write(_draftKey, jsonEncode(draft.toJson()));
 
-  Future<void> clearDraft() => storage.delete(_draftKey);
+  Future<void> clearDraft() async {
+    final draft = await readDraft();
+    await storage.delete(_draftKey);
+    if (draft != null) await _cancelReminderFor(draft.idempotencyKey);
+  }
 
   Future<List<ReportDraft>> readPending() async {
     final json = await storage.read(_queueKey);
@@ -146,6 +169,7 @@ class ReportDraftStore {
             .toList(),
       ),
     );
+    await _cancelReminderFor(idempotencyKey);
   }
 
   Future<void> updatePending(ReportDraft updated) async {

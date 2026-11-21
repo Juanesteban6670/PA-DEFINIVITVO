@@ -1,6 +1,11 @@
 package Com.Backend.CartagenaSegura.Service;
 
+import Com.Backend.CartagenaSegura.Model.Incident;
 import Com.Backend.CartagenaSegura.Model.Notification;
+import Com.Backend.CartagenaSegura.Repository.UserRepository;
+import org.springframework.dao.DuplicateKeyException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import Com.Backend.CartagenaSegura.Repository.NotificationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -14,8 +19,26 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    private final UserRepository userRepository;
+
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+    }
+
+    public void notifyAdministratorsOfNewIncident(Incident incident) {
+        for (String username : userRepository.findAdministratorUsernames()) {
+            Notification notification = new Notification(username, "Nuevo reporte",
+                    incident.getType() + " en " + incident.getLocation(),
+                    Notification.NotificationType.ADMIN_INCIDENT_CREATED, incident.getId(), "Incident");
+            String eventKey = "admin-incident:" + incident.getId() + ":" + username;
+            notification.setId(UUID.nameUUIDFromBytes(eventKey.getBytes(StandardCharsets.UTF_8)).toString());
+            try {
+                notificationRepository.insert(notification);
+            } catch (DuplicateKeyException alreadyDelivered) {
+                // A concurrent delivery must not reset an existing notification.
+            }
+        }
     }
 
     public void notifyUser(String userId, String title, String message,

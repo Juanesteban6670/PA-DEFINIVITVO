@@ -103,6 +103,8 @@ public class IncidentService {
                 Com.Backend.CartagenaSegura.Model.Notification.NotificationType.INCIDENT_CREATED,
                 saved.getId(), "Incident");
 
+        notificationService.notifyAdministratorsOfNewIncident(saved);
+
         logService.log("CREATE_INCIDENT", reportedBy,
                 "Incidente creado: " + req.type() + " en " + req.location(),
                 "Incident", saved.getId());

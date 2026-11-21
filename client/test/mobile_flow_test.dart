@@ -253,6 +253,13 @@ void main() {
       await tester.pump();
       expect(incidentReads, greaterThan(0));
       expect(mineReads, greaterThan(0));
+      final beforeRefresh = incidentReads;
+      await tester.tap(find.byTooltip('Actualizar').hitTestable());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(incidentReads, beforeRefresh + 1);
+      expect(storage.values['session.token'], 'valid-token');
+
 
       await tester.tap(find.text('Reportes').last);
       await tester.pump();

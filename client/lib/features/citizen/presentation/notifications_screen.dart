@@ -21,6 +21,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late Future<List<AppNotification>> _notifications;
+  Future<void>? _refreshInProgress;
   bool _updating = false;
 
   @override
@@ -40,7 +41,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         .toList(growable: false);
   }
 
-  void _reload() => setState(() => _notifications = _load());
+  Future<void> _reload() => _refreshInProgress ??=
+      _refresh().whenComplete(() => _refreshInProgress = null);
+
+  Future<void> _refresh() async {
+    try {
+      final data = await _load();
+      if (mounted) {
+        setState(() {
+          _notifications = Future.value(data);
+        });
+      }
+    } on Exception {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No se pudieron actualizar las notificaciones.'),
+          action: SnackBarAction(label: 'Reintentar', onPressed: _reload),
+        ),
+      );
+    }
+  }
 
   Future<void> _markRead(AppNotification notification) async {
     if (notification.read || _updating) return;
@@ -102,6 +123,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           title: const Text('Notificaciones'),
           actions: [
             IconButton(
+              tooltip: 'Actualizar notificaciones',
+              onPressed: _reload,
+              icon: const Icon(Icons.refresh),
+            ),
+            IconButton(
               tooltip: 'Marcar todas como leídas',
               onPressed: _updating ? null : _markAllRead,
               icon: const Icon(Icons.done_all),
@@ -135,12 +161,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               );
             }
             final notifications = snapshot.data ?? const <AppNotification>[];
-            if (notifications.isEmpty) {
-              return const Center(child: Text('No tienes notificaciones.'));
-            }
             return RefreshIndicator(
-              onRefresh: () async => _reload(),
-              child: ListView.separated(
+              onRefresh: _reload,
+              child: notifications.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: Text('No tienes notificaciones.')),
+                        ),
+                      ],
+                    )
+                  : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(12),
                 itemCount: notifications.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 6),

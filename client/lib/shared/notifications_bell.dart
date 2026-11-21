@@ -5,16 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 
 import 'notification_bridge.dart';
+import '../core/data/realtime_service.dart';
 
 class NotificationsBell extends StatefulWidget {
   const NotificationsBell({
     required this.api,
     required this.onPressed,
+    this.watchIncidents = false,
     super.key,
   });
 
   final ApiClient api;
   final VoidCallback onPressed;
+  final bool watchIncidents;
 
   @override
   State<NotificationsBell> createState() => _NotificationsBellState();
@@ -22,6 +25,7 @@ class NotificationsBell extends StatefulWidget {
 
 class _NotificationsBellState extends State<NotificationsBell> {
   Timer? _timer;
+  RealtimeAlertService? _realtime;
   int? _unread;
   String? _pollError;
   bool _polling = false;
@@ -30,12 +34,18 @@ class _NotificationsBellState extends State<NotificationsBell> {
   void initState() {
     super.initState();
     _checkUnread();
+    if (widget.watchIncidents) {
+      _realtime = RealtimeAlertService(baseUrl: widget.api.baseUrl)
+        ..addIncidentListener(_checkUnread)
+        ..connect();
+    }
     _timer = Timer.periodic(const Duration(seconds: 10), (_) => _checkUnread());
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _realtime?.dispose();
     super.dispose();
   }
 
@@ -62,7 +72,6 @@ class _NotificationsBellState extends State<NotificationsBell> {
         });
       }
       if (previous != null &&
-          previous > 0 &&
           count > previous &&
           notificationPermissionGranted) {
         final unreadResponse = await widget.api.get('Notifications/Unread');

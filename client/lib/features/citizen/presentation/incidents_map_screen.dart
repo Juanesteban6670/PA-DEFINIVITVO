@@ -1,3 +1,5 @@
+import 'zone_proximity_alerts.dart';
+
 import 'dart:async';
 import 'dart:math';
 
@@ -1280,7 +1282,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       for (final zone in _zones)
                         CircleMarker(
                           point: zone.center,
-                          radius: 650,
+                          radius: districtZoneRadiusMeters,
                           useRadiusInMeter: true,
                           color: _zoneColor(zone.riskLevel)
                               .withValues(alpha: isDark ? 0.16 : 0.12),

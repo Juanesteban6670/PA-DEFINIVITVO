@@ -9,6 +9,7 @@ import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/skeleton_loader.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
+import 'draft_reminder_card.dart';
 import 'report_screen.dart';
 
 /// Pantalla 04 · Reportes
@@ -39,6 +40,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   
   late Future<List<Incident>> _incidents;
   late Future<List<ReportDraft>> _pending;
+  final _refreshes = <int, Future<void>>{};
   String? _openedInitialIncidentId;
 
   @override
@@ -68,12 +70,37 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     return loadIncidents(widget.api, mine: _selectedTab == 1);
   }
 
-  void _reload() {
-    if (mounted) {
-      setState(() {
-        _incidents = _loadCurrentList();
+  Future<void> _reload() {
+    final tab = _selectedTab;
+    return _refreshes.putIfAbsent(
+      tab,
+      () => _refresh(tab).whenComplete(() {
+        _refreshes.remove(tab);
+      }),
+    );
+  }
+
+  Future<void> _refresh(int tab) async {
+    if (!mounted) return;
+    setState(() {
         _pending = widget.drafts.readPending();
       });
+    try {
+      final incidents = await _loadCurrentList();
+      if (mounted && tab == _selectedTab) {
+        setState(() {
+        _incidents = Future.value(incidents);
+      });
+      }
+    } on Exception {
+      if (mounted && tab == _selectedTab) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No se pudieron actualizar los reportes.'),
+            action: SnackBarAction(label: 'Reintentar', onPressed: _reload),
+          ),
+        );
+      }
     }
   }
 
@@ -99,6 +126,11 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         ),
       ),
     );
+    if (mounted) {
+      setState(() {
+        _pending = widget.drafts.readPending();
+      });
+    }
   }
 
   Future<void> _retryPending(ReportDraft draft) async {
@@ -147,7 +179,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
       body: SafeArea(
-        child: ResponsiveContent(
+        child: RefreshIndicator(
+          onRefresh: _reload,
+          child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
             horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
@@ -177,8 +211,17 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               final isWide = context.isWide;
 
               return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.zero,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: 'Actualizar reportes',
+                      onPressed: _reload,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ),
                   // 1. TÍTULO, SUBTÍTULO Y ACCIONES ADAPTATIVAS
                   if (isWide)
                     Row(
@@ -486,20 +529,30 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                       },
                     ),
 
-                  // Reportes pendientes en almacenamiento local (si está en Mis reportes)
-                  if (_selectedTab == 1)
-                    FutureBuilder<List<ReportDraft>>(
+                  // Keep the reminder active when viewing the community tab.
+                  Offstage(
+                    offstage: _selectedTab != 1,
+                    child: FutureBuilder<List<ReportDraft>>(
                       future: _pending,
                       builder: (context, pendingSnapshot) {
                         final pending = pendingSnapshot.data ?? const <ReportDraft>[];
-                        if (pending.isEmpty) return const SizedBox.shrink();
-                        return _PendingReports(
-                          drafts: pending,
-                          onRetry: _retryPending,
-                          onDelete: _deletePending,
+                        return Column(
+                          children: [
+                            DraftReminderCard(
+                              store: widget.drafts,
+                              pending: pending,
+                            ),
+                            if (pending.isNotEmpty)
+                              _PendingReports(
+                                drafts: pending,
+                                onRetry: _retryPending,
+                                onDelete: _deletePending,
+                              ),
+                          ],
                         );
                       },
                     ),
+                  ),
 
                     const SizedBox(height: 18),
 
@@ -554,6 +607,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               },
             ),
           ),
+        ),
         ),
       );
     }

@@ -98,6 +98,7 @@ class IncidentServiceIdempotencyTest {
         assertEquals("new-key", result.getIdempotencyKey());
         assertEquals("citizen-1", result.getReportedBy());
         verify(incidentRepository).insert(any(Incident.class));
+        verify(notificationService).notifyAdministratorsOfNewIncident(result);
         verify(notificationService).notifyUser(
                 eq("citizen-1"),
                 eq("Reporte recibido"),

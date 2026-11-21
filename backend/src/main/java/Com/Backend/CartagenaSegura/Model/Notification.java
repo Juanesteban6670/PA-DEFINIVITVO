@@ -29,6 +29,7 @@ public class Notification {
     private LocalDateTime readAt;
 
     public enum NotificationType {
+        ADMIN_INCIDENT_CREATED,
         INCIDENT_CREATED,       // Se creó un incidente en tu zona
         INCIDENT_UPDATED,       // Tu incidente fue actualizado
         INCIDENT_RESOLVED,      // Tu incidente fue resuelto

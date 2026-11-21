@@ -122,6 +122,7 @@ class AdminShell extends StatelessWidget {
           ],
           NotificationsBell(
             api: session.api,
+            watchIncidents: true,
             onPressed: () => context.push('/App/Notifications'),
           ),
           if (wide) ...[
