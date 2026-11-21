@@ -29,12 +29,14 @@ class HomeShell extends StatefulWidget {
     required this.session,
     this.initialIndex = 0,
     this.initialIncidentId,
+    this.openCommunityReports = false,
     super.key,
   });
 
   final SessionController session;
   final int initialIndex;
   final String? initialIncidentId;
+  final bool openCommunityReports;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -42,6 +44,7 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   late int _selectedIndex = widget.initialIndex;
+  late bool _openCommunity = widget.openCommunityReports;
   final _incidentRefresh = ValueNotifier<int>(0);
   late final ReportDraftStore _drafts;
   RealtimeAlertService? _realtimeService;
@@ -123,8 +126,22 @@ class _HomeShellState extends State<HomeShell> {
     if (GoRouter.maybeOf(context) != null) {
       context.go(location);
     } else {
-      setState(() => _selectedIndex = index);
+      setState(() {
+        _selectedIndex = index;
+        if (index != 2) _openCommunity = false;
+      });
     }
+  }
+
+  void _seeAllReports() {
+    if (GoRouter.maybeOf(context) != null) {
+      context.go('/App/Incidents?scope=community');
+      return;
+    }
+    setState(() {
+      _selectedIndex = 2;
+      _openCommunity = true;
+    });
   }
 
   @override
@@ -132,6 +149,9 @@ class _HomeShellState extends State<HomeShell> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialIndex != widget.initialIndex) {
       _selectedIndex = widget.initialIndex;
+    }
+    if (oldWidget.openCommunityReports != widget.openCommunityReports) {
+      _openCommunity = widget.openCommunityReports;
     }
   }
 
@@ -149,6 +169,7 @@ class _HomeShellState extends State<HomeShell> {
             session: widget.session,
             incidentRefresh: _incidentRefresh,
             onSelectTab: _selectTab,
+            onSeeAllReports: _seeAllReports,
           ),
           IncidentsMapScreen(api: api, incidentRefresh: _incidentRefresh),
           MyReportsScreen(
@@ -157,6 +178,7 @@ class _HomeShellState extends State<HomeShell> {
             incidentRefresh: _incidentRefresh,
             onReportSubmitted: () => _incidentRefresh.value++,
             initialIncidentId: widget.initialIncidentId,
+            openCommunity: _openCommunity,
           ),
           AnalyticsCitizenScreen(api: api),
           ProfileScreen(session: widget.session),

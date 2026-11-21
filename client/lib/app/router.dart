@@ -55,6 +55,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           session: session,
           initialIndex: 2,
           initialIncidentId: state.uri.queryParameters['id'],
+          openCommunityReports: state.uri.queryParameters['scope'] == 'community',
         ),
       ),
       GoRoute(

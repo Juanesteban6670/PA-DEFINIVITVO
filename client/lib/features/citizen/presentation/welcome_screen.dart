@@ -16,12 +16,14 @@ class WelcomeScreen extends StatefulWidget {
     required this.session,
     required this.incidentRefresh,
     required this.onSelectTab,
+    required this.onSeeAllReports,
     super.key,
   });
 
   final SessionController session;
   final ValueNotifier<int> incidentRefresh;
   final ValueChanged<int> onSelectTab;
+  final VoidCallback onSeeAllReports;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -473,7 +475,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   ),
                                   const Spacer(),
                                   InkWell(
-                                    onTap: () => widget.onSelectTab(2),
+                                    onTap: widget.onSeeAllReports,
                                     child: Text(
                                       'Ver todos',
                                       style: TextStyle(
@@ -574,7 +576,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => widget.onSelectTab(2),
+                          onTap: widget.onSeeAllReports,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                             child: Text(

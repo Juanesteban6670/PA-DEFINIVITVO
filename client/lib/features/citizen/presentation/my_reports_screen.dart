@@ -21,6 +21,7 @@ class MyReportsScreen extends StatefulWidget {
     required this.incidentRefresh,
     required this.onReportSubmitted,
     this.initialIncidentId,
+    this.openCommunity = false,
     super.key,
   });
 
@@ -29,13 +30,14 @@ class MyReportsScreen extends StatefulWidget {
   final ValueNotifier<int> incidentRefresh;
   final VoidCallback onReportSubmitted;
   final String? initialIncidentId;
+  final bool openCommunity;
 
   @override
   State<MyReportsScreen> createState() => _MyReportsScreenState();
 }
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
-  int _selectedTab = 1; // 0 = Comunidad, 1 = Mis reportes
+  late int _selectedTab = widget.openCommunity ? 0 : 1;
   String _selectedStatusFilter = 'Todos'; // 'Todos', 'En revisión', 'En atención', 'Resueltos'
   
   late Future<List<Incident>> _incidents;
@@ -54,6 +56,10 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   @override
   void didUpdateWidget(covariant MyReportsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!oldWidget.openCommunity && widget.openCommunity && _selectedTab != 0) {
+      _selectedTab = 0;
+      _incidents = _loadCurrentList();
+    }
     if (oldWidget.incidentRefresh != widget.incidentRefresh) {
       oldWidget.incidentRefresh.removeListener(_reload);
       widget.incidentRefresh.addListener(_reload);
