@@ -82,7 +82,8 @@
       background: #182b35;
       color: #faf6f9;
       user-select: none;
-      transition: opacity 0.45s ease-out;
+      transition: opacity 0.5s ease-out;
+      cursor: default;
     }
 
     #app-loading.fade-out {
@@ -95,8 +96,21 @@
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .loader-content-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      text-align: center;
+      max-width: 90vw;
     }
 
     .logo-container {
@@ -119,6 +133,36 @@
       height: auto;
       display: block;
       overflow: visible;
+    }
+
+    /* Enunciado institucional claro y legible */
+    .loader-statement {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loader-statement.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .loader-statement-title {
+      font-size: clamp(14px, 2.2vw, 18px);
+      font-weight: 700;
+      color: #faf6f9;
+      letter-spacing: 0.3px;
+    }
+
+    .loader-statement-subtitle {
+      font-size: clamp(11.5px, 1.6vw, 13px);
+      font-weight: 500;
+      color: rgba(250, 246, 249, 0.72);
+      letter-spacing: 0.2px;
     }
 
     /* Controls at bottom-right */
@@ -177,6 +221,10 @@
       #logo-root {
         opacity: 1 !important;
       }
+      .loader-statement {
+        opacity: 1 !important;
+        transform: none !important;
+      }
       .btn-loader-ctrl {
         opacity: 0.35 !important;
         cursor: not-allowed !important;
@@ -187,73 +235,81 @@
 <body>
   <div id="app-loading" role="status" aria-live="polite">
     <main class="loader-stage" role="region" aria-label="Pantalla de carga Cartagena Segura">
-      <div class="logo-container">
-        <svg class="logo-svg" viewBox="0 0 96 32" fill="none" role="img" aria-label="Cartagena Segura — Identidad Distrital">
-          <defs>
-            <clipPath id="cs-shield-clip">
-              <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
-            </clipPath>
-            <linearGradient id="cs-shield-grad" x1="6" y1="4" x2="28" y2="29" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#0071E3" />
-              <stop offset="100%" stop-color="#063970" />
-            </linearGradient>
-            <linearGradient id="cs-star-grad" x1="12" y1="10" x2="22" y2="20" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#38BDF8" />
-              <stop offset="100%" stop-color="#F5EDDE" />
-            </linearGradient>
-          </defs>
+      <div class="loader-content-wrap">
+        <div class="logo-container">
+          <svg class="logo-svg" viewBox="0 0 96 32" fill="none" role="img" aria-label="Cartagena Segura — Identidad Distrital">
+            <defs>
+              <clipPath id="cs-shield-clip">
+                <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
+              </clipPath>
+              <linearGradient id="cs-shield-grad" x1="6" y1="4" x2="28" y2="29" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#0071E3" />
+                <stop offset="100%" stop-color="#063970" />
+              </linearGradient>
+              <linearGradient id="cs-star-grad" x1="12" y1="10" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#38BDF8" />
+                <stop offset="100%" stop-color="#F5EDDE" />
+              </linearGradient>
+            </defs>
 
-          <!-- Root Logo Group (Controls overall fade 5000-5600ms) -->
-          <g id="logo-root" class="logo-group" opacity="1">
-            <!-- Filled Group (Crossfades in 3100-3800ms, holds till 5000ms) -->
-            <g id="filled-group" opacity="0">
-              <!-- Escudo institucional con relleno gradiente oficial -->
-              <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" fill="url(#cs-shield-grad)" />
-              <path d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" fill="rgba(255,255,255,0.14)" />
-              <path d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" fill="url(#cs-star-grad)" />
-              <path d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" stroke="#38BDF8" stroke-width="0.9" fill="none" />
-              
-              <!-- Tipografía rellena institucional en blanco cálido (#FAF6F9) -->
-              <text x="36" y="12.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.8">CARTAGENA</text>
-              <text x="36" y="26.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800" letter-spacing="-0.3">SEGURA</text>
+            <!-- Root Logo Group (Controls overall fade) -->
+            <g id="logo-root" class="logo-group" opacity="1">
+              <!-- Filled Group (Crossfades in 3100-3800ms, holds till 7000ms) -->
+              <g id="filled-group" opacity="0">
+                <!-- Escudo institucional con relleno gradiente oficial -->
+                <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" fill="url(#cs-shield-grad)" />
+                <path d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" fill="rgba(255,255,255,0.14)" />
+                <path d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" fill="url(#cs-star-grad)" />
+                <path d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" stroke="#38BDF8" stroke-width="0.9" fill="none" />
+                
+                <!-- Tipografía rellena institucional en blanco cálido (#FAF6F9) -->
+                <text x="36" y="12.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.8">CARTAGENA</text>
+                <text x="36" y="26.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800" letter-spacing="-0.3">SEGURA</text>
+              </g>
+
+              <!-- Outline Group (Trazo progresivo 0-2650ms con aceleración coseno, crossfades out 3100-3800ms) -->
+              <g id="outline-group" opacity="1" stroke="#f5edde" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <!-- 5 Contornos del Escudo / Símbolo -->
+                <g id="shield-contours">
+                  <path class="anim-contour" data-delay="0" stroke-width="1.2" d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
+                  <path class="anim-contour" data-delay="90" stroke-width="0.8" d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" />
+                  <path class="anim-contour" data-delay="180" stroke-width="0.9" d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" />
+                  <path class="anim-contour" data-delay="270" stroke-width="0.65" d="M 10,10.5 L 12,10.5 L 12,12.5 L 14,12.5 L 14,10.5 L 16,10.5 L 16,12.5 L 18,12.5 L 18,10.5 L 20,10.5 L 20,12.5 L 22,12.5 L 22,10.5 L 24,10.5" />
+                  <path class="anim-contour" data-delay="360" stroke-width="0.8" d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" />
+                </g>
+
+                <!-- Línea 1: CARTAGENA (9 glifos con retraso escalonado 120ms-340ms) -->
+                <g id="line1-contours" stroke-width="0.75">
+                  <path class="anim-contour" data-delay="120" d="M 40,7.5 C 39,6.5 36.5,6.5 35.5,7.5 C 34.5,8.8 34.5,10.7 35.5,12 C 36.5,13.2 39,13.2 40,12" />
+                  <path class="anim-contour" data-delay="145" d="M 41.5,12.5 L 43.5,6.5 L 45.5,12.5 M 42.2,10.8 L 44.8,10.8" />
+                  <path class="anim-contour" data-delay="170" d="M 47,12.5 L 47,6.5 L 49.5,6.5 C 51,6.5 51,9 49.5,9 L 47,9 M 48.8,9 L 51,12.5" />
+                  <path class="anim-contour" data-delay="195" d="M 52,6.5 L 56.5,6.5 M 54.2,6.5 L 54.2,12.5" />
+                  <path class="anim-contour" data-delay="220" d="M 57.5,12.5 L 59.5,6.5 L 61.5,12.5 M 58.2,10.8 L 60.8,10.8" />
+                  <path class="anim-contour" data-delay="250" d="M 66.5,7.5 C 65.5,6.5 63,6.5 62,7.5 C 61,8.8 61,10.7 62,12 C 63,13.2 65.5,13.2 66.5,12 L 66.5,9.8 L 64.2,9.8" />
+                  <path class="anim-contour" data-delay="280" d="M 71.5,6.5 L 68,6.5 L 68,12.5 L 71.5,12.5 M 68,9.5 L 70.8,9.5" />
+                  <path class="anim-contour" data-delay="310" d="M 73,12.5 L 73,6.5 L 77,12.5 L 77,6.5" />
+                  <path class="anim-contour" data-delay="340" d="M 78.5,12.5 L 80.5,6.5 L 82.5,12.5 M 79.2,10.8 L 81.8,10.8" />
+                </g>
+
+                <!-- Línea 2: SEGURA (6 glifos con retraso escalonado 120ms-252ms) -->
+                <g id="line2-contours" stroke-width="1.3">
+                  <path class="anim-contour" data-delay="120" d="M 42,18 C 40.8,16.5 36.5,16.5 35.8,18.5 C 35,20.8 42.5,21.2 41.8,24 C 41,26.8 35.5,26.8 34.8,24.5" />
+                  <path class="anim-contour" data-delay="145" d="M 49.5,16.5 L 44.5,16.5 L 44.5,26.5 L 49.5,26.5 M 44.5,21.5 L 48.5,21.5" />
+                  <path class="anim-contour" data-delay="170" d="M 57,18.5 C 55.8,16.5 51.5,16.5 50.5,18.5 C 49.5,20.5 49.5,23.5 50.5,25.5 C 51.5,27.2 56,27.2 57,25 L 57,21.5 L 53.5,21.5" />
+                  <path class="anim-contour" data-delay="195" d="M 59.5,16.5 L 59.5,23.5 C 59.5,26.8 65,26.8 65,23.5 L 65,16.5" />
+                  <path class="anim-contour" data-delay="225" d="M 67.5,26.5 L 67.5,16.5 L 71.8,16.5 C 74.5,16.5 74.5,21 71.8,21 L 67.5,21 M 71,21 L 74.5,26.5" />
+                  <path class="anim-contour" data-delay="252" d="M 76.5,26.5 L 80.5,16.5 L 84.5,26.5 M 78,23.5 L 83,23.5" />
+                </g>
+              </g>
             </g>
+          </svg>
+        </div>
 
-            <!-- Outline Group (Trazo progresivo 0-2650ms con aceleración coseno, crossfades out 3100-3800ms) -->
-            <g id="outline-group" opacity="1" stroke="#f5edde" stroke-linecap="round" stroke-linejoin="round" fill="none">
-              <!-- 5 Contornos del Escudo / Símbolo -->
-              <g id="shield-contours">
-                <path class="anim-contour" data-delay="0" stroke-width="1.2" d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
-                <path class="anim-contour" data-delay="90" stroke-width="0.8" d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" />
-                <path class="anim-contour" data-delay="180" stroke-width="0.9" d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" />
-                <path class="anim-contour" data-delay="270" stroke-width="0.65" d="M 10,10.5 L 12,10.5 L 12,12.5 L 14,12.5 L 14,10.5 L 16,10.5 L 16,12.5 L 18,12.5 L 18,10.5 L 20,10.5 L 20,12.5 L 22,12.5 L 22,10.5 L 24,10.5" />
-                <path class="anim-contour" data-delay="360" stroke-width="0.8" d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" />
-              </g>
-
-              <!-- Línea 1: CARTAGENA (9 glifos con retraso escalonado 120ms-340ms) -->
-              <g id="line1-contours" stroke-width="0.75">
-                <path class="anim-contour" data-delay="120" d="M 40,7.5 C 39,6.5 36.5,6.5 35.5,7.5 C 34.5,8.8 34.5,10.7 35.5,12 C 36.5,13.2 39,13.2 40,12" />
-                <path class="anim-contour" data-delay="145" d="M 41.5,12.5 L 43.5,6.5 L 45.5,12.5 M 42.2,10.8 L 44.8,10.8" />
-                <path class="anim-contour" data-delay="170" d="M 47,12.5 L 47,6.5 L 49.5,6.5 C 51,6.5 51,9 49.5,9 L 47,9 M 48.8,9 L 51,12.5" />
-                <path class="anim-contour" data-delay="195" d="M 52,6.5 L 56.5,6.5 M 54.2,6.5 L 54.2,12.5" />
-                <path class="anim-contour" data-delay="220" d="M 57.5,12.5 L 59.5,6.5 L 61.5,12.5 M 58.2,10.8 L 60.8,10.8" />
-                <path class="anim-contour" data-delay="250" d="M 66.5,7.5 C 65.5,6.5 63,6.5 62,7.5 C 61,8.8 61,10.7 62,12 C 63,13.2 65.5,13.2 66.5,12 L 66.5,9.8 L 64.2,9.8" />
-                <path class="anim-contour" data-delay="280" d="M 71.5,6.5 L 68,6.5 L 68,12.5 L 71.5,12.5 M 68,9.5 L 70.8,9.5" />
-                <path class="anim-contour" data-delay="310" d="M 73,12.5 L 73,6.5 L 77,12.5 L 77,6.5" />
-                <path class="anim-contour" data-delay="340" d="M 78.5,12.5 L 80.5,6.5 L 82.5,12.5 M 79.2,10.8 L 81.8,10.8" />
-              </g>
-
-              <!-- Línea 2: SEGURA (6 glifos con retraso escalonado 120ms-252ms) -->
-              <g id="line2-contours" stroke-width="1.3">
-                <path class="anim-contour" data-delay="120" d="M 42,18 C 40.8,16.5 36.5,16.5 35.8,18.5 C 35,20.8 42.5,21.2 41.8,24 C 41,26.8 35.5,26.8 34.8,24.5" />
-                <path class="anim-contour" data-delay="145" d="M 49.5,16.5 L 44.5,16.5 L 44.5,26.5 L 49.5,26.5 M 44.5,21.5 L 48.5,21.5" />
-                <path class="anim-contour" data-delay="170" d="M 57,18.5 C 55.8,16.5 51.5,16.5 50.5,18.5 C 49.5,20.5 49.5,23.5 50.5,25.5 C 51.5,27.2 56,27.2 57,25 L 57,21.5 L 53.5,21.5" />
-                <path class="anim-contour" data-delay="195" d="M 59.5,16.5 L 59.5,23.5 C 59.5,26.8 65,26.8 65,23.5 L 65,16.5" />
-                <path class="anim-contour" data-delay="225" d="M 67.5,26.5 L 67.5,16.5 L 71.8,16.5 C 74.5,16.5 74.5,21 71.8,21 L 67.5,21 M 71,21 L 74.5,26.5" />
-                <path class="anim-contour" data-delay="252" d="M 76.5,26.5 L 80.5,16.5 L 84.5,26.5 M 78,23.5 L 83,23.5" />
-              </g>
-            </g>
-          </g>
-        </svg>
+        <!-- Enunciado Distrital Prominente y Legible -->
+        <div id="loader-statement" class="loader-statement">
+          <div class="loader-statement-title">Sistema Distrital de Seguridad Ciudadana</div>
+          <div class="loader-statement-subtitle">Cartagena de Indias · Línea 123 y Red Distrital de Emergencias</div>
+        </div>
       </div>
 
       <!-- Controles accesibles: Pausar/Reanudar y Reiniciar -->
@@ -279,12 +335,15 @@
     (function () {
       'use strict';
 
-      const CYCLE_DURATION = 5600;
+      // Duraciones extendidas para lectura cómoda del enunciado y apreciación completa del logo
+      const CYCLE_DURATION = 7600;
       const DRAW_DURATION = 2650;
       const CROSSFADE_START = 3100;
       const CROSSFADE_END = 3800;
-      const HOLD_END = 5000;
-      const FADE_END = 5600;
+      const STATEMENT_FADE_IN = 3400;
+      const HOLD_END = 7000;
+      const FADE_END = 7600;
+      const MIN_READING_TIME_MS = 6200; // Garantiza tiempo suficiente para leer el enunciado completo
 
       // Cosine ease: 0.5 - 0.5 * cos(pi * clamp(v, 0, 1))
       function easeCos(v) {
@@ -296,6 +355,7 @@
       const logoRoot = document.getElementById('logo-root');
       const outlineGroup = document.getElementById('outline-group');
       const filledGroup = document.getElementById('filled-group');
+      const statementEl = document.getElementById('loader-statement');
       const btnPause = document.getElementById('cs-loader-pause');
       const btnReplay = document.getElementById('cs-loader-replay');
       const pauseLabel = document.getElementById('cs-pause-label');
@@ -329,6 +389,7 @@
           outlineGroup.style.opacity = '0';
           filledGroup.style.opacity = '1';
           logoRoot.style.opacity = '1';
+          if (statementEl) statementEl.classList.add('visible');
           if (btnPause) btnPause.disabled = true;
           if (btnReplay) btnReplay.disabled = true;
         } else {
@@ -370,7 +431,18 @@
           filledGroup.style.opacity = '1';
         }
 
-        // 3. Hold & Fade (3800 -> 5000ms hold solid, 5000 -> 5600ms fadeout)
+        // 3. Enunciado institucional (aparece a partir de los 3400ms)
+        if (statementEl) {
+          if (elapsed >= STATEMENT_FADE_IN && elapsed < HOLD_END) {
+            statementEl.classList.add('visible');
+          } else if (elapsed >= HOLD_END) {
+            statementEl.classList.remove('visible');
+          } else {
+            statementEl.classList.remove('visible');
+          }
+        }
+
+        // 4. Hold & Fade (3800 -> 7000ms hold solid, 7000 -> 7600ms fadeout)
         if (elapsed < HOLD_END) {
           logoRoot.style.opacity = '1';
         } else if (elapsed <= FADE_END) {
@@ -422,14 +494,16 @@
       }
 
       if (btnPause) {
-        btnPause.addEventListener('click', () => {
+        btnPause.addEventListener('click', (e) => {
+          e.stopPropagation();
           if (isPaused) resumeLoop();
           else pauseLoop();
         });
       }
 
       if (btnReplay) {
-        btnReplay.addEventListener('click', () => {
+        btnReplay.addEventListener('click', (e) => {
+          e.stopPropagation();
           restartLoop();
         });
       }
@@ -461,14 +535,47 @@
         rafId = requestAnimationFrame(tick);
       }
 
-      // Smooth unmount when Flutter is loaded
-      window.addEventListener('flutter-first-frame', () => {
+      // Control de tiempo garantizado para que el usuario lea el enunciado
+      let isFlutterReady = false;
+      let minReadingPassed = false;
+
+      function dismissLoaderSmoothly() {
+        if (loaderRoot.classList.contains('fade-out')) return;
         loaderRoot.classList.add('fade-out');
         setTimeout(() => {
           if (rafId) cancelAnimationFrame(rafId);
           loaderRoot.remove();
-        }, 450);
+        }, 520);
+      }
+
+      setTimeout(() => {
+        minReadingPassed = true;
+        if (isFlutterReady) {
+          dismissLoaderSmoothly();
+        }
+      }, MIN_READING_TIME_MS);
+
+      window.addEventListener('flutter-first-frame', () => {
+        isFlutterReady = true;
+        if (minReadingPassed) {
+          dismissLoaderSmoothly();
+        }
       }, { once: true });
+
+      // Si el usuario hace clic o presiona una tecla para continuar una vez listo Flutter
+      loaderRoot.addEventListener('click', (e) => {
+        if (e.target.closest('.loader-controls')) return;
+        if (isFlutterReady) {
+          dismissLoaderSmoothly();
+        }
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
+          if (isFlutterReady) {
+            dismissLoaderSmoothly();
+          }
+        }
+      });
     })();
   </script>
   <script src="flutter_bootstrap.js" async></script>

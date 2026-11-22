@@ -154,19 +154,14 @@ class LandingScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/Chat'),
-        icon: const Icon(Icons.smart_toy_rounded, color: Colors.white),
-        label: const Text(
-          'Asistente IA',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
+        tooltip: 'Asistente Virtual IA',
         backgroundColor: const Color(0xFF0071E3),
+        foregroundColor: Colors.white,
         elevation: 4,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.smart_toy_rounded, size: 26),
       ),
     );
   }

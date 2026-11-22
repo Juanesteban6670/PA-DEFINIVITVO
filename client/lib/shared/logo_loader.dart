@@ -16,7 +16,7 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
   late final AnimationController _controller;
   bool _isPaused = false;
 
-  static const int cycleDurationMs = 5600;
+  static const int cycleDurationMs = 7600;
 
   @override
   void initState() {
@@ -66,28 +66,80 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
       backgroundColor: const Color(0xFF182B35),
       body: Stack(
         children: [
-          // Center Animated Lockup
+          // Center Animated Lockup and Statement
           Center(
             child: Semantics(
-              label: 'Cargando Cartagena Segura',
+              label: 'Cargando Cartagena Segura — Sistema Distrital de Seguridad Ciudadana',
               image: true,
-              child: SizedBox(
-                width: logoWidth,
-                child: AspectRatio(
-                  aspectRatio: 96 / 32,
-                  child: isReducedMotion
-                      ? const _StaticFilledLogo()
-                      : AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, _) {
-                            final elapsed =
-                                _controller.value * cycleDurationMs;
-                            return CustomPaint(
-                              painter: _LogoPainter(elapsed: elapsed),
-                            );
-                          },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: logoWidth,
+                    child: AspectRatio(
+                      aspectRatio: 96 / 32,
+                      child: isReducedMotion
+                          ? const _StaticFilledLogo()
+                          : AnimatedBuilder(
+                              animation: _controller,
+                              builder: (context, _) {
+                                final elapsed =
+                                    _controller.value * cycleDurationMs;
+                                return CustomPaint(
+                                  painter: _LogoPainter(elapsed: elapsed),
+                                );
+                              },
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, _) {
+                      final elapsed = _controller.value * cycleDurationMs;
+                      double textOpacity = 1.0;
+                      if (!isReducedMotion) {
+                        if (elapsed < 3400) {
+                          textOpacity = 0.0;
+                        } else if (elapsed <= 4000) {
+                          textOpacity = (elapsed - 3400) / 600.0;
+                        } else if (elapsed > 7000 && elapsed <= 7600) {
+                          textOpacity =
+                              (1.0 - (elapsed - 7000) / 600.0).clamp(0.0, 1.0);
+                        } else if (elapsed > 7600) {
+                          textOpacity = 0.0;
+                        }
+                      }
+                      return Opacity(
+                        opacity: textOpacity,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Sistema Distrital de Seguridad Ciudadana',
+                              style: TextStyle(
+                                color: const Color(0xFFFAF6F9),
+                                fontSize: screenWidth < 500 ? 14 : 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Cartagena de Indias · Línea 123 y Red Distrital',
+                              style: TextStyle(
+                                color: const Color(0xFFFAF6F9).withValues(alpha: 0.72),
+                                fontSize: screenWidth < 500 ? 11.5 : 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -182,8 +234,8 @@ class _LogoPainter extends CustomPainter {
   static const int drawDurationMs = 2650;
   static const int crossfadeStartMs = 3100;
   static const int crossfadeEndMs = 3800;
-  static const int holdEndMs = 5000;
-  static const int fadeEndMs = 5600;
+  static const int holdEndMs = 7000;
+  static const int fadeEndMs = 7600;
 
   // Cosine easing: 0.5 - 0.5 * cos(pi * clamp(v, 0, 1))
   static double _easeCos(double v) {

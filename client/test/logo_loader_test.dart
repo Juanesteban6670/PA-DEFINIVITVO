@@ -14,7 +14,7 @@ void main() {
 
     // Initial frame renders
     expect(find.byType(LogoLoaderScreen), findsOneWidget);
-    expect(find.bySemanticsLabel('Cargando Cartagena Segura'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'Cargando Cartagena Segura')), findsOneWidget);
     expect(find.text('Pausar'), findsOneWidget);
     expect(find.text('Reiniciar'), findsOneWidget);
 
