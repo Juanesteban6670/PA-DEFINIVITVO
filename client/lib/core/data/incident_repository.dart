@@ -19,3 +19,15 @@ Future<List<Incident>> loadIncidents(ApiClient api, {bool mine = false}) async {
       .map(Incident.fromJson)
       .toList(growable: false);
 }
+
+List<Incident> latestIncidents(Iterable<Incident> incidents, {int limit = 4}) {
+  final sorted = incidents.toList()
+    ..sort((a, b) {
+      final first = a.createdAt;
+      final second = b.createdAt;
+      if (first == null) return second == null ? 0 : 1;
+      if (second == null) return -1;
+      return second.compareTo(first);
+    });
+  return sorted.take(limit).toList(growable: false);
+}

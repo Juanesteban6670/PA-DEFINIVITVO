@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
 /// Servicio para verificar nuevas versiones de Cartagena Segura
-/// e informar amigablemente al usuario para actualizar desde la tienda.
+/// e informar amigablemente al usuario para actualizar desde la descarga oficial.
 class VersionCheckService {
   VersionCheckService._();
   static final VersionCheckService instance = VersionCheckService._();
 
-  static const String currentAppVersion = '1.2.0';
   DateTime? _lastPromptTime;
 
   /// Comprueba con el backend si hay una versión superior disponible.
@@ -21,6 +21,7 @@ class VersionCheckService {
     ApiClient api, {
     bool showNoUpdateNotice = false,
   }) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     if (WidgetsBinding.instance.runtimeType.toString().contains('Test')) {
       return;
     }
@@ -31,6 +32,7 @@ class VersionCheckService {
     }
 
     try {
+      final currentAppVersion = (await PackageInfo.fromPlatform()).version;
       final dynamic response = await api.get('System/Version').timeout(
         const Duration(seconds: 4),
         onTimeout: () => null,
@@ -40,9 +42,11 @@ class VersionCheckService {
         final latestVersion = response['latestVersion']?.toString() ?? currentAppVersion;
         final releaseNotes = response['releaseNotes']?.toString() ??
             'Nueva versión con mejoras de seguridad, rendimiento y sincronización en tiempo real.';
-        final storeUrl = defaultTargetPlatform == TargetPlatform.iOS
-            ? (response['storeUrlIos']?.toString() ?? 'https://apps.apple.com')
-            : (response['storeUrlAndroid']?.toString() ?? 'https://play.google.com');
+        final storeUrl = Uri.tryParse(response['storeUrlAndroid']?.toString() ?? '');
+        if (storeUrl == null || storeUrl.scheme != 'https' ||
+            storeUrl.host != 'github.com') {
+          return;
+        }
 
         final isNewer = _compareVersions(latestVersion, currentAppVersion) > 0;
         final forceUpdate = response['forceUpdate'] == true;
@@ -52,13 +56,14 @@ class VersionCheckService {
           await _showUpdateDialog(
             context,
             latestVersion: latestVersion,
+            currentAppVersion: currentAppVersion,
             releaseNotes: releaseNotes,
             storeUrl: storeUrl,
             forceUpdate: forceUpdate,
           );
         } else if (showNoUpdateNotice && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Cartagena Segura está actualizada a la última versión (v$currentAppVersion)'),
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 3),
@@ -89,7 +94,8 @@ class VersionCheckService {
     BuildContext context, {
     required String latestVersion,
     required String releaseNotes,
-    required String storeUrl,
+    required Uri storeUrl,
+    required String currentAppVersion,
     required bool forceUpdate,
   }) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -194,11 +200,10 @@ class VersionCheckService {
                 ),
               ElevatedButton(
                 onPressed: () async {
-                  final uri = Uri.tryParse(storeUrl);
-                  if (uri != null && await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                  if (dialogContext.mounted && !forceUpdate) {
+                  final opened = await launchUrl(
+                    storeUrl, mode: LaunchMode.externalApplication,
+                  );
+                  if (dialogContext.mounted && opened && !forceUpdate) {
                     Navigator.of(dialogContext).pop();
                   }
                 },
