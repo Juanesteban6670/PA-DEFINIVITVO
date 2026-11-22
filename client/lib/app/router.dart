@@ -43,6 +43,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/Chat',
+        builder: (context, state) => CitizenChatScreen(session: session),
+      ),
+      GoRoute(
         path: '/App',
         builder: (context, state) => HomeShell(session: session),
       ),

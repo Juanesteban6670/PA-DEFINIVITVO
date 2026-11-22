@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/providers.dart';
 import 'app/router.dart';
 import 'core/localization/locale_controller.dart';
+import 'shared/logo_loader.dart';
 import 'shared/theme.dart';
 
 void main() {
@@ -68,7 +69,7 @@ class CartagenaApp extends ConsumerWidget {
           }
           return const Locale('es');
         },
-        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+        home: const LogoLoaderScreen(),
       );
     }
 

@@ -132,6 +132,11 @@ class LandingScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              IconButton(
+                tooltip: 'Asistente IA',
+                icon: const Icon(Icons.smart_toy_rounded),
+                onPressed: () => context.push('/Chat'),
+              ),
             ],
           ),
           SliverToBoxAdapter(
@@ -148,6 +153,20 @@ class LandingScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/Chat'),
+        icon: const Icon(Icons.smart_toy_rounded, color: Colors.white),
+        label: const Text(
+          'Asistente IA',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+        backgroundColor: const Color(0xFF0071E3),
+        elevation: 4,
       ),
     );
   }
@@ -217,6 +236,17 @@ class LandingScreen extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Colors.white54),
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => context.push('/Chat'),
+                            icon: const Icon(Icons.smart_toy_rounded),
+                            label: const Text('Asistente IA'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Color(0xFF8B5CF6)),
+                              backgroundColor:
+                                  const Color(0xFF8B5CF6).withValues(alpha: 0.25),
                             ),
                           ),
                         ],
@@ -348,6 +378,7 @@ class LandingScreen extends StatelessWidget {
                   description:
                       'Orientación inmediata 24/7 sobre cuadrantes y protocolos distritales.',
                   isDark: isDark,
+                  onTap: () => context.push('/Chat'),
                 ),
                 const SizedBox(height: 14),
                 _BentoCard(
@@ -955,6 +986,7 @@ class _BentoCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.isDark,
+    this.onTap,
   });
 
   final IconData icon;
@@ -963,10 +995,11 @@ class _BentoCard extends StatelessWidget {
   final String title;
   final String description;
   final bool isDark;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : Colors.white,
@@ -1042,9 +1075,38 @@ class _BentoCard extends StatelessWidget {
               color: isDark ? AppColors.darkTextMuted : AppColors.muted,
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Consultar con Asistente IA',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: accentColor,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_forward_rounded, size: 14, color: accentColor),
+              ],
+            ),
+          ],
         ],
       ),
     );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: card,
+        ),
+      );
+    }
+    return card;
   }
 }
 

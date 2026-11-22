@@ -86,6 +86,7 @@ public class SecurityConfig {
                                 "/Register",
                                 "/ForgotPassword",
                                 "/ResetPassword",
+                                "/Chat",
                                 "/App",
                                 "/App/**",
                                 "/Admin",
@@ -114,6 +115,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/Files/**", "/api/files/**").permitAll()
                         // ===== Contactos de emergencia - publico =====
                         .requestMatchers("/api/EmergencyContacts", "/api/EmergencyContacts/**").permitAll()
+                        // ===== Chatbot Asistente IA - publico para orientacion ciudadana =====
+                        .requestMatchers(HttpMethod.POST, "/api/Ai/Chat").permitAll()
                         // ===== Solo ADMIN u OFFICER =====
                         .requestMatchers("/api/Admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/Reports/**").hasAnyRole("ADMIN", "OFFICER")

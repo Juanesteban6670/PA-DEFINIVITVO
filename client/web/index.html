@@ -20,8 +20,8 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Aplicación ciudadana Cartagena Segura.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F7">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#182b35">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#182b35">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -37,7 +37,7 @@
   <link rel="manifest" href="manifest.json">
   <style>
     :root {
-      color-scheme: light dark;
+      color-scheme: dark;
     }
 
     html,
@@ -45,18 +45,12 @@
       width: 100%;
       height: 100%;
       margin: 0;
-      background: #F5F5F7;
+      background: #182b35;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      html, body {
-        background: #000000;
-        color: #F5F5F7;
-      }
+      overflow: hidden;
     }
 
     /* Apple-Style Minimalist Floating Scrollbars */
@@ -68,90 +62,414 @@
       background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.22);
+      background: rgba(255, 255, 255, 0.22);
       border-radius: 999px;
       border: 1px solid transparent;
       background-clip: padding-box;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.4);
-    }
-    @media (prefers-color-scheme: dark) {
-      ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.22);
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.42);
-      }
+      background: rgba(255, 255, 255, 0.42);
     }
 
+    /* Logo Loader Stage */
     #app-loading {
       position: fixed;
       inset: 0;
-      z-index: 1;
-      display: grid;
-      place-content: center;
-      justify-items: center;
-      gap: 20px;
-      color: #1D1D1F;
-      background: #F5F5F7;
-      font: 500 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-      letter-spacing: -0.2px;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #182b35;
+      color: #faf6f9;
+      user-select: none;
+      transition: opacity 0.45s ease-out;
     }
 
-    @media (prefers-color-scheme: dark) {
-      #app-loading {
-        background: #000000;
-        color: #F5F5F7;
+    #app-loading.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-container {
+      width: clamp(280px, 58vw, 620px);
+      max-width: 84vw;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 500px) {
+      .logo-container {
+        width: 84vw;
       }
     }
 
-    #app-loading img {
-      width: 76px;
-      height: 76px;
-      border-radius: 18px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    .logo-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
     }
 
-    .loading-indicator {
-      width: 22px;
-      height: 22px;
-      border: 2px solid #D2D2D7;
-      border-top-color: #0071E3;
-      border-radius: 50%;
-      animation: loading-spin 700ms linear infinite;
+    /* Controls at bottom-right */
+    .loader-controls {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
     }
 
-    @media (prefers-color-scheme: dark) {
-      .loading-indicator {
-        border-color: #38383A;
-        border-top-color: #0A84FF;
-      }
+    .btn-loader-ctrl {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #faf6f9;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+      outline: none;
     }
 
-    @keyframes loading-spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .btn-loader-ctrl:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.32);
     }
 
+    .btn-loader-ctrl:focus-visible {
+      box-shadow: 0 0 0 2px #182b35, 0 0 0 4px #38bdf8;
+    }
+
+    .btn-loader-ctrl:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .btn-loader-ctrl:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Accessible Reduced Motion Contract */
     @media (prefers-reduced-motion: reduce) {
-      .loading-indicator {
-        animation: none;
+      #outline-group {
+        display: none !important;
+      }
+      #filled-group {
+        opacity: 1 !important;
+      }
+      #logo-root {
+        opacity: 1 !important;
+      }
+      .btn-loader-ctrl {
+        opacity: 0.35 !important;
+        cursor: not-allowed !important;
       }
     }
   </style>
 </head>
 <body>
   <div id="app-loading" role="status" aria-live="polite">
-    <img src="icons/Icon-192.png" alt="">
-    <span>Cargando Cartagena Segura</span>
-    <span class="loading-indicator" aria-hidden="true"></span>
+    <main class="loader-stage" role="region" aria-label="Pantalla de carga Cartagena Segura">
+      <div class="logo-container">
+        <svg class="logo-svg" viewBox="0 0 96 32" fill="none" role="img" aria-label="Cartagena Segura — Identidad Distrital">
+          <defs>
+            <clipPath id="cs-shield-clip">
+              <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
+            </clipPath>
+            <linearGradient id="cs-shield-grad" x1="6" y1="4" x2="28" y2="29" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0071E3" />
+              <stop offset="100%" stop-color="#063970" />
+            </linearGradient>
+            <linearGradient id="cs-star-grad" x1="12" y1="10" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#38BDF8" />
+              <stop offset="100%" stop-color="#F5EDDE" />
+            </linearGradient>
+          </defs>
+
+          <!-- Root Logo Group (Controls overall fade 5000-5600ms) -->
+          <g id="logo-root" class="logo-group" opacity="1">
+            <!-- Filled Group (Crossfades in 3100-3800ms, holds till 5000ms) -->
+            <g id="filled-group" opacity="0">
+              <!-- Escudo institucional con relleno gradiente oficial -->
+              <path d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" fill="url(#cs-shield-grad)" />
+              <path d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" fill="rgba(255,255,255,0.14)" />
+              <path d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" fill="url(#cs-star-grad)" />
+              <path d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" stroke="#38BDF8" stroke-width="0.9" fill="none" />
+              
+              <!-- Tipografía rellena institucional en blanco cálido (#FAF6F9) -->
+              <text x="36" y="12.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.8">CARTAGENA</text>
+              <text x="36" y="26.5" fill="#FAF6F9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800" letter-spacing="-0.3">SEGURA</text>
+            </g>
+
+            <!-- Outline Group (Trazo progresivo 0-2650ms con aceleración coseno, crossfades out 3100-3800ms) -->
+            <g id="outline-group" opacity="1" stroke="#f5edde" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <!-- 5 Contornos del Escudo / Símbolo -->
+              <g id="shield-contours">
+                <path class="anim-contour" data-delay="0" stroke-width="1.2" d="M 6,4 C 13.5,2 20.5,2 28,4 C 28,16.5 23,25.5 17,29 C 11,25.5 6,16.5 6,4 Z" />
+                <path class="anim-contour" data-delay="90" stroke-width="0.8" d="M 9,6.5 C 14.5,5 19.5,5 25,6.5 C 25,15.5 21,23 17,26 C 13,23 9,15.5 9,6.5 Z" />
+                <path class="anim-contour" data-delay="180" stroke-width="0.9" d="M 17,9 L 18.6,13.8 L 23.5,15.5 L 18.6,17.2 L 17,22 L 15.4,17.2 L 10.5,15.5 L 15.4,13.8 Z" />
+                <path class="anim-contour" data-delay="270" stroke-width="0.65" d="M 10,10.5 L 12,10.5 L 12,12.5 L 14,12.5 L 14,10.5 L 16,10.5 L 16,12.5 L 18,12.5 L 18,10.5 L 20,10.5 L 20,12.5 L 22,12.5 L 22,10.5 L 24,10.5" />
+                <path class="anim-contour" data-delay="360" stroke-width="0.8" d="M 12,19.5 C 14.5,22 19.5,22 22,19.5" />
+              </g>
+
+              <!-- Línea 1: CARTAGENA (9 glifos con retraso escalonado 120ms-340ms) -->
+              <g id="line1-contours" stroke-width="0.75">
+                <path class="anim-contour" data-delay="120" d="M 40,7.5 C 39,6.5 36.5,6.5 35.5,7.5 C 34.5,8.8 34.5,10.7 35.5,12 C 36.5,13.2 39,13.2 40,12" />
+                <path class="anim-contour" data-delay="145" d="M 41.5,12.5 L 43.5,6.5 L 45.5,12.5 M 42.2,10.8 L 44.8,10.8" />
+                <path class="anim-contour" data-delay="170" d="M 47,12.5 L 47,6.5 L 49.5,6.5 C 51,6.5 51,9 49.5,9 L 47,9 M 48.8,9 L 51,12.5" />
+                <path class="anim-contour" data-delay="195" d="M 52,6.5 L 56.5,6.5 M 54.2,6.5 L 54.2,12.5" />
+                <path class="anim-contour" data-delay="220" d="M 57.5,12.5 L 59.5,6.5 L 61.5,12.5 M 58.2,10.8 L 60.8,10.8" />
+                <path class="anim-contour" data-delay="250" d="M 66.5,7.5 C 65.5,6.5 63,6.5 62,7.5 C 61,8.8 61,10.7 62,12 C 63,13.2 65.5,13.2 66.5,12 L 66.5,9.8 L 64.2,9.8" />
+                <path class="anim-contour" data-delay="280" d="M 71.5,6.5 L 68,6.5 L 68,12.5 L 71.5,12.5 M 68,9.5 L 70.8,9.5" />
+                <path class="anim-contour" data-delay="310" d="M 73,12.5 L 73,6.5 L 77,12.5 L 77,6.5" />
+                <path class="anim-contour" data-delay="340" d="M 78.5,12.5 L 80.5,6.5 L 82.5,12.5 M 79.2,10.8 L 81.8,10.8" />
+              </g>
+
+              <!-- Línea 2: SEGURA (6 glifos con retraso escalonado 120ms-252ms) -->
+              <g id="line2-contours" stroke-width="1.3">
+                <path class="anim-contour" data-delay="120" d="M 42,18 C 40.8,16.5 36.5,16.5 35.8,18.5 C 35,20.8 42.5,21.2 41.8,24 C 41,26.8 35.5,26.8 34.8,24.5" />
+                <path class="anim-contour" data-delay="145" d="M 49.5,16.5 L 44.5,16.5 L 44.5,26.5 L 49.5,26.5 M 44.5,21.5 L 48.5,21.5" />
+                <path class="anim-contour" data-delay="170" d="M 57,18.5 C 55.8,16.5 51.5,16.5 50.5,18.5 C 49.5,20.5 49.5,23.5 50.5,25.5 C 51.5,27.2 56,27.2 57,25 L 57,21.5 L 53.5,21.5" />
+                <path class="anim-contour" data-delay="195" d="M 59.5,16.5 L 59.5,23.5 C 59.5,26.8 65,26.8 65,23.5 L 65,16.5" />
+                <path class="anim-contour" data-delay="225" d="M 67.5,26.5 L 67.5,16.5 L 71.8,16.5 C 74.5,16.5 74.5,21 71.8,21 L 67.5,21 M 71,21 L 74.5,26.5" />
+                <path class="anim-contour" data-delay="252" d="M 76.5,26.5 L 80.5,16.5 L 84.5,26.5 M 78,23.5 L 83,23.5" />
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Controles accesibles: Pausar/Reanudar y Reiniciar -->
+      <nav class="loader-controls" aria-label="Controles de animación del cargador">
+        <button id="cs-loader-pause" class="btn-loader-ctrl" type="button" aria-label="Pausar animación">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <rect id="pause-bar1" x="3" y="2" width="4" height="12" rx="1"></rect>
+            <rect id="pause-bar2" x="9" y="2" width="4" height="12" rx="1"></rect>
+          </svg>
+          <span id="cs-pause-label">Pausar</span>
+        </button>
+        <button id="cs-loader-replay" class="btn-loader-ctrl" type="button" aria-label="Reiniciar animación">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 4v5h5M15 12a7 7 0 1 1-2.5-5.3L1 9" />
+          </svg>
+          <span>Reiniciar</span>
+        </button>
+      </nav>
+    </main>
   </div>
+
   <script>
-    window.addEventListener('flutter-first-frame', () => {
-      document.getElementById('app-loading')?.remove();
-    }, { once: true });
+    (function () {
+      'use strict';
+
+      const CYCLE_DURATION = 5600;
+      const DRAW_DURATION = 2650;
+      const CROSSFADE_START = 3100;
+      const CROSSFADE_END = 3800;
+      const HOLD_END = 5000;
+      const FADE_END = 5600;
+
+      // Cosine ease: 0.5 - 0.5 * cos(pi * clamp(v, 0, 1))
+      function easeCos(v) {
+        const clamped = Math.max(0, Math.min(1, v));
+        return 0.5 - 0.5 * Math.cos(Math.PI * clamped);
+      }
+
+      const loaderRoot = document.getElementById('app-loading');
+      const logoRoot = document.getElementById('logo-root');
+      const outlineGroup = document.getElementById('outline-group');
+      const filledGroup = document.getElementById('filled-group');
+      const btnPause = document.getElementById('cs-loader-pause');
+      const btnReplay = document.getElementById('cs-loader-replay');
+      const pauseLabel = document.getElementById('cs-pause-label');
+
+      if (!loaderRoot || !logoRoot || !outlineGroup || !filledGroup) return;
+
+      const contours = Array.from(document.querySelectorAll('.anim-contour')).map(path => {
+        let length = 50;
+        try {
+          length = path.getTotalLength() || 50;
+        } catch (_) {}
+        const delay = parseFloat(path.getAttribute('data-delay') || '0');
+        path.style.strokeDasharray = length;
+        path.style.strokeDashoffset = length;
+        return { path, length, delay };
+      });
+
+      let isPaused = false;
+      let startTime = null;
+      let pausedAtTime = 0;
+      let elapsed = 0;
+      let rafId = null;
+
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let prefersReduced = mediaQuery.matches;
+
+      function updateReducedMotion(isReduced) {
+        prefersReduced = isReduced;
+        if (prefersReduced) {
+          if (rafId) cancelAnimationFrame(rafId);
+          outlineGroup.style.opacity = '0';
+          filledGroup.style.opacity = '1';
+          logoRoot.style.opacity = '1';
+          if (btnPause) btnPause.disabled = true;
+          if (btnReplay) btnReplay.disabled = true;
+        } else {
+          if (btnPause) btnPause.disabled = false;
+          if (btnReplay) btnReplay.disabled = false;
+          resumeLoop();
+        }
+      }
+
+      mediaQuery.addEventListener('change', e => updateReducedMotion(e.matches));
+
+      function renderFrame(time) {
+        if (prefersReduced) return;
+
+        elapsed = (time % CYCLE_DURATION);
+
+        // 1. Drawing contours (0 -> 2650ms)
+        for (let i = 0; i < contours.length; i++) {
+          const c = contours[i];
+          const localElapsed = elapsed - c.delay;
+          if (localElapsed <= 0) {
+            c.path.style.strokeDashoffset = c.length;
+          } else {
+            const progress = easeCos(localElapsed / DRAW_DURATION);
+            c.path.style.strokeDashoffset = c.length * (1 - progress);
+          }
+        }
+
+        // 2. Crossfade outlines -> fill (3100 -> 3800ms)
+        if (elapsed < CROSSFADE_START) {
+          outlineGroup.style.opacity = '1';
+          filledGroup.style.opacity = '0';
+        } else if (elapsed <= CROSSFADE_END) {
+          const crossProgress = easeCos((elapsed - CROSSFADE_START) / (CROSSFADE_END - CROSSFADE_START));
+          outlineGroup.style.opacity = (1 - crossProgress).toFixed(4);
+          filledGroup.style.opacity = crossProgress.toFixed(4);
+        } else {
+          outlineGroup.style.opacity = '0';
+          filledGroup.style.opacity = '1';
+        }
+
+        // 3. Hold & Fade (3800 -> 5000ms hold solid, 5000 -> 5600ms fadeout)
+        if (elapsed < HOLD_END) {
+          logoRoot.style.opacity = '1';
+        } else if (elapsed <= FADE_END) {
+          const fadeProgress = easeCos((elapsed - HOLD_END) / (FADE_END - HOLD_END));
+          logoRoot.style.opacity = (1 - fadeProgress).toFixed(4);
+        } else {
+          logoRoot.style.opacity = '0';
+        }
+      }
+
+      function tick(now) {
+        if (!startTime) startTime = now - elapsed;
+        elapsed = now - startTime;
+        renderFrame(elapsed);
+
+        if (!isPaused && !prefersReduced) {
+          rafId = requestAnimationFrame(tick);
+        }
+      }
+
+      function pauseLoop() {
+        if (isPaused || prefersReduced) return;
+        isPaused = true;
+        pausedAtTime = performance.now();
+        if (rafId) cancelAnimationFrame(rafId);
+        if (pauseLabel) pauseLabel.textContent = 'Reanudar';
+        if (btnPause) btnPause.setAttribute('aria-label', 'Reanudar animación');
+      }
+
+      function resumeLoop() {
+        if (!isPaused || prefersReduced) return;
+        isPaused = false;
+        const pauseDuration = performance.now() - pausedAtTime;
+        startTime += pauseDuration;
+        if (pauseLabel) pauseLabel.textContent = 'Pausar';
+        if (btnPause) btnPause.setAttribute('aria-label', 'Pausar animación');
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function restartLoop() {
+        if (prefersReduced) return;
+        if (rafId) cancelAnimationFrame(rafId);
+        startTime = performance.now();
+        elapsed = 0;
+        isPaused = false;
+        if (pauseLabel) pauseLabel.textContent = 'Pausar';
+        if (btnPause) btnPause.setAttribute('aria-label', 'Pausar animación');
+        rafId = requestAnimationFrame(tick);
+      }
+
+      if (btnPause) {
+        btnPause.addEventListener('click', () => {
+          if (isPaused) resumeLoop();
+          else pauseLoop();
+        });
+      }
+
+      if (btnReplay) {
+        btnReplay.addEventListener('click', () => {
+          restartLoop();
+        });
+      }
+
+      // Pause while hidden or page backgrounded
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (!isPaused && !prefersReduced) {
+            pausedAtTime = performance.now();
+            if (rafId) cancelAnimationFrame(rafId);
+          }
+        } else {
+          if (!isPaused && !prefersReduced) {
+            const pauseDuration = performance.now() - pausedAtTime;
+            startTime += pauseDuration;
+            rafId = requestAnimationFrame(tick);
+          }
+        }
+      });
+
+      window.addEventListener('pagehide', () => {
+        if (rafId) cancelAnimationFrame(rafId);
+      });
+
+      // Start initial
+      if (prefersReduced) {
+        updateReducedMotion(true);
+      } else {
+        rafId = requestAnimationFrame(tick);
+      }
+
+      // Smooth unmount when Flutter is loaded
+      window.addEventListener('flutter-first-frame', () => {
+        loaderRoot.classList.add('fade-out');
+        setTimeout(() => {
+          if (rafId) cancelAnimationFrame(rafId);
+          loaderRoot.remove();
+        }, 450);
+      }, { once: true });
+    })();
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

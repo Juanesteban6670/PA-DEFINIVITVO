@@ -465,6 +465,20 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   ],
                 )
               : IndexedStack(index: _selectedIndex, children: pages),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => context.push('/App/Chat'),
+            icon: const Icon(Icons.smart_toy_rounded, color: Colors.white),
+            label: const Text(
+              'Asistente IA',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+            backgroundColor: const Color(0xFF0071E3),
+            elevation: 4,
+          ),
           bottomNavigationBar: wideLayout
               ? null
               : LiquidGlassContainer(
