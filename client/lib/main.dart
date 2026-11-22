@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +33,11 @@ void main() {
       ),
     );
   };
-  runApp(const ProviderScope(child: CartagenaApp()));
+  final recoveryLocation = kIsWeb ? recoveryLocationFromUri(Uri.base) : null;
+  runApp(ProviderScope(
+    overrides: [startupRecoveryLocationProvider.overrideWithValue(recoveryLocation)],
+    child: const CartagenaApp(),
+  ));
 }
 
 class CartagenaApp extends ConsumerWidget {

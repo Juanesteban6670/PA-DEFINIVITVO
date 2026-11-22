@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailAndUsernameNot(String email, String username);
     boolean existsByPhone(String phone);
     boolean existsByPhoneAndUsernameNot(String phone, String username);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     Optional<User> findByResetToken(String resetToken);
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE UPPER(r.name) IN ('ADMIN', 'ROLE_ADMIN', 'OFFICER', 'ROLE_OFFICER')")

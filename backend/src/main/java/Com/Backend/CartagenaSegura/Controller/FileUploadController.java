@@ -7,8 +7,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.util.*;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 @RestController
 @RequestMapping({"/api/Files", "/api/files"})
@@ -34,6 +40,12 @@ public class FileUploadController {
 
     @Value("${CLOUDINARY_URL:}")
     private String cloudinaryUrl;
+
+    @Autowired
+    private GridFsTemplate evidenceStore;
+
+    @Value("${EVIDENCE_STORE_MONGO:false}")
+    private boolean useMongo;
 
     private static final long MAX_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
 
@@ -61,7 +73,7 @@ public class FileUploadController {
 
     @PostMapping("/Upload")
     @Operation(summary = "Subir archivos de evidencia",
-            description = "Sube hasta 5 archivos (imágenes, audios o docs). Almacena en Cloudinary (si está configurado) o en almacenamiento persistente local.")
+            description = "Sube hasta 5 archivos al almacenamiento de evidencias configurado.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> upload(
             @RequestParam("files") List<MultipartFile> files) throws IOException {
 
@@ -99,6 +111,10 @@ public class FileUploadController {
 
         if (acceptedFiles.isEmpty())
             return ResponseEntity.badRequest().body(ApiResponse.error("No se recibieron archivos válidos"));
+
+        if (useMongo) {
+            return uploadToMongo(acceptedFiles, extensions);
+        }
 
         Files.createDirectories(dir);
         List<String> urls = new ArrayList<>();
@@ -151,6 +167,36 @@ public class FileUploadController {
         result.put("count", urls.size());
 
         return ResponseEntity.ok(ApiResponse.ok("Archivos subidos correctamente", result));
+    }
+
+    private ResponseEntity<ApiResponse<Map<String, Object>>> uploadToMongo(
+            List<MultipartFile> files, List<String> extensions) {
+        List<String> attempted = new ArrayList<>();
+        List<String> urls = new ArrayList<>();
+        try {
+            for (int i = 0; i < files.size(); i++) {
+                MultipartFile file = files.get(i);
+                String filename = UUID.randomUUID() + extensions.get(i);
+                attempted.add(filename);
+                try (InputStream input = file.getInputStream()) {
+                    evidenceStore.store(input, filename, file.getContentType());
+                }
+                urls.add(baseUrl + "/api/Files/" + filename);
+            }
+        } catch (IOException | DataAccessException error) {
+            for (String filename : attempted) {
+                try {
+                    evidenceStore.delete(query(where("filename").is(filename)));
+                } catch (DataAccessException cleanupError) {
+                    log.warn("No se pudo limpiar una carga de evidencia incompleta");
+                }
+            }
+            log.warn("No se pudo almacenar evidencia en MongoDB");
+            return ResponseEntity.status(503).body(ApiResponse.error(
+                    "El almacenamiento de evidencias no está disponible. Intenta de nuevo."));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Archivos subidos correctamente",
+                Map.of("urls", urls, "count", urls.size())));
     }
 
     private boolean matchesContentType(MultipartFile file, String contentType) throws IOException {
@@ -242,8 +288,22 @@ public class FileUploadController {
             return ResponseEntity.badRequest().build();
 
         UrlResource resource = new UrlResource(filePath.toUri());
-        if (!resource.exists() || !resource.isReadable())
-            return ResponseEntity.notFound().build();
+        if (!resource.exists() || !resource.isReadable()) {
+            if (!useMongo) return ResponseEntity.notFound().build();
+            try {
+                var storedFile = evidenceStore.findOne(query(where("filename").is(filename)));
+                if (storedFile == null) return ResponseEntity.notFound().build();
+                var storedResource = evidenceStore.getResource(storedFile);
+                return ResponseEntity.ok()
+                        .header("Content-Type", storedResource.getContentType())
+                        .header("Cache-Control", "public, max-age=31536000")
+                        .header("Content-Disposition", "inline; filename=\"" + filename + "\"")
+                        .contentLength(storedFile.getLength())
+                        .body(storedResource);
+            } catch (DataAccessException unavailable) {
+                return ResponseEntity.status(503).build();
+            }
+        }
 
         String contentType = Files.probeContentType(filePath);
         if (contentType == null) contentType = "application/octet-stream";

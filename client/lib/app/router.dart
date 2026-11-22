@@ -13,10 +13,23 @@ import 'package:cartagena_segura/features/landing/presentation/landing_screen.da
 
 import 'providers.dart';
 
+// Capture this before the temporary loading MaterialApp can change the URL.
+final startupRecoveryLocationProvider = Provider<String?>((ref) => null);
+
+String? recoveryLocationFromUri(Uri uri) {
+  final hashRoute = uri.fragment.isEmpty ? null : Uri.tryParse(uri.fragment);
+  final route = hashRoute?.path == '/ResetPassword' ? hashRoute! : uri;
+  if (route.path != '/ResetPassword') return null;
+  final token = route.queryParameters['token'];
+  if (token == null || token.trim().isEmpty) return '/ForgotPassword';
+  return Uri(path: '/ResetPassword', queryParameters: {'token': token}).toString();
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final session = ref.read(sessionProvider);
   final router = GoRouter(
-    initialLocation: '/',
+    initialLocation: ref.read(startupRecoveryLocationProvider) ?? '/',
+    overridePlatformDefaultLocation: ref.read(startupRecoveryLocationProvider) != null,
     refreshListenable: session,
     redirect: (context, state) => _redirect(session, state.matchedLocation),
     routes: [

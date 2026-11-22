@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +24,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${apps.script.url:}")
+    private String passwordRecoveryMailer = "";
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -104,8 +108,12 @@ public class AuthController {
     @PostMapping("/ForgotPassword")
     @Operation(summary = "Solicitar restablecimiento de contraseña", description = "Envía un correo con un token de un solo uso.")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        if (passwordRecoveryMailer.isBlank()) {
+            return ResponseEntity.status(503)
+                    .body(ApiResponse.error("El envío de correos de recuperación no está disponible."));
+        }
         authService.forgotPassword(request);
-        return ResponseEntity.ok(ApiResponse.ok("Se ha enviado un enlace de recuperación a tu correo", null));
+        return ResponseEntity.ok(ApiResponse.ok("Si el correo está registrado, recibirás un enlace de recuperación.", null));
     }
 
     @PostMapping("/ResetPassword")

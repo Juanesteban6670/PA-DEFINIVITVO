@@ -284,9 +284,7 @@ class RealtimeAlertService {
     if (base.isEmpty || base == '/api') {
       return Uri.base.resolve(path);
     }
-    if (base.endsWith('/')) {
-      base = base.substring(0, base.length - 1);
-    }
+    base = base.replaceFirst(RegExp(r'(?:/api)?/$|/api$'), '');
     final cleanPath = path.startsWith('/') ? path : '/$path';
     if (base.startsWith('http://') || base.startsWith('https://')) {
       return Uri.parse('$base$cleanPath');
