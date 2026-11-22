@@ -111,13 +111,13 @@ public class EmailService {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200 || response.statusCode() == 302) {
-                System.out.println("Email de restablecimiento delegado existosamente para: " + to);
+                System.out.println("Email de restablecimiento delegado correctamente");
             } else {
                 System.err.println("Google Script (Reset) retornó código HTTP: " + response.statusCode());
             }
 
         } catch (Exception e) {
-            System.err.println("Error delegando email de restablecimiento para " + to + ": " + e.getMessage());
+            System.err.println("No se pudo delegar el correo de restablecimiento");
         }
     }
 }

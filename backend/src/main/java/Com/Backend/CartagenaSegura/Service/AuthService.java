@@ -139,7 +139,7 @@ public class AuthService {
         user.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
         userRepository.save(user);
 
-        String resetUrl = frontendUrl + "/ResetPassword?token=" + token;
+        String resetUrl = frontendUrl.replaceFirst("/+$", "") + "/#/ResetPassword?token=" + token;
 
         emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetUrl);
         
@@ -151,7 +151,8 @@ public class AuthService {
         User user = userRepository.findByResetToken(request.token())
                 .orElseThrow(() -> new IllegalArgumentException("El token de recuperación no es válido o ya fue usado"));
 
-        if (user.getResetTokenExpiration().isBefore(LocalDateTime.now())) {
+        if (user.getResetTokenExpiration() == null ||
+                !user.getResetTokenExpiration().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("El enlace ha expirado (validez de 60 min). Solicita uno nuevo.");
         }
 

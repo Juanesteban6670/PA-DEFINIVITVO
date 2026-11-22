@@ -35,6 +35,9 @@ public class FileUploadController {
     @Value("${CLOUDINARY_URL:}")
     private String cloudinaryUrl;
 
+    @Value("${app.upload.require-cloud:false}")
+    private boolean requireCloud;
+
     private static final long MAX_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
@@ -48,7 +51,7 @@ public class FileUploadController {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 
-    private Cloudinary initCloudinary() {
+    Cloudinary initCloudinary() {
         String envUrl = System.getenv("CLOUDINARY_URL");
         if (envUrl != null && !envUrl.isBlank()) {
             return new Cloudinary(envUrl);
@@ -61,7 +64,7 @@ public class FileUploadController {
 
     @PostMapping("/Upload")
     @Operation(summary = "Subir archivos de evidencia",
-            description = "Sube hasta 5 archivos (imágenes, audios o docs). Almacena en Cloudinary (si está configurado) o en almacenamiento persistente local.")
+            description = "Sube hasta 5 archivos (imágenes, audios o docs). Usa Cloudinary cuando está configurado. El almacenamiento local depende de la configuración.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> upload(
             @RequestParam("files") List<MultipartFile> files) throws IOException {
 
@@ -100,9 +103,19 @@ public class FileUploadController {
         if (acceptedFiles.isEmpty())
             return ResponseEntity.badRequest().body(ApiResponse.error("No se recibieron archivos válidos"));
 
-        Files.createDirectories(dir);
         List<String> urls = new ArrayList<>();
-        Cloudinary cloudinary = initCloudinary();
+        Cloudinary cloudinary;
+        try {
+            cloudinary = initCloudinary();
+        } catch (RuntimeException failure) {
+            log.warn("La configuración de almacenamiento en nube no es válida");
+            cloudinary = null;
+        }
+        if (requireCloud && cloudinary == null) {
+            return cloudUnavailable();
+        }
+        if (!requireCloud) Files.createDirectories(dir);
+        List<Map<String, String>> cloudFiles = new ArrayList<>();
 
         try {
             for (int i = 0; i < acceptedFiles.size(); i++) {
@@ -118,18 +131,32 @@ public class FileUploadController {
                                         "resource_type", "auto"
                                 )
                         );
+                        Object publicId = uploadResult.get("public_id");
+                        Object resourceType = uploadResult.get("resource_type");
+                        if (requireCloud && publicId instanceof String id && resourceType instanceof String type) {
+                            cloudFiles.add(Map.of("id", id, "type", type));
+                        }
                         String secureUrl = (String) uploadResult.get("secure_url");
                         if (secureUrl != null && !secureUrl.isBlank()) {
                             urls.add(secureUrl);
                             uploadedToCloud = true;
-                            log.info("Archivo almacenado en Cloudinary CDN: {}", secureUrl);
                         }
                     } catch (Exception cloudEx) {
-                        log.warn("Fallo al subir a Cloudinary, usando almacenamiento local de respaldo: {}", cloudEx.getMessage());
+                        log.warn("Falló la subida de una evidencia a Cloudinary");
                     }
                 }
 
-                // Fallback local si Cloudinary no está configurado o falló
+                if (!uploadedToCloud && requireCloud) {
+                    for (Map<String, String> saved : cloudFiles) {
+                        try {
+                            cloudinary.uploader().destroy(saved.get("id"),
+                                    Map.of("resource_type", saved.get("type")));
+                        } catch (Exception cleanupFailure) {
+                            log.warn("No se pudo limpiar una evidencia de una carga incompleta");
+                        }
+                    }
+                    return cloudUnavailable();
+                }
                 if (!uploadedToCloud) {
                     String savedName = UUID.randomUUID() + extensions.get(i);
                     try (InputStream input = file.getInputStream()) {
@@ -151,6 +178,11 @@ public class FileUploadController {
         result.put("count", urls.size());
 
         return ResponseEntity.ok(ApiResponse.ok("Archivos subidos correctamente", result));
+    }
+
+    private ResponseEntity<ApiResponse<Map<String, Object>>> cloudUnavailable() {
+        return ResponseEntity.status(503).body(ApiResponse.error(
+                "No se pudo guardar la evidencia. Conserva el borrador e inténtalo de nuevo."));
     }
 
     private boolean matchesContentType(MultipartFile file, String contentType) throws IOException {

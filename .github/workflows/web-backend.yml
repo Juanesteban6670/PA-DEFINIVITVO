@@ -11,6 +11,7 @@ on:
       - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
+      - "scripts/smoke_recovery.py"
       - ".github/workflows/web-backend.yml"
   pull_request:
     paths:
@@ -20,6 +21,7 @@ on:
       - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
+      - "scripts/smoke_recovery.py"
       - ".github/workflows/web-backend.yml"
   workflow_dispatch:
 
@@ -114,12 +116,23 @@ jobs:
           services:
             backend:
               image: cartagena-render:ci
+              environment:
+                APPS_SCRIPT_URL: http://host.docker.internal:18081/mail
+                FRONTEND_URL: http://127.0.0.1:18080
+                BASE_URL: http://127.0.0.1:18080
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
               ports:
                 - "127.0.0.1:18080:8080"
           YAML
           compose=(docker compose -f compose.yaml -f "$override")
+          reset_capture="$RUNNER_TEMP/cartagena-reset-link"
+          (umask 077; python3 scripts/smoke_recovery.py mailbox "$reset_capture") &
+          mailbox_pid=$!
           cleanup() {
             local result=$?
+            kill "$mailbox_pid" 2>/dev/null || true
+            rm -f "$reset_capture" "$reset_capture.pending"
             if (( result != 0 )); then
               "${compose[@]}" logs --tail=80 postgres mongo backend
             fi
@@ -152,3 +165,20 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"message":"¿Cómo puedo enviar un reporte?","sessionId":"render-smoke"}' |
             python3 -c 'import json,sys; assert json.load(sys.stdin)["reply"].strip()'
+          python3 scripts/smoke_recovery.py verify "$reset_capture" --base "$base"
+          printf 'CI evidence file\n' > "$RUNNER_TEMP/cartagena-evidence.txt"
+          result=$(curl --silent --show-error --output "$RUNNER_TEMP/guarded-upload.json" --write-out '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            -F "files=@$RUNNER_TEMP/cartagena-evidence.txt;type=text/plain" "$base/api/Files/Upload")
+          test "$result" = 503
+          # Exercise the local backend only with the named persistent test volume.
+          sed -i 's/^    environment:$/    environment:\n      EVIDENCE_REQUIRE_CLOUD: "false"/' "$override"
+          "${compose[@]}" up --no-build --wait --wait-timeout 360 --force-recreate backend
+          curl --fail --silent --show-error -H "Authorization: Bearer $token" \
+            -F "files=@$RUNNER_TEMP/cartagena-evidence.txt;type=text/plain" "$base/api/Files/Upload" > "$RUNNER_TEMP/uploaded.json"
+          file_url=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["data"]["urls"][0])' "$RUNNER_TEMP/uploaded.json")
+          curl --fail --silent --show-error "$file_url" -o "$RUNNER_TEMP/evidence-before.txt"
+          "${compose[@]}" up --no-build --wait --wait-timeout 360 --force-recreate backend
+          curl --fail --silent --show-error "$file_url" -o "$RUNNER_TEMP/evidence-after.txt"
+          cmp "$RUNNER_TEMP/evidence-before.txt" "$RUNNER_TEMP/evidence-after.txt"
+          cmp "$RUNNER_TEMP/cartagena-evidence.txt" "$RUNNER_TEMP/evidence-after.txt"
