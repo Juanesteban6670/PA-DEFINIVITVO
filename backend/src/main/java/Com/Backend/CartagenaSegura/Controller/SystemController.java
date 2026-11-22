@@ -19,12 +19,11 @@ public class SystemController {
     @Operation(summary = "Verificar versión de la aplicación", description = "Retorna la última versión disponible, requerimientos y URL de actualización.")
     public ResponseEntity<Map<String, Object>> getVersion() {
         Map<String, Object> versionInfo = new HashMap<>();
-        versionInfo.put("latestVersion", "1.2.0");
+        versionInfo.put("latestVersion", "1.2.1");
         versionInfo.put("minimumRequiredVersion", "1.0.0");
         versionInfo.put("forceUpdate", false);
-        versionInfo.put("releaseNotes", "Sincronización en segundo plano, refresco dinámico y mejoras de estabilidad.");
-        versionInfo.put("storeUrlAndroid", "https://play.google.com/store/apps/details?id=com.cartagenasegura");
-        versionInfo.put("storeUrlIos", "https://apps.apple.com/app/cartagena-segura/id123456789");
+        versionInfo.put("releaseNotes", "Descarga oficial de Cartagena Segura con Faro ciudadano. Si vienes de una compilación con otra firma, envía tus borradores antes de reinstalar.");
+        versionInfo.put("storeUrlAndroid", "https://github.com/Juanesteban6670/PA-DEFINIVITVO/releases/download/app-latest/app-release.apk");
         return ResponseEntity.ok(versionInfo);
     }
 

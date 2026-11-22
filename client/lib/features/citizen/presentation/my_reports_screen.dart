@@ -9,6 +9,7 @@ import 'package:cartagena_segura/shared/responsive_layout.dart';
 import 'package:cartagena_segura/shared/skeleton_loader.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
+import 'draft_reminder_card.dart';
 import 'report_screen.dart';
 
 /// Pantalla 04 · Reportes
@@ -123,6 +124,11 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         ),
       ),
     );
+    if (mounted) {
+      setState(() {
+        _pending = widget.drafts.readPending();
+      });
+    }
   }
 
   Future<void> _retryPending(ReportDraft draft) async {
@@ -515,20 +521,26 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                       },
                     ),
 
-                  // Reportes pendientes en almacenamiento local (si está en Mis reportes)
-                  if (_selectedTab == 1)
-                    FutureBuilder<List<ReportDraft>>(
+                  Offstage(
+                    offstage: _selectedTab != 1,
+                    child: FutureBuilder<List<ReportDraft>>(
                       future: _pending,
-                      builder: (context, pendingSnapshot) {
-                        final pending = pendingSnapshot.data ?? const <ReportDraft>[];
-                        if (pending.isEmpty) return const SizedBox.shrink();
-                        return _PendingReports(
-                          drafts: pending,
-                          onRetry: _retryPending,
-                          onDelete: _deletePending,
+                      builder: (context, snapshot) {
+                        final pending = snapshot.data ?? const <ReportDraft>[];
+                        return Column(
+                          children: [
+                            DraftReminderCard(store: widget.drafts, pending: pending),
+                            if (pending.isNotEmpty)
+                              _PendingReports(
+                                drafts: pending,
+                                onRetry: _retryPending,
+                                onDelete: _deletePending,
+                              ),
+                          ],
                         );
                       },
                     ),
+                  ),
 
                     const SizedBox(height: 18),
 

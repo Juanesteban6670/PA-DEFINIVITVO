@@ -354,7 +354,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Inferencia de la Red Neuronal vs. Línea Base Histórica por hora',
+                    'Índice de riesgo estimado (0–100)',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
@@ -372,7 +372,7 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   const SizedBox(width: 14),
                   _LegendIndicator(
                     color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    text: 'Promedio Histórico',
+                    text: 'Referencia calculada',
                     isDark: isDark,
                     isDashed: true,
                   ),

@@ -144,3 +144,11 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!"}' |
             python3 -c 'import json,sys; data = json.load(sys.stdin); assert data["success"] and data["data"]["token"]'
+          curl --fail --silent --show-error "$base/api/System/Version" |
+            python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["latestVersion"]=="1.2.1" and d["storeUrlAndroid"].endswith("/releases/download/app-latest/app-release.apk")'
+          token=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["data"]["token"])' "$RUNNER_TEMP/cartagena-register.json")
+          curl --fail --silent --show-error "$base/api/Ai/Chat" \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            --data '{"message":"¿Cómo puedo enviar un reporte?","sessionId":"render-smoke"}' |
+            python3 -c 'import json,sys; assert json.load(sys.stdin)["reply"].strip()'

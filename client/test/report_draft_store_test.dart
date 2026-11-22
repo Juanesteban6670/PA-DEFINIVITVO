@@ -11,6 +11,25 @@ import 'package:http/testing.dart';
 
 void main() {
   group('ReportDraftStore', () {
+    test('removing a report clears only its own reminder', () async {
+      final store = ReportDraftStore(storage: _MemorySessionStorage(), owner: 'citizen');
+      const draft = ReportDraft(
+        type: 'ROBO', description: 'Reporte', location: 'Centro',
+        priority: 'HIGH', idempotencyKey: 'pending-key',
+      );
+      final due = DateTime.utc(2026, 11, 21, 9);
+      await store.enqueue(draft);
+      await store.scheduleReminder(draft, due);
+      await store.removePending('another-key');
+      expect((await store.readReminder())?.dueAt, due);
+      await store.removePending(draft.idempotencyKey);
+      expect(await store.readReminder(), isNull);
+      await store.saveDraft(draft);
+      await store.scheduleReminder(draft, due);
+      await store.clearDraft();
+      expect(await store.readReminder(), isNull);
+    });
+
     test('keeps drafts and pending reports private to their owner', () async {
       final storage = _MemorySessionStorage();
       final firstUser = ReportDraftStore(storage: storage, owner: 'citizen-a');
