@@ -411,7 +411,7 @@ class IncidentCompactCard extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: incident.imageUrls.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (context, index) => const SizedBox(width: 8),
                     itemBuilder: (_, index) {
                       final url = incident.imageUrls[index];
                       final resolvedUrl = (api != null && !url.startsWith('http'))
@@ -425,7 +425,7 @@ class IncidentCompactCard extends StatelessWidget {
                           child: Image.network(
                             resolvedUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
+                            errorBuilder: (context, error, stackTrace) => const Center(
                               child: Icon(Icons.broken_image_rounded, size: 24),
                             ),
                           ),

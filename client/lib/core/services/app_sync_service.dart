@@ -69,11 +69,14 @@ class AppSyncService {
         notificationsFuture = api.get('Notifications/Unread/Count').catchError((_) => null);
       }
 
-      await Future.wait([
+      final syncFutures = <Future<dynamic>>[
         incidentsFuture,
         zonesFuture,
-        if (notificationsFuture != null) notificationsFuture,
-      ]).timeout(const Duration(seconds: 12));
+      ];
+      if (notificationsFuture != null) {
+        syncFutures.add(notificationsFuture);
+      }
+      await Future.wait(syncFutures).timeout(const Duration(seconds: 12));
 
       // Notificar a todas las vistas escuchando que los datos se han refrescado
       incidentRefresh.value++;
