@@ -165,50 +165,7 @@
       letter-spacing: 0.2px;
     }
 
-    /* Controls at bottom-right */
-    .loader-controls {
-      position: absolute;
-      bottom: 24px;
-      right: 24px;
-      display: flex;
-      gap: 8px;
-      z-index: 10;
-    }
 
-    .btn-loader-ctrl {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #faf6f9;
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 11.5px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s, border-color 0.2s, transform 0.1s;
-      outline: none;
-    }
-
-    .btn-loader-ctrl:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.32);
-    }
-
-    .btn-loader-ctrl:focus-visible {
-      box-shadow: 0 0 0 2px #182b35, 0 0 0 4px #38bdf8;
-    }
-
-    .btn-loader-ctrl:active:not(:disabled) {
-      transform: scale(0.96);
-    }
-
-    .btn-loader-ctrl:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
 
     /* Accessible Reduced Motion Contract */
     @media (prefers-reduced-motion: reduce) {
@@ -225,10 +182,7 @@
         opacity: 1 !important;
         transform: none !important;
       }
-      .btn-loader-ctrl {
-        opacity: 0.35 !important;
-        cursor: not-allowed !important;
-      }
+
     }
   </style>
 </head>
@@ -312,22 +266,7 @@
         </div>
       </div>
 
-      <!-- Controles accesibles: Pausar/Reanudar y Reiniciar -->
-      <nav class="loader-controls" aria-label="Controles de animación del cargador">
-        <button id="cs-loader-pause" class="btn-loader-ctrl" type="button" aria-label="Pausar animación">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <rect id="pause-bar1" x="3" y="2" width="4" height="12" rx="1"></rect>
-            <rect id="pause-bar2" x="9" y="2" width="4" height="12" rx="1"></rect>
-          </svg>
-          <span id="cs-pause-label">Pausar</span>
-        </button>
-        <button id="cs-loader-replay" class="btn-loader-ctrl" type="button" aria-label="Reiniciar animación">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M1 4v5h5M15 12a7 7 0 1 1-2.5-5.3L1 9" />
-          </svg>
-          <span>Reiniciar</span>
-        </button>
-      </nav>
+
     </main>
   </div>
 
@@ -356,9 +295,7 @@
       const outlineGroup = document.getElementById('outline-group');
       const filledGroup = document.getElementById('filled-group');
       const statementEl = document.getElementById('loader-statement');
-      const btnPause = document.getElementById('cs-loader-pause');
-      const btnReplay = document.getElementById('cs-loader-replay');
-      const pauseLabel = document.getElementById('cs-pause-label');
+
 
       if (!loaderRoot || !logoRoot || !outlineGroup || !filledGroup) return;
 
@@ -390,12 +327,8 @@
           filledGroup.style.opacity = '1';
           logoRoot.style.opacity = '1';
           if (statementEl) statementEl.classList.add('visible');
-          if (btnPause) btnPause.disabled = true;
-          if (btnReplay) btnReplay.disabled = true;
         } else {
-          if (btnPause) btnPause.disabled = false;
-          if (btnReplay) btnReplay.disabled = false;
-          resumeLoop();
+          rafId = requestAnimationFrame(tick);
         }
       }
 
@@ -458,55 +391,12 @@
         elapsed = now - startTime;
         renderFrame(elapsed);
 
-        if (!isPaused && !prefersReduced) {
+        if (!prefersReduced) {
           rafId = requestAnimationFrame(tick);
         }
       }
 
-      function pauseLoop() {
-        if (isPaused || prefersReduced) return;
-        isPaused = true;
-        pausedAtTime = performance.now();
-        if (rafId) cancelAnimationFrame(rafId);
-        if (pauseLabel) pauseLabel.textContent = 'Reanudar';
-        if (btnPause) btnPause.setAttribute('aria-label', 'Reanudar animación');
-      }
 
-      function resumeLoop() {
-        if (!isPaused || prefersReduced) return;
-        isPaused = false;
-        const pauseDuration = performance.now() - pausedAtTime;
-        startTime += pauseDuration;
-        if (pauseLabel) pauseLabel.textContent = 'Pausar';
-        if (btnPause) btnPause.setAttribute('aria-label', 'Pausar animación');
-        rafId = requestAnimationFrame(tick);
-      }
-
-      function restartLoop() {
-        if (prefersReduced) return;
-        if (rafId) cancelAnimationFrame(rafId);
-        startTime = performance.now();
-        elapsed = 0;
-        isPaused = false;
-        if (pauseLabel) pauseLabel.textContent = 'Pausar';
-        if (btnPause) btnPause.setAttribute('aria-label', 'Pausar animación');
-        rafId = requestAnimationFrame(tick);
-      }
-
-      if (btnPause) {
-        btnPause.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (isPaused) resumeLoop();
-          else pauseLoop();
-        });
-      }
-
-      if (btnReplay) {
-        btnReplay.addEventListener('click', (e) => {
-          e.stopPropagation();
-          restartLoop();
-        });
-      }
 
       // Pause while hidden or page backgrounded
       document.addEventListener('visibilitychange', () => {
@@ -564,8 +454,7 @@
 
       // Si el usuario hace clic o presiona una tecla para continuar una vez listo Flutter
       loaderRoot.addEventListener('click', (e) => {
-        if (e.target.closest('.loader-controls')) return;
-        if (isFlutterReady) {
+                if (isFlutterReady) {
           dismissLoaderSmoothly();
         }
       });

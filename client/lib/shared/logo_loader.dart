@@ -14,7 +14,6 @@ class LogoLoaderScreen extends StatefulWidget {
 class _LogoLoaderScreenState extends State<LogoLoaderScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  bool _isPaused = false;
 
   static const int cycleDurationMs = 7600;
 
@@ -31,26 +30,6 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void _togglePause() {
-    setState(() {
-      if (_isPaused) {
-        _controller.repeat();
-        _isPaused = false;
-      } else {
-        _controller.stop();
-        _isPaused = true;
-      }
-    });
-  }
-
-  void _replay() {
-    setState(() {
-      _controller.forward(from: 0.0);
-      _controller.repeat();
-      _isPaused = false;
-    });
   }
 
   @override
@@ -144,72 +123,7 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
             ),
           ),
 
-          // Accessible Controls in bottom-right corner
-          Positioned(
-            bottom: 24,
-            right: 24,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ControlButton(
-                  icon: _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                  label: _isPaused ? 'Reanudar' : 'Pausar',
-                  onPressed: isReducedMotion ? null : _togglePause,
-                  tooltip: _isPaused
-                      ? 'Reanudar animación'
-                      : 'Pausar animación',
-                ),
-                const SizedBox(width: 8),
-                _ControlButton(
-                  icon: Icons.replay_rounded,
-                  label: 'Reiniciar',
-                  onPressed: isReducedMotion ? null : _replay,
-                  tooltip: 'Reiniciar animación desde el inicio',
-                ),
-              ],
-            ),
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _ControlButton extends StatelessWidget {
-  const _ControlButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-    required this.tooltip,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-  final String tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFFAF6F9),
-          backgroundColor: Colors.white.withValues(alpha: 0.08),
-          side: BorderSide(
-            color: Colors.white.withValues(alpha: 0.16),
-          ),
-          shape: const StadiumBorder(),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          textStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
-          ),
-        ),
-        icon: Icon(icon, size: 14),
-        label: Text(label),
       ),
     );
   }
