@@ -35,8 +35,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
     super.initState();
     _messages.add(
       const _ChatMessage(
-        text:
-            '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nPuedo orientarte en tiempo real sobre cómo realizar reportes ciudadanos, consultar zonas de atención, estadísticas distritales y protocolos de emergencia en Cartagena de Indias.\n\n*Si estás en una situación de peligro inminente o requieres auxilio urgente, comunícate de inmediato a la Línea 123.*',
+        text: '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nPuedo orientarte en tiempo real sobre cómo realizar reportes ciudadanos, consultar zonas de atención, estadísticas distritales y protocolos de emergencia en Cartagena de Indias.\n\n*Si estás en una situación de peligro inminente o requieres auxilio urgente, comunícate de inmediato a la Línea 123.*',
       ),
     );
     _restoreHistory();
@@ -64,14 +63,15 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
       final history = _messages
           .where((m) => !m.error && m.text.isNotEmpty)
           .toList();
-      final recentHistory = (history.length > 10
-              ? history.sublist(history.length - 10)
-              : history)
-          .map((m) => {
-                'role': m.fromUser ? 'user' : 'assistant',
-                'content': m.text,
-              })
-          .toList();
+      final recentHistory =
+          (history.length > 10 ? history.sublist(history.length - 10) : history)
+              .map(
+                (m) => {
+                  'role': m.fromUser ? 'user' : 'assistant',
+                  'content': m.text,
+                },
+              )
+              .toList();
 
       final response = await widget.session.api.post('Ai/Chat', {
         'message': text,
@@ -91,20 +91,19 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
       if (response['actions'] is List) {
         actions = (response['actions'] as List)
             .whereType<Map<String, dynamic>>()
-            .map((item) => {
-                  'type': item['type']?.toString() ?? '',
-                  'label': item['label']?.toString() ?? '',
-                  'payload': item['payload']?.toString() ?? '',
-                })
+            .map(
+              (item) => {
+                'type': item['type']?.toString() ?? '',
+                'label': item['label']?.toString() ?? '',
+                'payload': item['payload']?.toString() ?? '',
+              },
+            )
             .where((item) => item['label']!.isNotEmpty)
             .toList();
       }
 
       _messages.add(
-        _ChatMessage(
-          text: response['reply'] as String,
-          actions: actions,
-        ),
+        _ChatMessage(text: response['reply'] as String, actions: actions),
       );
       await _saveHistory();
     } on ApiException catch (error) {
@@ -144,8 +143,7 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         ..clear()
         ..add(
           const _ChatMessage(
-            text:
-                '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nConversación reiniciada. ¿En qué puedo orientarte hoy sobre seguridad, convivencia o trámites de la app?',
+            text: '¡Hola! Soy tu **Asistente Cartagena Segura** 🛡️.\n\nConversación reiniciada. ¿En qué puedo orientarte hoy sobre seguridad, convivencia o trámites de la app?',
           ),
         );
     });
@@ -174,29 +172,29 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
         }
         final restored = savedMessages
             .whereType<Map<String, dynamic>>()
-            .map(
-              (item) {
-                List<Map<String, String>>? actions;
-                if (item['actions'] is List) {
-                  actions = (item['actions'] as List)
-                      .whereType<Map<String, dynamic>>()
-                      .map((act) => {
-                            'type': act['type']?.toString() ?? '',
-                            'label': act['label']?.toString() ?? '',
-                            'payload': act['payload']?.toString() ?? '',
-                          })
-                      .where((act) => act['label']!.isNotEmpty)
-                      .toList();
-                }
-                return _ChatMessage(
-                  text: item['text']?.toString() ?? '',
-                  fromUser: item['fromUser'] == true,
-                  error: item['error'] == true,
-                  retry: item['retry']?.toString(),
-                  actions: actions,
-                );
-              },
-            )
+            .map((item) {
+              List<Map<String, String>>? actions;
+              if (item['actions'] is List) {
+                actions = (item['actions'] as List)
+                    .whereType<Map<String, dynamic>>()
+                    .map(
+                      (act) => {
+                        'type': act['type']?.toString() ?? '',
+                        'label': act['label']?.toString() ?? '',
+                        'payload': act['payload']?.toString() ?? '',
+                      },
+                    )
+                    .where((act) => act['label']!.isNotEmpty)
+                    .toList();
+              }
+              return _ChatMessage(
+                text: item['text']?.toString() ?? '',
+                fromUser: item['fromUser'] == true,
+                error: item['error'] == true,
+                retry: item['retry']?.toString(),
+                actions: actions,
+              );
+            })
             .where((message) => message.text.isNotEmpty)
             .toList();
         if (mounted && restored.isNotEmpty) {
@@ -321,17 +319,28 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                 // Banner de Emergencia Inmediata
                 Container(
                   margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF3B1212) : const Color(0xFFFEF2F2),
+                    color: isDark
+                        ? const Color(0xFF3B1212)
+                        : const Color(0xFFFEF2F2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                      color: isDark
+                          ? const Color(0xFF7F1D1D)
+                          : const Color(0xFFFECACA),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.emergency_rounded, color: AppColors.red, size: 16),
+                      const Icon(
+                        Icons.emergency_rounded,
+                        color: AppColors.red,
+                        size: 16,
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
@@ -341,7 +350,9 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
+                            color: isDark
+                                ? const Color(0xFFFCA5A5)
+                                : const Color(0xFF991B1B),
                           ),
                         ),
                       ),
@@ -354,7 +365,10 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                           } catch (_) {}
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.red,
                             borderRadius: BorderRadius.circular(6),
@@ -362,9 +376,20 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.phone_in_talk, size: 11, color: Colors.white),
+                              Icon(
+                                Icons.phone_in_talk,
+                                size: 11,
+                                color: Colors.white,
+                              ),
                               SizedBox(width: 3),
-                              Text('123', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                              Text(
+                                '123',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -377,7 +402,8 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                    itemCount: _messages.length + (_sending || _restoring ? 1 : 0),
+                    itemCount:
+                        _messages.length + (_sending || _restoring ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == _messages.length && _restoring) {
                         return const Center(child: CircularProgressIndicator());
@@ -403,13 +429,34 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     children: [
-                      _buildChip('📝 ¿Cómo reportar?', '¿Cómo realizo un reporte ciudadano en Cartagena Segura?'),
-                      _buildChip('⚠️ Zonas de riesgo', '¿Cuáles son las zonas de riesgo en Cartagena?'),
-                      _buildChip('🚨 Líneas de emergencia', '¿Cuáles son las líneas de emergencia oficiales?'),
-                      _buildChip('🛡️ Consejos preventivos', 'Dame recomendaciones preventivas de seguridad en Cartagena'),
-                      _buildChip('📊 Estadísticas distritales', '¿Cómo consulto las estadísticas y gráficos?'),
-                      _buildChip('📍 Alertas GPS', '¿Cómo funcionan las alertas geográficas inteligentes?'),
-                      _buildChip('🔎 Explorador de reportes', '¿Cómo uso el explorador de reportes?'),
+                      _buildChip(
+                        '📝 ¿Cómo reportar?',
+                        '¿Cómo realizo un reporte ciudadano en Cartagena Segura?',
+                      ),
+                      _buildChip(
+                        '⚠️ Zonas de riesgo',
+                        '¿Cuáles son las zonas de riesgo en Cartagena?',
+                      ),
+                      _buildChip(
+                        '🚨 Líneas de emergencia',
+                        '¿Cuáles son las líneas de emergencia oficiales?',
+                      ),
+                      _buildChip(
+                        '🛡️ Consejos preventivos',
+                        'Dame recomendaciones preventivas de seguridad en Cartagena',
+                      ),
+                      _buildChip(
+                        '📊 Estadísticas distritales',
+                        '¿Cómo consulto las estadísticas y gráficos?',
+                      ),
+                      _buildChip(
+                        '📍 Alertas GPS',
+                        '¿Cómo funcionan las alertas geográficas inteligentes?',
+                      ),
+                      _buildChip(
+                        '🔎 Explorador de reportes',
+                        '¿Cómo uso el explorador de reportes?',
+                      ),
                     ],
                   ),
                 ),
@@ -418,7 +465,10 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                   child: LiquidGlassContainer(
                     borderRadius: BorderRadius.circular(24),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     elevation: 2,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -434,12 +484,16 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                               hintText: 'Escribe tu pregunta…',
                               hintStyle: TextStyle(
                                 fontSize: 13,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : AppColors.muted,
                               ),
                               prefixIcon: Icon(
                                 Icons.chat_bubble_outline_rounded,
                                 size: 19,
-                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                                color: isDark
+                                    ? AppColors.brightBlue
+                                    : AppColors.blue,
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
@@ -452,11 +506,14 @@ class _CitizenChatScreenState extends State<CitizenChatScreen> {
                         IconButton.filled(
                           tooltip: 'Enviar mensaje',
                           style: IconButton.styleFrom(
-                            backgroundColor: isDark ? AppColors.brightBlue : AppColors.navy,
+                            backgroundColor: isDark
+                                ? AppColors.brightBlue
+                                : AppColors.navy,
                             foregroundColor: Colors.white,
                           ),
-                          onPressed:
-                              _sending || _restoring ? null : () => _send(),
+                          onPressed: _sending || _restoring
+                              ? null
+                              : () => _send(),
                           icon: _sending
                               ? const SizedBox(
                                   width: 18,
@@ -582,37 +639,43 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alignment =
-        message.fromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = message.fromUser
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = message.error
         ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
         : message.fromUser
-            ? AppColors.brightBlue
-            : (isDark ? AppColors.darkCard : Colors.white);
+        ? AppColors.brightBlue
+        : (isDark ? AppColors.darkCard : Colors.white);
     final textColor = message.error
         ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B))
         : message.fromUser
-            ? Colors.white
-            : (isDark ? AppColors.darkText : AppColors.navy);
+        ? Colors.white
+        : (isDark ? AppColors.darkText : AppColors.navy);
 
-    final show123Chip = !message.fromUser &&
+    final show123Chip =
+        !message.fromUser &&
         !message.error &&
         (message.text.contains('123') || message.text.contains('Policía'));
-    final show119Chip = !message.fromUser &&
+    final show119Chip =
+        !message.fromUser &&
         !message.error &&
         (message.text.contains('119') || message.text.contains('Bomberos'));
-    final show125Chip = !message.fromUser &&
+    final show125Chip =
+        !message.fromUser &&
         !message.error &&
         (message.text.contains('125') ||
             message.text.contains('CRUE') ||
             message.text.contains('Ambulancia'));
-    final show127Chip = !message.fromUser &&
+    final show127Chip =
+        !message.fromUser &&
         !message.error &&
         (message.text.contains('127') ||
             message.text.contains('DATT') ||
             message.text.contains('Tránsito'));
-    final show155Chip = !message.fromUser &&
+    final show155Chip =
+        !message.fromUser &&
         !message.error &&
         (message.text.contains('155') || message.text.contains('Púrpura'));
 
@@ -633,7 +696,10 @@ class _MessageBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(4),
                       bottomRight: Radius.circular(18),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     child: _RichMarkdownView(
                       text: message.text,
                       baseColor: textColor,
@@ -641,7 +707,10 @@ class _MessageBubble extends StatelessWidget {
                     ),
                   )
                 : Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.only(
@@ -653,13 +722,15 @@ class _MessageBubble extends StatelessWidget {
                       border: Border.all(
                         color: message.error
                             ? (isDark
-                                ? const Color(0xFF7F1D1D)
-                                : const Color(0xFFFECACA))
+                                  ? const Color(0xFF7F1D1D)
+                                  : const Color(0xFFFECACA))
                             : AppColors.brightBlue,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.2 : 0.04,
+                          ),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -1002,7 +1073,8 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: (isDark ? AppColors.brightBlue : AppColors.navy).withValues(alpha: 0.15),
+                  color: (isDark ? AppColors.brightBlue : AppColors.navy)
+                      .withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1028,8 +1100,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                     children: List.generate(3, (i) {
                       final delay = i * 0.25;
                       final progress = (_anim.value - delay) % 1.0;
-                      final bounce =
-                          progress < 0.5 ? (progress * 2) : (2 - progress * 2);
+                      final bounce = progress < 0.5
+                          ? (progress * 2)
+                          : (2 - progress * 2);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: Transform.translate(

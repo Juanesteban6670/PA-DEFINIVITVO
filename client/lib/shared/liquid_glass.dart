@@ -22,7 +22,7 @@ enum LiquidGlassMode {
 /// Permite alternar la intensidad del vidrio líquido en tiempo real y persiste la preferencia.
 class LiquidGlassController extends ChangeNotifier {
   LiquidGlassController({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage() {
+    : _storage = storage ?? const FlutterSecureStorage() {
     _loadPreference();
   }
 
@@ -77,15 +77,16 @@ class LiquidGlassController extends ChangeNotifier {
   }
 
   String get label => switch (_mode) {
-        LiquidGlassMode.off => 'Desactivado',
-        LiquidGlassMode.subtle => 'Sutil (Equilibrado)',
-        LiquidGlassMode.full => 'Liquid Glass (iOS 27)',
-      };
+    LiquidGlassMode.off => 'Desactivado',
+    LiquidGlassMode.subtle => 'Sutil (Equilibrado)',
+    LiquidGlassMode.full => 'Liquid Glass (iOS 27)',
+  };
 }
 
 /// Provider de Riverpod para interactuar reactivamente con el controlador Liquid Glass
-final liquidGlassProvider =
-    ChangeNotifierProvider<LiquidGlassController>((ref) {
+final liquidGlassProvider = ChangeNotifierProvider<LiquidGlassController>((
+  ref,
+) {
   return LiquidGlassController.instance;
 });
 
@@ -110,7 +111,9 @@ abstract final class LiquidGlassTokens {
     if (mode == LiquidGlassMode.off) {
       return [
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.05 * elevation),
+          color: Colors.black.withValues(
+            alpha: isDark ? 0.35 : 0.05 * elevation,
+          ),
           blurRadius: 10 * elevation,
           offset: Offset(0, 3 * elevation),
         ),
@@ -130,8 +133,9 @@ abstract final class LiquidGlassTokens {
       ),
       // Resplandor de refracción líquida (Cáustica tenue azulada)
       BoxShadow(
-        color: (isDark ? AppColors.brightBlue : AppColors.sky)
-            .withValues(alpha: causticAlpha),
+        color: (isDark ? AppColors.brightBlue : AppColors.sky).withValues(
+          alpha: causticAlpha,
+        ),
         blurRadius: mode == LiquidGlassMode.full ? 32 : 16,
         offset: const Offset(0, 2),
       ),
@@ -150,7 +154,8 @@ abstract final class LiquidGlassTokens {
       return BoxDecoration(
         color: tintColor ?? (isDark ? AppColors.darkCard : Colors.white),
         borderRadius: borderRadius,
-        border: customBorder ??
+        border:
+            customBorder ??
             Border.all(
               color: isDark ? AppColors.darkBorder : AppColors.border,
               width: 0.8,
@@ -163,19 +168,22 @@ abstract final class LiquidGlassTokens {
     // Colores según modo claro (Liquid Ice) u oscuro (Obsidian Glass)
     final gradientColors = isDark
         ? [
-            (tintColor ?? const Color(0xFF1E1E22))
-                .withValues(alpha: isFull ? 0.72 : 0.86),
-            (tintColor ?? const Color(0xFF121214))
-                .withValues(alpha: isFull ? 0.58 : 0.80),
+            (tintColor ?? const Color(0xFF1E1E22)).withValues(
+              alpha: isFull ? 0.72 : 0.86,
+            ),
+            (tintColor ?? const Color(0xFF121214)).withValues(
+              alpha: isFull ? 0.58 : 0.80,
+            ),
           ]
         : [
-            (tintColor ?? Colors.white)
-                .withValues(alpha: isFull ? 0.76 : 0.90),
-            (tintColor ?? const Color(0xFFF0F4FA))
-                .withValues(alpha: isFull ? 0.52 : 0.80),
+            (tintColor ?? Colors.white).withValues(alpha: isFull ? 0.76 : 0.90),
+            (tintColor ?? const Color(0xFFF0F4FA)).withValues(
+              alpha: isFull ? 0.52 : 0.80,
+            ),
           ];
 
-    final border = customBorder ??
+    final border =
+        customBorder ??
         Border.all(
           color: Colors.white.withValues(
             alpha: isDark ? (isFull ? 0.20 : 0.14) : (isFull ? 0.75 : 0.60),
@@ -200,7 +208,9 @@ abstract final class LiquidGlassTokens {
 class LiquidGlassContainer extends StatelessWidget {
   const LiquidGlassContainer({
     required this.child,
-    this.borderRadius = const BorderRadius.all(Radius.circular(LiquidGlassTokens.radiusMedium)),
+    this.borderRadius = const BorderRadius.all(
+      Radius.circular(LiquidGlassTokens.radiusMedium),
+    ),
     this.padding,
     this.margin,
     this.width,
@@ -251,7 +261,8 @@ class LiquidGlassContainer extends StatelessWidget {
           return RepaintBoundary(child: solidBox);
         }
 
-        final double sigma = customBlur ??
+        final double sigma =
+            customBlur ??
             (mode == LiquidGlassMode.full
                 ? LiquidGlassTokens.blurSigmaFull
                 : LiquidGlassTokens.blurSigmaSubtle);
@@ -301,7 +312,9 @@ class LiquidGlassCard extends StatefulWidget {
   const LiquidGlassCard({
     required this.child,
     this.onTap,
-    this.borderRadius = const BorderRadius.all(Radius.circular(LiquidGlassTokens.radiusMedium)),
+    this.borderRadius = const BorderRadius.all(
+      Radius.circular(LiquidGlassTokens.radiusMedium),
+    ),
     this.padding = const EdgeInsets.all(16),
     this.margin,
     this.width,
@@ -346,8 +359,8 @@ class _LiquidGlassCardState extends State<LiquidGlassCard> {
           elevation: _hovered ? widget.elevation * 1.6 : widget.elevation,
           tintColor: _hovered
               ? (isDark
-                  ? AppColors.brightBlue.withValues(alpha: 0.12)
-                  : Colors.white)
+                    ? AppColors.brightBlue.withValues(alpha: 0.12)
+                    : Colors.white)
               : widget.tintColor,
           border: widget.border,
           child: widget.child,
@@ -358,10 +371,7 @@ class _LiquidGlassCardState extends State<LiquidGlassCard> {
             cursor: SystemMouseCursors.click,
             onEnter: (_) => setState(() => _hovered = true),
             onExit: (_) => setState(() => _hovered = false),
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: content,
-            ),
+            child: GestureDetector(onTap: widget.onTap, child: content),
           );
         }
 
@@ -393,20 +403,20 @@ class LiquidGlassToggleButton extends StatelessWidget {
 
         final (icon, color, tooltip) = switch (mode) {
           LiquidGlassMode.full => (
-              Icons.blur_on_rounded,
-              isDark ? AppColors.sky : AppColors.blue,
-              'Liquid Glass: iOS 27 (Máximo)'
-            ),
+            Icons.blur_on_rounded,
+            isDark ? AppColors.sky : AppColors.blue,
+            'Liquid Glass: iOS 27 (Máximo)',
+          ),
           LiquidGlassMode.subtle => (
-              Icons.blur_linear_rounded,
-              isDark ? AppColors.darkText : AppColors.navy,
-              'Liquid Glass: Sutil'
-            ),
+            Icons.blur_linear_rounded,
+            isDark ? AppColors.darkText : AppColors.navy,
+            'Liquid Glass: Sutil',
+          ),
           LiquidGlassMode.off => (
-              Icons.blur_off_rounded,
-              AppColors.muted,
-              'Liquid Glass: Desactivado'
-            ),
+            Icons.blur_off_rounded,
+            AppColors.muted,
+            'Liquid Glass: Desactivado',
+          ),
         };
 
         Widget button = IconButton(

@@ -85,7 +85,10 @@ class LandingScreen extends StatelessWidget {
                         children: [
                           ThemeToggleButton(),
                           SizedBox(width: 10),
-                          Text('Tema Claro/Oscuro', style: TextStyle(fontSize: 13)),
+                          Text(
+                            'Tema Claro/Oscuro',
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -94,7 +97,10 @@ class LandingScreen extends StatelessWidget {
                         children: [
                           LiquidGlassToggleButton(),
                           SizedBox(width: 10),
-                          Text('Efecto Cristal', style: TextStyle(fontSize: 13)),
+                          Text(
+                            'Efecto Cristal',
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -103,7 +109,10 @@ class LandingScreen extends StatelessWidget {
                         children: [
                           LanguageToggleButton(),
                           SizedBox(width: 10),
-                          Text('Idioma / Language', style: TextStyle(fontSize: 13)),
+                          Text(
+                            'Idioma / Language',
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -167,117 +176,114 @@ class LandingScreen extends StatelessWidget {
   }
 
   Widget _hero(BuildContext context, bool wide) => Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-          horizontal: wide ? 48 : 24,
-          vertical: wide ? 96 : 56,
-        ),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.navy, AppColors.navyBlue, AppColors.blue],
-          ),
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1120),
-            child: Wrap(
-              spacing: 48,
-              runSpacing: 32,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: wide ? 520 : 700,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    width: double.infinity,
+    padding: EdgeInsets.symmetric(
+      horizontal: wide ? 48 : 24,
+      vertical: wide ? 96 : 56,
+    ),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.navy, AppColors.navyBlue, AppColors.blue],
+      ),
+    ),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1120),
+        child: Wrap(
+          spacing: 48,
+          runSpacing: 32,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: wide ? 520 : 700,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Chip(
+                    avatar: Icon(Icons.shield_outlined, size: 18),
+                    label: Text('Seguridad ciudadana'),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Una ciudad más segura empieza contigo',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      height: 1.08,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Reporta incidentes, consulta información y encuentra ayuda de emergencia en Cartagena.',
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(color: Colors.white70, height: 1.55),
+                  ),
+                  const SizedBox(height: 26),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
-                      const Chip(
-                        avatar: Icon(Icons.shield_outlined, size: 18),
-                        label: Text('Seguridad ciudadana'),
+                      FilledButton.icon(
+                        onPressed: () => context.go('/Register'),
+                        icon: const Icon(Icons.person_add_alt_1),
+                        label: const Text('Crear cuenta'),
                       ),
-                      const SizedBox(height: 18),
-                      Text(
-                        'Una ciudad más segura empieza contigo',
-                        style:
-                            Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.08,
-                                ),
+                      OutlinedButton.icon(
+                        onPressed: () => context.go('/Login'),
+                        icon: const Icon(Icons.login),
+                        label: const Text('Iniciar sesión'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                        ),
                       ),
-                      const SizedBox(height: 18),
-                      Text(
-                        'Reporta incidentes, consulta información y encuentra ayuda de emergencia en Cartagena.',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(color: Colors.white70, height: 1.55),
+                      OutlinedButton.icon(
+                        onPressed: () => context.push('/Chat'),
+                        icon: const Icon(Icons.smart_toy_rounded),
+                        label: const Text('Asistente IA'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Color(0xFF8B5CF6)),
+                          backgroundColor: const Color(0xFF8B5CF6)
+                              .withValues(alpha: 0.25),
+                        ),
                       ),
-                      const SizedBox(height: 26),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          FilledButton.icon(
-                            onPressed: () => context.go('/Register'),
-                            icon: const Icon(Icons.person_add_alt_1),
-                            label: const Text('Crear cuenta'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => context.go('/Login'),
-                            icon: const Icon(Icons.login),
-                            label: const Text('Iniciar sesión'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white54),
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => context.push('/Chat'),
-                            icon: const Icon(Icons.smart_toy_rounded),
-                            label: const Text('Asistente IA'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Color(0xFF8B5CF6)),
-                              backgroundColor:
-                                  const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 36),
-                      const _AnimatedHeroStats(),
                     ],
                   ),
-                ),
-                SizedBox(
-                  width: wide ? 460 : 700,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: Image.asset(
-                      'assets/brand/login-background.png',
-                      height: wide ? 320 : 220,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 250,
-                        color: Colors.white12,
-                        child: const Center(
-                          child: Icon(
-                            Icons.location_city,
-                            color: Colors.white,
-                            size: 96,
-                          ),
-                        ),
+                  const SizedBox(height: 36),
+                  const _AnimatedHeroStats(),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: wide ? 460 : 700,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: Image.asset(
+                  'assets/brand/login-background.png',
+                  height: wide ? 320 : 220,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 250,
+                    color: Colors.white12,
+                    child: const Center(
+                      child: Icon(
+                        Icons.location_city,
+                        color: Colors.white,
+                        size: 96,
                       ),
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _features(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -285,8 +291,7 @@ class LandingScreen extends StatelessWidget {
       context,
       sectionKey: _featuresKey,
       title: 'Herramientas para cuidarnos entre todos',
-      subtitle:
-          'Información clara, inteligencia artificial y canales de atención para actuar a tiempo.',
+      subtitle: 'Información clara, inteligencia artificial y canales de atención para actuar a tiempo.',
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 840;
@@ -303,8 +308,7 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.brightBlue,
                         badge: 'Tiempo Real',
                         title: 'Mapa Geoespacial Interactivo',
-                        description:
-                            'Visualiza incidentes reportados, cuadrantes policiales, sectores de riesgo distritales y cálculo de rutas seguras tipo Waze.',
+                        description: 'Visualiza incidentes reportados, cuadrantes policiales, sectores de riesgo distritales y cálculo de rutas seguras tipo Waze.',
                         isDark: isDark,
                       ),
                     ),
@@ -316,8 +320,7 @@ class LandingScreen extends StatelessWidget {
                         accentColor: const Color(0xFF8B5CF6),
                         badge: 'IA Contextual',
                         title: 'Asistente Ciudadano IA',
-                        description:
-                            'Orientación inmediata 24/7 sobre números de emergencia, rutas preventivas y protocolos distritales.',
+                        description: 'Orientación inmediata 24/7 sobre números de emergencia, rutas preventivas y protocolos distritales.',
                         isDark: isDark,
                       ),
                     ),
@@ -334,8 +337,7 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.red,
                         badge: 'Respuesta Rápida',
                         title: 'SOS 123 y Directorio',
-                        description:
-                            'Llamada rápida y copia instantánea de coordenadas GPS exactas para compartir con autoridades o familiares.',
+                        description: 'Llamada rápida y copia instantánea de coordenadas GPS exactas para compartir con autoridades o familiares.',
                         isDark: isDark,
                       ),
                     ),
@@ -347,8 +349,7 @@ class LandingScreen extends StatelessWidget {
                         accentColor: AppColors.amber,
                         badge: 'Participación Activa',
                         title: 'Reporte y Alertas Ciudadanas',
-                        description:
-                            'Crea reportes geolocalizados con evidencia fotográfica. La comunidad y las autoridades reciben alertas prioritarias.',
+                        description: 'Crea reportes geolocalizados con evidencia fotográfica. La comunidad y las autoridades reciben alertas prioritarias.',
                         isDark: isDark,
                       ),
                     ),
@@ -360,8 +361,7 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.brightBlue,
                   badge: 'Tiempo Real',
                   title: 'Mapa Geoespacial Interactivo',
-                  description:
-                      'Visualiza incidentes reportados, cuadrantes policiales y rutas seguras tipo Waze.',
+                  description: 'Visualiza incidentes reportados, cuadrantes policiales y rutas seguras tipo Waze.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 14),
@@ -370,8 +370,7 @@ class LandingScreen extends StatelessWidget {
                   accentColor: const Color(0xFF8B5CF6),
                   badge: 'IA Contextual',
                   title: 'Asistente Ciudadano IA',
-                  description:
-                      'Orientación inmediata 24/7 sobre cuadrantes y protocolos distritales.',
+                  description: 'Orientación inmediata 24/7 sobre cuadrantes y protocolos distritales.',
                   isDark: isDark,
                   onTap: () => context.push('/Chat'),
                 ),
@@ -381,8 +380,7 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.red,
                   badge: 'Respuesta Rápida',
                   title: 'SOS 123 y Directorio',
-                  description:
-                      'Llamada rápida y copia instantánea de coordenadas GPS exactas.',
+                  description: 'Llamada rápida y copia instantánea de coordenadas GPS exactas.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 14),
@@ -391,8 +389,7 @@ class LandingScreen extends StatelessWidget {
                   accentColor: AppColors.amber,
                   badge: 'Participación Activa',
                   title: 'Reporte y Alertas Ciudadanas',
-                  description:
-                      'Crea reportes geolocalizados con evidencia fotográfica y seguimiento oficial.',
+                  description: 'Crea reportes geolocalizados con evidencia fotográfica y seguimiento oficial.',
                   isDark: isDark,
                 ),
               ],
@@ -412,8 +409,7 @@ class LandingScreen extends StatelessWidget {
         context,
         sectionKey: _chartsKey,
         title: 'Métricas de Impacto y Seguridad Distrital',
-        subtitle:
-            'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
+        subtitle: 'Monitoreo interactivo en tiempo real de cuadrantes, respuesta a emergencias y resolución ciudadana.',
         child: const _DynamicAnalyticsDashboard(),
       ),
     );
@@ -425,8 +421,7 @@ class LandingScreen extends StatelessWidget {
       context,
       sectionKey: _missionKey,
       title: 'Una comunidad conectada',
-      subtitle:
-          'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
+      subtitle: 'Cartagena Segura facilita la comunicación entre la ciudadanía y las autoridades, con herramientas accesibles desde el teléfono o el computador.',
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 768;
@@ -435,22 +430,19 @@ class LandingScreen extends StatelessWidget {
               icon: Icons.visibility_rounded,
               color: AppColors.brightBlue,
               title: 'Transparencia Distrital',
-              desc:
-                  'Métricas públicas y mapa en vivo de incidentes para que cada cartagenero conozca el estado real de seguridad de su barrio.',
+              desc: 'Métricas públicas y mapa en vivo de incidentes para que cada cartagenero conozca el estado real de seguridad de su barrio.',
             ),
             (
               icon: Icons.shield_rounded,
               color: AppColors.green,
               title: 'Respuesta Coordinada',
-              desc:
-                  'Enlace directo con cuadrantes de la Policía, Bomberos y centros de salud con trazabilidad en tiempo real.',
+              desc: 'Enlace directo con cuadrantes de la Policía, Bomberos y centros de salud con trazabilidad en tiempo real.',
             ),
             (
               icon: Icons.groups_rounded,
               color: AppColors.amber,
               title: 'Participación Ciudadana',
-              desc:
-                  'Reportes comunitarios georreferenciados con evidencia y validación colectiva para transformar el entorno urbano.',
+              desc: 'Reportes comunitarios georreferenciados con evidencia y validación colectiva para transformar el entorno urbano.',
             ),
           ];
 
@@ -567,22 +559,19 @@ class LandingScreen extends StatelessWidget {
               (
                 num: '1',
                 title: 'Crea tu cuenta',
-                desc:
-                    'Regístrate en segundos como ciudadano con tus datos de contacto básicos y accede al portal.',
+                desc: 'Regístrate en segundos como ciudadano con tus datos de contacto básicos y accede al portal.',
                 icon: Icons.person_add_alt_1_rounded,
               ),
               (
                 num: '2',
                 title: 'Reporta o consulta',
-                desc:
-                    'Reporta anomalías con ubicación exacta y fotografía, o navega el mapa en vivo de alertas.',
+                desc: 'Reporta anomalías con ubicación exacta y fotografía, o navega el mapa en vivo de alertas.',
                 icon: Icons.add_location_alt_rounded,
               ),
               (
                 num: '3',
                 title: 'Sigue el avance',
-                desc:
-                    'Monitorea la respuesta de las autoridades y cuadrantes distritales hasta la solución del caso.',
+                desc: 'Monitorea la respuesta de las autoridades y cuadrantes distritales hasta la solución del caso.',
                 icon: Icons.track_changes_rounded,
               ),
             ];
@@ -727,108 +716,111 @@ class LandingScreen extends StatelessWidget {
       subtitle: 'Todo lo que necesitas saber para utilizar la plataforma.',
       child: Column(
         children: [
-            for (final faq in faqs)
-              Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.border,
-                  ),
-                ),
-                child: ExpansionTile(
-                  shape: const RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.transparent),
-                  ),
-                  collapsedShape: const RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.transparent),
-                  ),
-                  iconColor: isDark ? AppColors.brightBlue : AppColors.blue,
-                  collapsedIconColor:
-                      isDark ? AppColors.darkTextMuted : AppColors.muted,
-                  title: Text(
-                    faq.q,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: isDark ? AppColors.darkText : AppColors.navy,
-                    ),
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: Text(
-                        faq.a,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          color: isDark
-                              ? AppColors.darkTextMuted
-                              : AppColors.muted,
-                        ),
-                      ),
-                    ),
-                  ],
+          for (final faq in faqs)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
                 ),
               ),
-          ],
-        ),
-      );
+              child: ExpansionTile(
+                shape: const RoundedRectangleBorder(
+                  side: BorderSide(color: Colors.transparent),
+                ),
+                collapsedShape: const RoundedRectangleBorder(
+                  side: BorderSide(color: Colors.transparent),
+                ),
+                iconColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                collapsedIconColor: isDark
+                    ? AppColors.darkTextMuted
+                    : AppColors.muted,
+                title: Text(
+                  faq.q,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: isDark ? AppColors.darkText : AppColors.navy,
+                  ),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Text(
+                      faq.a,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _footer(BuildContext context) => Container(
-        width: double.infinity,
-        color: AppColors.navy,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1120),
-            child: Column(
+    width: double.infinity,
+    color: AppColors.navy,
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1120),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Image.asset('assets/brand/app-icon.png'),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Cartagena Segura',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 32,
+                  height: 32,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Image.asset('assets/brand/app-icon.png'),
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Plataforma Distrital de Seguridad Ciudadana, Convivencia y Prevención Comunitaria.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                const Divider(color: Colors.white12),
-                const SizedBox(height: 12),
-                const Text(
-                  '© 2026 Cartagena de Indias, Bolívar · Todos los derechos reservados',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                const SizedBox(width: 10),
+                const Flexible(
+                  child: Text(
+                    'Cartagena Segura',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            const Text(
+              'Plataforma Distrital de Seguridad Ciudadana, Convivencia y Prevención Comunitaria.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white12),
+            const SizedBox(height: 12),
+            const Text(
+              '© 2026 Cartagena de Indias, Bolívar · Todos los derechos reservados',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white38, fontSize: 11),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _section(
     BuildContext context, {
@@ -836,26 +828,25 @@ class LandingScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required Widget child,
-  }) =>
-      Padding(
-        key: sectionKey,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 8),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
-                const SizedBox(height: 20),
-                child,
-              ],
-            ),
-          ),
+  }) => Padding(
+    key: sectionKey,
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 20),
+            child,
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   void _scrollTo(GlobalKey key) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1027,25 +1018,34 @@ class _BentoCard extends StatelessWidget {
                 ),
                 child: Icon(icon, color: accentColor, size: 22),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: isDark ? 0.18 : 0.08),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: accentColor.withValues(alpha: isDark ? 0.3 : 0.15),
-                  ),
-                ),
-                child: Text(
-                  badge,
-                  style: TextStyle(
-                    color: accentColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(
+                        alpha: isDark ? 0.18 : 0.08,
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: accentColor.withValues(
+                          alpha: isDark ? 0.3 : 0.15,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      badge,
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1074,12 +1074,14 @@ class _BentoCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text(
-                  'Consultar con Asistente IA',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: accentColor,
+                Flexible(
+                  child: Text(
+                    'Consultar con Asistente IA',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -1125,8 +1127,7 @@ class _DynamicAnalyticsDashboardState
   List<Map<String, dynamic>> _incidents = [];
   List<Map<String, dynamic>> _zones = [];
 
-  int _selectedView =
-      0; // 0: Gráficas Analíticas, 1: Boletín de Incidentes, 2: Matriz de Cuadrantes, 3: Eficiencia Operativa
+  int _selectedView = 0; // 0: Gráficas Analíticas, 1: Boletín de Incidentes, 2: Matriz de Cuadrantes, 3: Eficiencia Operativa
   int _selectedPeriod = 0; // 0: 7 Días, 1: 30 Días, 2: Histórico 2026
   int _selectedChart = 0; // 0: Tendencia, 1: Sectores, 2: Tipología
   int _touchedPieIndex = -1;
@@ -1205,11 +1206,13 @@ class _DynamicAnalyticsDashboardState
         .where((i) => i['priority'] == 'CRITICAL' || i['priority'] == 'HIGH')
         .length;
 
-    final double resolutionRate =
-        totalCount > 0 ? (resolvedCount * 100.0 / totalCount) : 97.4;
+    final double resolutionRate = totalCount > 0
+        ? (resolvedCount * 100.0 / totalCount)
+        : 97.4;
 
-    final activeZonesDisplay =
-        _zones.isNotEmpty ? '${_zones.length} / ${_zones.length}' : '14 / 14';
+    final activeZonesDisplay = _zones.isNotEmpty
+        ? '${_zones.length} / ${_zones.length}'
+        : '14 / 14';
 
     final totalDisplay = totalCount > 0 ? '$totalCount' : '+1,280';
     final resolvedDisplay = '${resolutionRate.toStringAsFixed(1)}%';
@@ -1218,7 +1221,10 @@ class _DynamicAnalyticsDashboardState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Live status header
-        Row(
+        Wrap(
+          spacing: 10,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1232,21 +1238,25 @@ class _DynamicAnalyticsDashboardState
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.fiber_manual_record,
-                      color: AppColors.green, size: 10),
+                  Icon(
+                    Icons.fiber_manual_record,
+                    color: AppColors.green,
+                    size: 10,
+                  ),
                   SizedBox(width: 6),
-                  Text(
-                    'Monitoreo Distrital en Vivo',
-                    style: TextStyle(
-                      color: AppColors.green,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: Text(
+                      'Monitoreo Distrital en Vivo',
+                      style: TextStyle(
+                        color: AppColors.green,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -1254,7 +1264,7 @@ class _DynamicAnalyticsDashboardState
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                'Datos Reales PostgreSQL',
+                'Datos de la API y ejemplos',
                 style: TextStyle(
                   color: AppColors.brightBlue,
                   fontSize: 11,
@@ -1262,7 +1272,6 @@ class _DynamicAnalyticsDashboardState
                 ),
               ),
             ),
-            const Spacer(),
             Text(
               'Actualizado ${DateFormat('HH:mm:ss').format(_lastUpdated)}',
               style: TextStyle(
@@ -1270,7 +1279,6 @@ class _DynamicAnalyticsDashboardState
                 fontSize: 12,
               ),
             ),
-            const SizedBox(width: 6),
             IconButton(
               iconSize: 18,
               padding: EdgeInsets.zero,
@@ -1292,8 +1300,8 @@ class _DynamicAnalyticsDashboardState
             final cardWidth = constraints.maxWidth >= 900
                 ? (constraints.maxWidth - 36) / 4
                 : constraints.maxWidth >= 600
-                    ? (constraints.maxWidth - 12) / 2
-                    : constraints.maxWidth;
+                ? (constraints.maxWidth - 12) / 2
+                : constraints.maxWidth;
 
             return Wrap(
               spacing: 12,
@@ -1412,8 +1420,8 @@ class _DynamicAnalyticsDashboardState
         decoration: BoxDecoration(
           color: active
               ? (isDark
-                  ? AppColors.blue.withValues(alpha: 0.35)
-                  : AppColors.blue)
+                    ? AppColors.blue.withValues(alpha: 0.35)
+                    : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -1431,8 +1439,8 @@ class _DynamicAnalyticsDashboardState
               color: active
                   ? Colors.white
                   : (highlight
-                      ? AppColors.brightBlue
-                      : (isDark ? AppColors.darkTextMuted : AppColors.navy)),
+                        ? AppColors.brightBlue
+                        : (isDark ? AppColors.darkTextMuted : AppColors.navy)),
             ),
             const SizedBox(width: 8),
             Text(
@@ -1514,7 +1522,9 @@ class _DynamicAnalyticsDashboardState
                 style: SegmentedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   textStyle: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -1522,7 +1532,6 @@ class _DynamicAnalyticsDashboardState
         ),
         const SizedBox(height: 16),
         Container(
-          height: isMobile ? 360 : 420,
           padding: EdgeInsets.all(isMobile ? 16 : 24),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkCard : Colors.white,
@@ -1596,8 +1605,11 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.flash_on_rounded,
-                          color: AppColors.amber, size: 20),
+                      const Icon(
+                        Icons.flash_on_rounded,
+                        color: AppColors.amber,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Boletín Distrital de Incidentes en Vivo',
@@ -1622,16 +1634,21 @@ class _DynamicAnalyticsDashboardState
               const Spacer(),
               if (!isMobile)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.green.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.sync_rounded,
-                          color: AppColors.green, size: 14),
+                      const Icon(
+                        Icons.sync_rounded,
+                        color: AppColors.green,
+                        size: 14,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Auto-actualiza cada 8s',
@@ -1677,8 +1694,9 @@ class _DynamicAnalyticsDashboardState
                     Text(
                       'No hay reportes bajo este filtro.',
                       style: TextStyle(
-                        color:
-                            isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
                       ),
                     ),
                   ],
@@ -1700,29 +1718,59 @@ class _DynamicAnalyticsDashboardState
                   ),
                   columns: const [
                     DataColumn(
-                        label: Text('CÓDIGO',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'CÓDIGO',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                     DataColumn(
-                        label: Text('TIPOLOGÍA',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'TIPOLOGÍA',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                     DataColumn(
-                        label: Text('SECTOR / UBICACIÓN',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'SECTOR / UBICACIÓN',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                     DataColumn(
-                        label: Text('PRIORIDAD',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'PRIORIDAD',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                     DataColumn(
-                        label: Text('ESTADO',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'ESTADO',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                     DataColumn(
-                        label: Text('REGISTRO',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 11))),
+                      label: Text(
+                        'REGISTRO',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                   ],
                   rows: [
                     for (final inc in filtered.take(15))
@@ -1749,8 +1797,9 @@ class _DynamicAnalyticsDashboardState
                                 Text(
                                   _formatType(inc['type']),
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -1769,11 +1818,17 @@ class _DynamicAnalyticsDashboardState
                             ),
                           ),
                           // Prioridad
-                          DataCell(_priorityBadge(
-                              inc['priority']?.toString() ?? 'MEDIUM')),
+                          DataCell(
+                            _priorityBadge(
+                              inc['priority']?.toString() ?? 'MEDIUM',
+                            ),
+                          ),
                           // Estado
-                          DataCell(_statusBadge(
-                              inc['status']?.toString() ?? 'PENDING')),
+                          DataCell(
+                            _statusBadge(
+                              inc['status']?.toString() ?? 'PENDING',
+                            ),
+                          ),
                           // Fecha
                           DataCell(
                             Text(
@@ -1803,8 +1858,9 @@ class _DynamicAnalyticsDashboardState
       label: Text(label),
       selected: active,
       onSelected: (_) => setState(() => _incidentFilter = key),
-      selectedColor:
-          isDark ? AppColors.blue.withValues(alpha: 0.4) : AppColors.blue,
+      selectedColor: isDark
+          ? AppColors.blue.withValues(alpha: 0.4)
+          : AppColors.blue,
       labelStyle: TextStyle(
         color: active
             ? Colors.white
@@ -1826,32 +1882,32 @@ class _DynamicAnalyticsDashboardState
             {
               'name': 'Centro Histórico',
               'riskLevel': 'MODERATE',
-              'description': 'Zona turística y amurallada'
+              'description': 'Zona turística y amurallada',
             },
             {
               'name': 'Bocagrande',
               'riskLevel': 'LOW',
-              'description': 'Zona hotelera y comercial'
+              'description': 'Zona hotelera y comercial',
             },
             {
               'name': 'Getsemaní',
               'riskLevel': 'MODERATE',
-              'description': 'Vida nocturna y plazas'
+              'description': 'Vida nocturna y plazas',
             },
             {
               'name': 'Manga',
               'riskLevel': 'LOW',
-              'description': 'Sector residencial y puerto'
+              'description': 'Sector residencial y puerto',
             },
             {
               'name': 'Olaya Herrera',
               'riskLevel': 'HIGH',
-              'description': 'Comuna residencial prioritaria'
+              'description': 'Comuna residencial prioritaria',
             },
             {
               'name': 'El Pozón',
               'riskLevel': 'HIGH',
-              'description': 'Cuadrante suroriental'
+              'description': 'Cuadrante suroriental',
             },
           ];
 
@@ -1881,8 +1937,11 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.shield_outlined,
-                          color: AppColors.brightBlue, size: 20),
+                      const Icon(
+                        Icons.shield_outlined,
+                        color: AppColors.brightBlue,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Matriz de Seguridad Distrital por Cuadrantes',
@@ -1921,25 +1980,50 @@ class _DynamicAnalyticsDashboardState
                 ),
                 columns: const [
                   DataColumn(
-                      label: Text('CUADRANTE / SECTOR',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'CUADRANTE / SECTOR',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('NIVEL DE RIESGO',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'NIVEL DE RIESGO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('INCIDENTES ACTIVOS',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'INCIDENTES ACTIVOS',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('TASA DE RESOLUCIÓN',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'TASA DE RESOLUCIÓN',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('ESTATUS OPERATIVO',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'ESTATUS OPERATIVO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                 ],
                 rows: [
                   for (final zone in zonesList) ...[
@@ -1995,8 +2079,11 @@ class _DynamicAnalyticsDashboardState
                   color: _riskColor(riskLevel).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.location_on_outlined,
-                    size: 16, color: _riskColor(riskLevel)),
+                child: Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: _riskColor(riskLevel),
+                ),
               ),
               const SizedBox(width: 10),
               Column(
@@ -2006,7 +2093,9 @@ class _DynamicAnalyticsDashboardState
                   Text(
                     zoneName,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 13),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     zone['description']?.toString() ??
@@ -2058,8 +2147,10 @@ class _DynamicAnalyticsDashboardState
               const SizedBox(width: 8),
               Text(
                 '${rate.toStringAsFixed(1)}%',
-                style:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -2165,8 +2256,11 @@ class _DynamicAnalyticsDashboardState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.timer_outlined,
-                          color: AppColors.green, size: 20),
+                      const Icon(
+                        Icons.timer_outlined,
+                        color: AppColors.green,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Desempeño Operativo y Tiempos de Respuesta',
@@ -2205,25 +2299,50 @@ class _DynamicAnalyticsDashboardState
                 ),
                 columns: const [
                   DataColumn(
-                      label: Text('TIPOLOGÍA DE EMERGENCIA',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'TIPOLOGÍA DE EMERGENCIA',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('CASOS REGISTRADOS',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'CASOS REGISTRADOS',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('TIEMPO MEDIO RESPUESTA',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'TIEMPO MEDIO RESPUESTA',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('TASA DE EFECTIVIDAD',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'TASA DE EFECTIVIDAD',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                   DataColumn(
-                      label: Text('TENDENCIA DISTRITAL',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 11))),
+                    label: Text(
+                      'TENDENCIA DISTRITAL',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                 ],
                 rows: [
                   for (final item in categories) ...[
@@ -2233,13 +2352,18 @@ class _DynamicAnalyticsDashboardState
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(item['icon'] as IconData,
-                                  size: 18, color: AppColors.brightBlue),
+                              Icon(
+                                item['icon'] as IconData,
+                                size: 18,
+                                color: AppColors.brightBlue,
+                              ),
                               const SizedBox(width: 10),
                               Text(
                                 item['type'] as String,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 13),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
                               ),
                             ],
                           ),
@@ -2248,13 +2372,17 @@ class _DynamicAnalyticsDashboardState
                           Text(
                             _countForType(item['key'] as String),
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 12),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                         DataCell(
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.green.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
@@ -2281,16 +2409,20 @@ class _DynamicAnalyticsDashboardState
                                     value: 0.94,
                                     backgroundColor: Colors.black12,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.green),
+                                      AppColors.green,
+                                    ),
                                     minHeight: 5,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Text('94.2%',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12)),
+                              const Text(
+                                '94.2%',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -2491,8 +2623,8 @@ class _DynamicAnalyticsDashboardState
         decoration: BoxDecoration(
           color: active
               ? (isDark
-                  ? AppColors.blue.withValues(alpha: 0.3)
-                  : AppColors.blue)
+                    ? AppColors.blue.withValues(alpha: 0.3)
+                    : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
@@ -2547,19 +2679,27 @@ class _DynamicAnalyticsDashboardState
                 ),
                 child: Icon(icon, color: badgeColor, size: 18),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  badge,
-                  style: TextStyle(
-                    color: badgeColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      badge,
+                      style: TextStyle(
+                        color: badgeColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -2666,31 +2806,32 @@ class _DynamicAnalyticsDashboardState
       key: ValueKey('line_$_selectedPeriod'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Incidentes Reportados vs Atendidos con Éxito',
-                  style: TextStyle(
-                    fontSize: isMobile ? 13 : 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
-                  ),
-                ),
-                Text(
-                  'Evolución temporal con verificación de cuadrantes policiales',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                  ),
-                ),
-              ],
+            Text(
+              'Incidentes Reportados vs Atendidos con Éxito',
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 15,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppColors.darkText : AppColors.navy,
+              ),
             ),
-            const Spacer(),
+            Text(
+              'Evolución temporal con verificación de cuadrantes policiales',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 4,
+          children: [
             _legendItem('Reportados', AppColors.sky),
-            const SizedBox(width: 12),
             _legendItem('Resueltos', AppColors.green),
           ],
         ),
@@ -2713,10 +2854,12 @@ class _DynamicAnalyticsDashboardState
                 ),
               ),
               titlesData: FlTitlesData(
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -2725,8 +2868,9 @@ class _DynamicAnalyticsDashboardState
                       val.toInt().toString(),
                       style: TextStyle(
                         fontSize: 10,
-                        color:
-                            isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
                       ),
                     ),
                   ),
@@ -2812,13 +2956,13 @@ class _DynamicAnalyticsDashboardState
       'Getsemaní',
       'Manga',
       'Olaya H.',
-      'El Pozón'
+      'El Pozón',
     ];
     final counts = _selectedPeriod == 0
         ? [28.0, 22.0, 18.0, 14.0, 34.0, 39.0]
         : _selectedPeriod == 1
-            ? [120.0, 95.0, 78.0, 64.0, 145.0, 168.0]
-            : [480.0, 390.0, 320.0, 270.0, 590.0, 680.0];
+        ? [120.0, 95.0, 78.0, 64.0, 145.0, 168.0]
+        : [480.0, 390.0, 320.0, 270.0, 590.0, 680.0];
 
     final colors = [
       AppColors.green,
@@ -2833,27 +2977,23 @@ class _DynamicAnalyticsDashboardState
       key: ValueKey('bar_$_selectedPeriod'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Volumen de Atención por Sectores Distritales',
-                  style: TextStyle(
-                    fontSize: isMobile ? 13 : 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
-                  ),
-                ),
-                Text(
-                  'Comportamiento por cuadrantes turísticos y residenciales prioritarios',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                  ),
-                ),
-              ],
+            Text(
+              'Volumen de Atención por Sectores Distritales',
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 15,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppColors.darkText : AppColors.navy,
+              ),
+            ),
+            Text(
+              'Comportamiento por cuadrantes turísticos y residenciales prioritarios',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+              ),
             ),
           ],
         ),
@@ -2873,10 +3013,12 @@ class _DynamicAnalyticsDashboardState
                 ),
               ),
               titlesData: FlTitlesData(
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -2885,8 +3027,9 @@ class _DynamicAnalyticsDashboardState
                       val.toInt().toString(),
                       style: TextStyle(
                         fontSize: 10,
-                        color:
-                            isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
                       ),
                     ),
                   ),
@@ -2927,7 +3070,8 @@ class _DynamicAnalyticsDashboardState
                         color: colors[i],
                         width: isMobile ? 16 : 28,
                         borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(6)),
+                          top: Radius.circular(6),
+                        ),
                       ),
                     ],
                   ),
@@ -2946,25 +3090,25 @@ class _DynamicAnalyticsDashboardState
         'name': 'Seguridad y Vigilancia',
         'pct': 38,
         'color': AppColors.brightBlue,
-        'icon': Icons.shield_outlined
+        'icon': Icons.shield_outlined,
       },
       {
         'name': 'Alumbrado y Vías',
         'pct': 26,
         'color': AppColors.amber,
-        'icon': Icons.lightbulb_outline
+        'icon': Icons.lightbulb_outline,
       },
       {
         'name': 'Convivencia y Ruido',
         'pct': 20,
         'color': const Color(0xFF8B5CF6),
-        'icon': Icons.volume_up_outlined
+        'icon': Icons.volume_up_outlined,
       },
       {
         'name': 'Emergencias SOS',
         'pct': 16,
         'color': AppColors.red,
-        'icon': Icons.emergency_outlined
+        'icon': Icons.emergency_outlined,
       },
     ];
 
@@ -2972,27 +3116,23 @@ class _DynamicAnalyticsDashboardState
       key: const ValueKey('pie_chart'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Distribución por Tipología de Incidentes',
-                  style: TextStyle(
-                    fontSize: isMobile ? 13 : 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
-                  ),
-                ),
-                Text(
-                  'Toca o pasa el cursor para expandir cada categoría',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                  ),
-                ),
-              ],
+            Text(
+              'Distribución por Tipología de Incidentes',
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 15,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppColors.darkText : AppColors.navy,
+              ),
+            ),
+            Text(
+              'Toca o pasa el cursor para expandir cada categoría',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+              ),
             ),
           ],
         ),
@@ -3015,7 +3155,8 @@ class _DynamicAnalyticsDashboardState
                             return;
                           }
                           _touchedPieIndex = pieTouchResponse
-                              .touchedSection!.touchedSectionIndex;
+                              .touchedSection!
+                              .touchedSectionIndex;
                         });
                       },
                     ),

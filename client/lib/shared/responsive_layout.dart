@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Puntos de quiebre (Breakpoints) canónicos para Cartagena Segura
-enum ScreenBreakpoint {
-  mobile,
-  tablet,
-  desktop,
-}
+enum ScreenBreakpoint { mobile, tablet, desktop }
 
 class Breakpoints {
   static const double mobileMax = 767.99;
@@ -21,7 +17,8 @@ extension ResponsiveContext on BuildContext {
 
   bool get isMobile => screenWidth < Breakpoints.tabletMin;
   bool get isTablet =>
-      screenWidth >= Breakpoints.tabletMin && screenWidth <= Breakpoints.tabletMax;
+      screenWidth >= Breakpoints.tabletMin &&
+      screenWidth <= Breakpoints.tabletMax;
   bool get isDesktop => screenWidth >= Breakpoints.desktopMin;
   bool get isWide => screenWidth >= Breakpoints.tabletMin;
 
@@ -31,11 +28,7 @@ extension ResponsiveContext on BuildContext {
     return ScreenBreakpoint.mobile;
   }
 
-  T responsiveValue<T>({
-    required T mobile,
-    T? tablet,
-    T? desktop,
-  }) {
+  T responsiveValue<T>({required T mobile, T? tablet, T? desktop}) {
     if (isDesktop && desktop != null) return desktop;
     if (isTablet && tablet != null) return tablet;
     return mobile;
@@ -66,7 +59,8 @@ class ResponsiveContent extends StatelessWidget {
       desktop: 32.0,
     );
 
-    final resolvedPadding = padding ??
+    final resolvedPadding =
+        padding ??
         EdgeInsets.symmetric(
           horizontal: horizontalPadding ?? defaultHPad,
           vertical: context.responsiveValue<double>(
@@ -80,10 +74,7 @@ class ResponsiveContent extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: resolvedPadding,
-          child: child,
-        ),
+        child: Padding(padding: resolvedPadding, child: child),
       ),
     );
   }

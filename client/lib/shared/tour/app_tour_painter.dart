@@ -34,7 +34,11 @@ class SpotlightPainter extends CustomPainter {
     // 1. Recorte con PathOperation.difference
     final screenPath = Path()..addRect(screenRect);
     final cutoutPath = Path()..addRRect(cutoutRRect);
-    final combinedPath = Path.combine(PathOperation.difference, screenPath, cutoutPath);
+    final combinedPath = Path.combine(
+      PathOperation.difference,
+      screenPath,
+      cutoutPath,
+    );
 
     canvas.drawPath(combinedPath, Paint()..color = scrimColor);
 

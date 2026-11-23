@@ -11,8 +11,7 @@ on:
       - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
-      - "scripts/smoke_recovery.py"
-      - "scripts/smoke_recovery.py"
+      - "scripts/smoke_*.py"
       - ".github/workflows/web-backend.yml"
   pull_request:
     paths:
@@ -22,8 +21,7 @@ on:
       - "Dockerfile.cloud"
       - "Caddyfile"
       - ".env.example"
-      - "scripts/smoke_recovery.py"
-      - "scripts/smoke_recovery.py"
+      - "scripts/smoke_*.py"
       - ".github/workflows/web-backend.yml"
   workflow_dispatch:
 
@@ -160,7 +158,7 @@ jobs:
             --data '{"username":"ci_render_smoke","password":"CI-only-pass-123!"}' |
             python3 -c 'import json,sys; data = json.load(sys.stdin); assert data["success"] and data["data"]["token"]'
           curl --fail --silent --show-error "$base/api/System/Version" |
-            python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["latestVersion"]=="1.2.2" and d["storeUrlAndroid"].endswith("/releases/download/app-latest/app-release.apk")'
+            python3 -c 'import json,sys; d=json.load(sys.stdin); version=next(line.split(":", 1)[1].strip().split("+", 1)[0] for line in open("client/pubspec.yaml") if line.startswith("version:")); assert d["latestVersion"]==version and d["storeUrlAndroid"].endswith("/releases/download/app-latest/app-release.apk")'
           token=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["data"]["token"])' "$RUNNER_TEMP/cartagena-register.json")
           curl --fail --silent --show-error "$base/api/Ai/Chat" \
             -H "Authorization: Bearer $token" \
@@ -168,11 +166,21 @@ jobs:
             --data '{"message":"¿Cómo puedo enviar un reporte?","sessionId":"render-smoke"}' |
             python3 -c 'import json,sys; assert json.load(sys.stdin)["reply"].strip()'
           python3 scripts/smoke_recovery.py verify "$reset_capture" --base "$base"
+          python3 scripts/smoke_report.py register-admin --base "$base"
+          "${compose[@]}" exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'SQL'
+          INSERT INTO roles (name, description) VALUES ('ADMIN', 'CI only') ON CONFLICT (name) DO NOTHING;
+          INSERT INTO user_roles (user_id, role_id)
+          SELECT users.id, roles.id FROM users CROSS JOIN roles
+          WHERE users.username = 'ci_report_admin' AND roles.name = 'ADMIN'
+          ON CONFLICT DO NOTHING;
+          SQL
+          python3 scripts/smoke_report.py verify --base "$base"
           printf 'CI durable evidence\n' > "$RUNNER_TEMP/evidence.txt"
           curl --fail --silent --show-error -H "Authorization: Bearer $token" \
             -F "files=@$RUNNER_TEMP/evidence.txt;type=text/plain" "$base/api/Files/Upload" > "$RUNNER_TEMP/uploaded.json"
           evidence_url=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["data"]["urls"][0])' "$RUNNER_TEMP/uploaded.json")
           "${compose[@]}" exec -T backend sh -c 'test -z "$(ls -A /app/uploads)"'
           "${compose[@]}" up --no-build --wait --wait-timeout 360 --force-recreate backend
-          curl --fail --silent --show-error "$evidence_url" -o "$RUNNER_TEMP/downloaded.txt"
+          curl --fail --silent --show-error -H "Authorization: Bearer $token" \
+            "$evidence_url" -o "$RUNNER_TEMP/downloaded.txt"
           cmp "$RUNNER_TEMP/evidence.txt" "$RUNNER_TEMP/downloaded.txt"

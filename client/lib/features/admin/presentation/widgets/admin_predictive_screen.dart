@@ -19,7 +19,8 @@ class AdminPredictiveScreen extends StatefulWidget {
 
 class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
   late Future<RiskForecastResponse> _forecastFuture;
-  int _selectedView = 0; // 0: Simulador & Red Neuronal, 1: Ficha Técnica & Observabilidad
+  int _selectedView =
+      0; // 0: Simulador & Red Neuronal, 1: Ficha Técnica & Observabilidad
 
   // Variables del Simulador
   String _simSector = 'Centro Histórico';
@@ -49,8 +50,11 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
 
   void _loadForecast() {
     setState(() {
-      _forecastFuture = widget.api.get('Admin/Predictive/RiskForecast').then(
-            (data) => RiskForecastResponse.fromJson(data as Map<String, dynamic>),
+      _forecastFuture = widget.api
+          .get('Admin/Predictive/RiskForecast')
+          .then(
+            (data) =>
+                RiskForecastResponse.fromJson(data as Map<String, dynamic>),
           );
     });
   }
@@ -107,7 +111,11 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.cloud_off_outlined, size: 48, color: Colors.red),
+                  const Icon(
+                    Icons.cloud_off_outlined,
+                    size: 48,
+                    color: Colors.red,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'Error al cargar el modelo predictivo',
@@ -122,7 +130,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                     '${snapshot.error}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -214,7 +224,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         'Inferencia en tiempo real sobre incidentes distritales y hotspots criminales',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -234,7 +246,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   ),
                   _StatusChip(
                     icon: Icons.dataset_outlined,
-                    label: '${data.modelMetadata.trainingSamples} eventos minados',
+                    label:
+                        '${data.modelMetadata.trainingSamples} eventos minados',
                     color: Colors.blue,
                     isDark: isDark,
                   ),
@@ -322,8 +335,12 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
     final spotsBaseline = <FlSpot>[];
 
     for (var i = 0; i < data.hourlyForecast.length; i++) {
-      spotsPredicted.add(FlSpot(i.toDouble(), data.hourlyForecast[i].predictedRisk));
-      spotsBaseline.add(FlSpot(i.toDouble(), data.hourlyForecast[i].baselineRisk));
+      spotsPredicted.add(
+        FlSpot(i.toDouble(), data.hourlyForecast[i].predictedRisk),
+      );
+      spotsBaseline.add(
+        FlSpot(i.toDouble(), data.hourlyForecast[i].baselineRisk),
+      );
     }
 
     return Container(
@@ -357,7 +374,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                     'Índice de riesgo estimado (0–100)',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -371,7 +390,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   ),
                   const SizedBox(width: 14),
                   _LegendIndicator(
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                     text: 'Referencia calculada',
                     isDark: isDark,
                     isDashed: true,
@@ -391,13 +412,19 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: isDark ? const Color(0xFF1F293D) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF1F293D)
+                        : const Color(0xFFF1F5F9),
                     strokeWidth: 1,
                   ),
                 ),
                 titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -406,7 +433,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                       getTitlesWidget: (val, meta) => Text(
                         '${val.toInt()}%',
                         style: TextStyle(
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF94A3B8),
                           fontSize: 10,
                         ),
                       ),
@@ -424,7 +453,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                             child: Text(
                               data.hourlyForecast[idx].hourLabel,
                               style: TextStyle(
-                                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : const Color(0xFF64748B),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -439,8 +470,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) =>
-                        isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B),
+                    getTooltipColor: (_) => isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFF1E293B),
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((spot) {
                         final idx = spot.x.toInt();
@@ -453,7 +485,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         }
                         return LineTooltipItem(
                           'Línea base: ${spot.y.toStringAsFixed(1)}%',
-                          const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                          const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
                         );
                       }).toList();
                     },
@@ -480,7 +515,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                     spots: spotsBaseline,
                     isCurved: true,
                     dashArray: [5, 4],
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                     barWidth: 2,
                     dotData: const FlDotData(show: false),
                   ),
@@ -560,7 +597,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
           NeuralNetworkVisualizer(
             riskScore: _simResult?.predictedRiskScore ?? 62.0,
             riskLevel: _simResult?.riskLevel ?? 'ALTO',
-            primaryThreat: _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
+            primaryThreat:
+                _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
             activations: _simResult?.neuralActivations ?? const {},
             sector: _simSector,
             hourOfDay: _simHour.round(),
@@ -574,7 +612,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
           AiPredictionBreakdown(
             predictedRiskScore: _simResult?.predictedRiskScore ?? 62.0,
             riskLevel: _simResult?.riskLevel ?? 'ALTO',
-            primaryThreat: _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
+            primaryThreat:
+                _simResult?.primaryThreat ?? 'Hurto / Robo a Transeúntes',
             confidenceMargin: _simResult?.confidenceMargin ?? 4.2,
             modelCertaintyScore: _simResult?.modelCertaintyScore ?? 95.8,
             featureContributions: _simResult?.featureContributions ?? const [],
@@ -636,8 +675,8 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
         decoration: BoxDecoration(
           color: active
               ? (isDark
-                  ? AppColors.blue.withValues(alpha: 0.35)
-                  : AppColors.blue)
+                    ? AppColors.blue.withValues(alpha: 0.35)
+                    : AppColors.blue)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
@@ -721,10 +760,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               _simHour < 6
                   ? 'Madrugada'
                   : _simHour < 12
-                      ? 'Mañana'
-                      : _simHour < 18
-                          ? 'Tarde'
-                          : 'Noche',
+                  ? 'Mañana'
+                  : _simHour < 18
+                  ? 'Tarde'
+                  : 'Noche',
               style: TextStyle(
                 fontSize: 11,
                 color: isDark ? AppColors.brightBlue : AppColors.blue,
@@ -750,7 +789,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               child: SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: const Text('Fin de semana / Festivo', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Fin de semana / Festivo',
+                  style: TextStyle(fontSize: 12),
+                ),
                 value: _simWeekend,
                 onChanged: (val) => setState(() => _simWeekend = val),
               ),
@@ -765,15 +807,22 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Aglomeración', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Aglomeración',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     initialValue: _simCrowd,
                     isDense: true,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      fillColor: isDark
+                          ? AppColors.darkSurface
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     items: const [
                       DropdownMenuItem(value: 'BAJO', child: Text('Bajo')),
@@ -793,20 +842,33 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Clima', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Clima',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     initialValue: _simWeather,
                     isDense: true,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      fillColor: isDark
+                          ? AppColors.darkSurface
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'DESPEJADO', child: Text('Despejado')),
+                      DropdownMenuItem(
+                        value: 'DESPEJADO',
+                        child: Text('Despejado'),
+                      ),
                       DropdownMenuItem(value: 'LLUVIA', child: Text('Lluvia')),
-                      DropdownMenuItem(value: 'TORMENTA', child: Text('Tormenta')),
+                      DropdownMenuItem(
+                        value: 'TORMENTA',
+                        child: Text('Tormenta'),
+                      ),
                     ],
                     onChanged: (v) {
                       if (v != null) setState(() => _simWeather = v);
@@ -826,17 +888,26 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0F4C81),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: _simulating ? null : _runSimulation,
             icon: _simulating
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : const Icon(Icons.bolt_rounded),
-            label: Text(_simulating ? 'Computando tensores...' : 'Ejecutar Inferencia Neuronal'),
+            label: Text(
+              _simulating
+                  ? 'Computando tensores...'
+                  : 'Ejecutar Inferencia Neuronal',
+            ),
           ),
         ),
       ],
@@ -870,7 +941,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -904,7 +977,11 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
               ),
               Text(
                 '${res.inferenceLatencyMs} ms',
-                style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -912,7 +989,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: riskColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
@@ -948,7 +1028,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                       'Amenaza Principal:',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     Text(
@@ -964,7 +1046,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                       res.tacticalAdvice,
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.darkText : const Color(0xFF334155),
+                        color: isDark
+                            ? AppColors.darkText
+                            : const Color(0xFF334155),
                       ),
                     ),
                   ],
@@ -977,7 +1061,10 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
           const SizedBox(height: 8),
           Text(
             'Activaciones de Capas Ocultas (Tensores):',
-            style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 10,
+              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+            ),
           ),
           const SizedBox(height: 4),
           Wrap(
@@ -1024,7 +1111,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                   'Priorización basada en minería histórica de 7d/30d y scoring neuronal',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppColors.darkTextMuted
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -1067,7 +1156,11 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.location_on_rounded, size: 18, color: riskColor),
+                              Icon(
+                                Icons.location_on_rounded,
+                                size: 18,
+                                color: riskColor,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 sp.sector,
@@ -1075,18 +1168,27 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -0.3,
-                                  color: isDark ? AppColors.darkText : AppColors.navy,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.navy,
                                 ),
                               ),
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: riskColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                              color: riskColor.withValues(
+                                alpha: isDark ? 0.2 : 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(
-                                color: riskColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                color: riskColor.withValues(
+                                  alpha: isDark ? 0.45 : 0.25,
+                                ),
                                 width: 0.8,
                               ),
                             ),
@@ -1107,7 +1209,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         borderRadius: BorderRadius.circular(999),
                         child: LinearProgressIndicator(
                           value: (sp.riskScore / 100.0).clamp(0.0, 1.0),
-                          backgroundColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+                          backgroundColor: isDark
+                              ? const Color(0xFF2C2C2E)
+                              : const Color(0xFFE5E5EA),
                           color: riskColor,
                           minHeight: 5,
                         ),
@@ -1120,7 +1224,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.1,
-                              color: isDark ? AppColors.brightBlue : AppColors.blue,
+                              color: isDark
+                                  ? AppColors.brightBlue
+                                  : AppColors.blue,
                             ),
                           ),
                           const Spacer(),
@@ -1129,7 +1235,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.muted,
                             ),
                           ),
                         ],
@@ -1141,7 +1249,9 @@ class _AdminPredictiveScreenState extends State<AdminPredictiveScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           height: 1.3,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.muted,
                         ),
                       ),
                     ],
@@ -1250,7 +1360,10 @@ class _StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: isDark ? 0.35 : 0.2), width: 0.8),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.35 : 0.2),
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -23,64 +23,59 @@ class AppTourController {
 
   /// Definición de los pasos del tutorial ciudadano
   List<TourStep> get defaultSteps => [
-        TourStep(
-          id: 'map_zones',
-          title: 'Mapa Distrital y Zonas de Riesgo',
-          description:
-              'Visualiza en tiempo real el nivel de seguridad de los barrios de Cartagena y los incidentes reportados por otros ciudadanos.',
-          icon: Icons.map_rounded,
-          targetKey: AppTourKeys.navMapKey,
-          targetTabIndex: 0,
-          preferredPosition: TooltipPosition.top,
-          borderRadius: 18,
-          padding: 6,
-        ),
-        TourStep(
-          id: 'safe_routes',
-          title: 'Rutas Seguras Inteligentes',
-          description:
-              'Escribe tu destino y trazaremos la ruta óptima esquivando zonas críticas y calles con poca iluminación.',
-          icon: Icons.alt_route_rounded,
-          targetKey: AppTourKeys.safeRouteKey,
-          targetTabIndex: 0,
-          preferredPosition: TooltipPosition.bottom,
-          borderRadius: 20,
-          padding: 8,
-        ),
-        TourStep(
-          id: 'sos_emergencies',
-          title: 'Botón de Pánico y SOS 123',
-          description:
-              'En caso de urgencia médica, atraco o accidente, llama al instante a la Policía (123), CRUE Ambulancias (125) o Tránsito DATT (127).',
-          icon: Icons.emergency_rounded,
-          targetKey: AppTourKeys.sosButtonKey,
-          preferredPosition: TooltipPosition.bottom,
-          borderRadius: 16,
-          padding: 6,
-        ),
-        TourStep(
-          id: 'citizen_reports',
-          title: 'Radicar Reportes Comunitarios',
-          description:
-              'Reporta hechos delictivos, iluminación deficiente o accidentes con foto y ubicación exacta para proteger a tu comunidad.',
-          icon: Icons.campaign_rounded,
-          targetKey: AppTourKeys.navReportsKey,
-          preferredPosition: TooltipPosition.top,
-          borderRadius: 18,
-          padding: 6,
-        ),
-        TourStep(
-          id: 'ai_and_glass',
-          title: 'Orientador IA & Liquid Glass',
-          description:
-              'Pregúntale a Cartagena Segura AI qué hacer ante cualquier imprevisto y personaliza la apariencia con el estilo Liquid Glass.',
-          icon: Icons.auto_awesome_rounded,
-          targetKey: AppTourKeys.aiAssistantKey,
-          preferredPosition: TooltipPosition.bottom,
-          borderRadius: 18,
-          padding: 6,
-        ),
-      ];
+    TourStep(
+      id: 'map_zones',
+      title: 'Mapa Distrital y Zonas de Riesgo',
+      description: 'Visualiza en tiempo real el nivel de seguridad de los barrios de Cartagena y los incidentes reportados por otros ciudadanos.',
+      icon: Icons.map_rounded,
+      targetKey: AppTourKeys.navMapKey,
+      targetTabIndex: 0,
+      preferredPosition: TooltipPosition.top,
+      borderRadius: 18,
+      padding: 6,
+    ),
+    TourStep(
+      id: 'safe_routes',
+      title: 'Rutas Seguras Inteligentes',
+      description: 'Escribe tu destino y trazaremos la ruta óptima esquivando zonas críticas y calles con poca iluminación.',
+      icon: Icons.alt_route_rounded,
+      targetKey: AppTourKeys.safeRouteKey,
+      targetTabIndex: 0,
+      preferredPosition: TooltipPosition.bottom,
+      borderRadius: 20,
+      padding: 8,
+    ),
+    TourStep(
+      id: 'sos_emergencies',
+      title: 'Botón de Pánico y SOS 123',
+      description: 'En caso de urgencia médica, atraco o accidente, llama al instante a la Policía (123), CRUE Ambulancias (125) o Tránsito DATT (127).',
+      icon: Icons.emergency_rounded,
+      targetKey: AppTourKeys.sosButtonKey,
+      preferredPosition: TooltipPosition.bottom,
+      borderRadius: 16,
+      padding: 6,
+    ),
+    TourStep(
+      id: 'citizen_reports',
+      title: 'Radicar Reportes Comunitarios',
+      description: 'Reporta hechos delictivos, iluminación deficiente o accidentes con foto y ubicación exacta para proteger a tu comunidad.',
+      icon: Icons.campaign_rounded,
+      targetKey: AppTourKeys.navReportsKey,
+      preferredPosition: TooltipPosition.top,
+      borderRadius: 18,
+      padding: 6,
+    ),
+    TourStep(
+      id: 'ai_and_glass',
+      title: 'Orientador IA & Liquid Glass',
+      description: 'Pregúntale a Cartagena Segura AI qué hacer ante cualquier imprevisto y personaliza la apariencia con el estilo Liquid Glass.',
+      icon: Icons.auto_awesome_rounded,
+      targetKey: AppTourKeys.aiAssistantKey,
+      preferredPosition: TooltipPosition.bottom,
+      borderRadius: 18,
+      padding: 6,
+    ),
+  ];
 
   Future<bool> isTourCompleted(SessionStorage storage) async {
     try {

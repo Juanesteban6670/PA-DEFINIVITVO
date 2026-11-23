@@ -12,6 +12,7 @@ public class WelcomeController {
         "/Register",
         "/ForgotPassword",
         "/ResetPassword",
+        "/Chat",
         "/App",
         "/App/**",
         "/Admin",

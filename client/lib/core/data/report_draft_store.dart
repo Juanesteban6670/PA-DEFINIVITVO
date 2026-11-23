@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import '../services/android_report_reminder.dart';
 import 'api_client.dart';
 import 'session_controller.dart';
 
@@ -32,58 +33,55 @@ class ReportDraft {
   ReportDraft copyWith({
     List<String>? photoPaths,
     List<String>? uploadedImageUrls,
-  }) =>
-      ReportDraft(
-        type: type,
-        description: description,
-        location: location,
-        priority: priority,
-        idempotencyKey: idempotencyKey,
-        latitude: latitude,
-        longitude: longitude,
-        photoPaths: photoPaths ?? this.photoPaths,
-        uploadedImageUrls: uploadedImageUrls ?? this.uploadedImageUrls,
-      );
+  }) => ReportDraft(
+    type: type,
+    description: description,
+    location: location,
+    priority: priority,
+    idempotencyKey: idempotencyKey,
+    latitude: latitude,
+    longitude: longitude,
+    photoPaths: photoPaths ?? this.photoPaths,
+    uploadedImageUrls: uploadedImageUrls ?? this.uploadedImageUrls,
+  );
 
   factory ReportDraft.fromJson(Map<String, dynamic> json) => ReportDraft(
-        type: json['type']?.toString() ?? 'ROBO',
-        description: json['description']?.toString() ?? '',
-        location: json['location']?.toString() ?? '',
-        priority: json['priority']?.toString() ?? 'MEDIUM',
-        idempotencyKey: json['idempotencyKey']?.toString() ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
-        photoPaths:
-            (json['photoPaths'] as List?)?.whereType<String>().toList() ??
-                const [],
-        uploadedImageUrls: (json['uploadedImageUrls'] as List?)
-                ?.whereType<String>()
-                .toList() ??
-            const [],
-      );
+    type: json['type']?.toString() ?? 'ROBO',
+    description: json['description']?.toString() ?? '',
+    location: json['location']?.toString() ?? '',
+    priority: json['priority']?.toString() ?? 'MEDIUM',
+    idempotencyKey: json['idempotencyKey']?.toString() ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble(),
+    longitude: (json['longitude'] as num?)?.toDouble(),
+    photoPaths:
+        (json['photoPaths'] as List?)?.whereType<String>().toList() ?? const [],
+    uploadedImageUrls:
+        (json['uploadedImageUrls'] as List?)?.whereType<String>().toList() ??
+        const [],
+  );
 
   Map<String, dynamic> toJson() => {
-        'type': type,
-        'description': description,
-        'location': location,
-        'priority': priority,
-        'idempotencyKey': idempotencyKey,
-        'latitude': latitude,
-        'longitude': longitude,
-        'photoPaths': photoPaths,
-        'uploadedImageUrls': uploadedImageUrls,
-      };
+    'type': type,
+    'description': description,
+    'location': location,
+    'priority': priority,
+    'idempotencyKey': idempotencyKey,
+    'latitude': latitude,
+    'longitude': longitude,
+    'photoPaths': photoPaths,
+    'uploadedImageUrls': uploadedImageUrls,
+  };
 
   Map<String, dynamic> toRequest(List<String> imageUrls) => {
-        'type': type,
-        'description': description,
-        'location': location,
-        'latitude': latitude,
-        'longitude': longitude,
-        'priority': priority,
-        'imageUrls': imageUrls,
-        'idempotencyKey': idempotencyKey,
-      };
+    'type': type,
+    'description': description,
+    'location': location,
+    'latitude': latitude,
+    'longitude': longitude,
+    'priority': priority,
+    'imageUrls': imageUrls,
+    'idempotencyKey': idempotencyKey,
+  };
 }
 
 class ReportDraftStore {
@@ -106,10 +104,26 @@ class ReportDraftStore {
     return dueAt == null ? null : (draftId: parts[0], dueAt: dueAt);
   }
 
-  Future<void> scheduleReminder(ReportDraft draft, DateTime dueAt) =>
-      storage.write(_reminderKey, '${draft.idempotencyKey}|${dueAt.toIso8601String()}');
+  Future<void> scheduleReminder(ReportDraft draft, DateTime dueAt) async {
+    await storage.write(
+      _reminderKey,
+      '${draft.idempotencyKey}|${dueAt.toIso8601String()}',
+    );
+    await AndroidReportReminder.schedule(owner, dueAt);
+  }
 
-  Future<void> cancelReminder() => storage.delete(_reminderKey);
+  Future<void> cancelReminder() async {
+    await AndroidReportReminder.cancel(owner);
+    await storage.delete(_reminderKey);
+  }
+
+  Future<bool?> acknowledgeReminder(DateTime dueAt) async {
+    if ((await readReminder())?.dueAt != dueAt) return null;
+    final delivered = await AndroidReportReminder.consume(owner, dueAt);
+    if ((await readReminder())?.dueAt != dueAt) return null;
+    await storage.delete(_reminderKey);
+    return delivered;
+  }
 
   Future<void> _cancelReminderFor(String draftId) async {
     if ((await readReminder())?.draftId == draftId) await cancelReminder();
@@ -192,8 +206,17 @@ class ReportDraftStore {
   Future<void> clearAll() async {
     await clearDraft();
     await storage.delete(_queueKey);
+    await cancelReminder();
   }
 }
+
+String? reportPhotoExtension(List<int> bytes) => switch (bytes) {
+  [0xff, 0xd8, 0xff, ...] => 'jpg',
+  [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...] => 'png',
+  // RIFF, followed by the container size and the WEBP signature.
+  [0x52, 0x49, 0x46, 0x46, _, _, _, _, 0x57, 0x45, 0x42, 0x50, ...] => 'webp',
+  _ => null,
+};
 
 Future<void> submitReportDraft(
   ApiClient api,
@@ -251,8 +274,9 @@ Future<void> submitReportDraft(
     if (response is! Map<String, dynamic> || response['urls'] is! List) {
       throw const FormatException('La API devolvió URLs de archivos inválidas');
     }
-    final uploadedUrls =
-        (response['urls'] as List).whereType<String>().toList();
+    final uploadedUrls = (response['urls'] as List)
+        .whereType<String>()
+        .toList();
     if (uploadedUrls.length != files.length) {
       throw const FormatException(
         'La API no confirmó la carga de todas las fotografías',

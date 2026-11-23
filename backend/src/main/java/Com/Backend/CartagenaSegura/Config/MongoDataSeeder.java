@@ -6,6 +6,7 @@ import Com.Backend.CartagenaSegura.Repository.IncidentRepository;
 import Com.Backend.CartagenaSegura.Repository.ZoneRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,9 @@ public class MongoDataSeeder implements ApplicationRunner {
     private final IncidentRepository incidentRepository;
     private final ZoneRepository zoneRepository;
 
+    @Value("${app.demo.seed-enabled:false}")
+    private boolean enabled;
+
     public MongoDataSeeder(IncidentRepository incidentRepository, ZoneRepository zoneRepository) {
         this.incidentRepository = incidentRepository;
         this.zoneRepository = zoneRepository;
@@ -37,22 +41,22 @@ public class MongoDataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        seedIfNecessary(false);
+        if (enabled) seedIfNecessary();
     }
 
-    public synchronized int seedIfNecessary(boolean force) {
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public synchronized int seedIfNecessary() {
+        if (!enabled) throw new IllegalStateException("La carga de datos de demostración está desactivada");
         long count = incidentRepository.count();
-        if (!force && count >= 50) {
-            log.info("MongoDB ya contiene {} incidentes. No se requiere siembra automática.", count);
+        if (count > 0) {
+            log.info("MongoDB ya contiene {} incidentes. Se conservan los reportes existentes.", count);
             return (int) count;
         }
 
-        if (force) {
-            log.warn("Siembra forzada solicitada. Eliminando incidentes anteriores para repoblar con fechas variadas...");
-            incidentRepository.deleteAll();
-        } else {
-            log.info("Base de datos con pocos incidentes ({}). Iniciando siembra rica con historial variado de 90 días...", count);
-        }
+        log.info("Cargando incidentes de demostración en una base vacía.");
 
         List<Zone> zones = ensureZones();
         String zoneCentro = findZoneId(zones, "Centro", "zone_centro");

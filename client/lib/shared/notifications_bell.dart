@@ -98,12 +98,12 @@ class _NotificationsBellState extends State<NotificationsBell> {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: _pollError ?? 'Notificaciones',
-        onPressed: _openNotifications,
-        icon: Badge(
-          isLabelVisible: (_unread ?? 0) > 0,
-          label: Text((_unread ?? 0) > 9 ? '9+' : '${_unread ?? 0}'),
-          child: const Icon(Icons.notifications_outlined),
-        ),
-      );
+    tooltip: _pollError ?? 'Notificaciones',
+    onPressed: _openNotifications,
+    icon: Badge(
+      isLabelVisible: (_unread ?? 0) > 0,
+      label: Text((_unread ?? 0) > 9 ? '9+' : '${_unread ?? 0}'),
+      child: const Icon(Icons.notifications_outlined),
+    ),
+  );
 }

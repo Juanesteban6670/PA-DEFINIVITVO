@@ -70,4 +70,26 @@ public class IncidentDto {
             Incident.Status status,
             LocalDateTime createdAt
     ) {}
+
+    public record PublicIncident(
+            String id,
+            String type,
+            String location,
+            Double latitude,
+            Double longitude,
+            String zoneId,
+            Incident.Priority priority,
+            Incident.Status status,
+            LocalDateTime createdAt
+    ) {
+        public static PublicIncident from(Incident incident) {
+            return new PublicIncident(incident.getId(), incident.getType(), "Cartagena",
+                    approximate(incident.getLatitude()), approximate(incident.getLongitude()),
+                    incident.getZoneId(), incident.getPriority(), incident.getStatus(), incident.getCreatedAt());
+        }
+
+        private static Double approximate(Double coordinate) {
+            return coordinate == null ? null : Math.round(coordinate * 1_000) / 1_000.0;
+        }
+    }
 }

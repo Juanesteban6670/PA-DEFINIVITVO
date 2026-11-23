@@ -64,11 +64,9 @@ public class NotificationService {
             if (messagingTemplate != null) {
                 Map<String, Object> payload = new HashMap<>();
                 payload.put("title", title);
-                payload.put("message", message);
+                payload.put("message", "Hay novedades en los reportes de Cartagena.");
                 payload.put("category", incident.getType());
-                payload.put("location", incident.getLocation());
-                payload.put("reportedBy", reportedBy);
-                payload.put("hasPhotos", incident.getImageUrls() != null && !incident.getImageUrls().isEmpty());
+                payload.put("location", "Cartagena");
                 payload.put("incidentStatus", incident.getStatus() != null ? incident.getStatus().name() : "PENDING");
                 payload.put("incidentId", incident.getId());
                 payload.put("timestamp", System.currentTimeMillis());

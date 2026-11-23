@@ -18,6 +18,7 @@ public interface IncidentRepository extends MongoRepository<Incident, String> {
     List<Incident> findByZoneId(String zoneId);
     List<Incident> findByAssignedTo(String assignedTo);
     List<Incident> findByType(String type);
+    List<Incident> findByImageUrlsRegex(String pattern);
 
     List<Incident> findByStatusAndPriority(Incident.Status status, Incident.Priority priority);
     List<Incident> findByZoneIdAndStatus(String zoneId, Incident.Status status);

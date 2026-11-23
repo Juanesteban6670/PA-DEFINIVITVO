@@ -1,3 +1,4 @@
+import 'package:cartagena_segura/shared/evidence_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,8 +37,9 @@ class MyReportsScreen extends StatefulWidget {
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
   int _selectedTab = 1; // 0 = Comunidad, 1 = Mis reportes
-  String _selectedStatusFilter = 'Todos'; // 'Todos', 'En revisión', 'En atención', 'Resueltos'
-  
+  String _selectedStatusFilter =
+      'Todos'; // 'Todos', 'En revisión', 'En atención', 'Resueltos'
+
   late Future<List<Incident>> _incidents;
   late Future<List<ReportDraft>> _pending;
   String? _openedInitialIncidentId;
@@ -149,9 +151,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       }
     } on Exception catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se pudo reenviar: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('No se pudo reenviar: $error')));
       }
     }
   }
@@ -180,7 +182,11 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
-            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            horizontal: context.responsiveValue(
+              mobile: 16.0,
+              tablet: 24.0,
+              desktop: 32.0,
+            ),
             vertical: 16.0,
           ),
           child: FutureBuilder<List<Incident>>(
@@ -214,286 +220,347 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
                   children: [
-                  // 1. TÍTULO, SUBTÍTULO Y ACCIONES ADAPTATIVAS
-                  if (isWide)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Reportes de Seguridad',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                                  letterSpacing: -0.4,
+                    // 1. TÍTULO, SUBTÍTULO Y ACCIONES ADAPTATIVAS
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Reportes de Seguridad',
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? AppColors.darkText
+                                        : const Color(0xFF142C40),
+                                    letterSpacing: -0.4,
+                                  ),
                                 ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Tu voz ayuda a cuidar Cartagena. Monitoreo colaborativo en tiempo real.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : const Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F4C81),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
                               ),
-                              const SizedBox(height: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: _openReportForm,
+                            icon: const Icon(
+                              Icons.add_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Crear nuevo reporte',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      Text(
+                        'Reportes',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? AppColors.darkText
+                              : const Color(0xFF142C40),
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Tu voz ayuda a cuidar Cartagena.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0F4C81),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: _openReportForm,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_rounded,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 8),
                               Text(
-                                'Tu voz ayuda a cuidar Cartagena. Monitoreo colaborativo en tiempo real.',
+                                'Crear nuevo reporte',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0F4C81),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                      ),
+                    ],
+
+                    const SizedBox(height: 18),
+
+                    // 2. CONTROLES: Segmented toggle + Chips de estado
+                    if (isWide)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 280,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : const Color(0xFFEEF2F6),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _SegmentItem(
+                                      label: 'Comunidad',
+                                      selected: _selectedTab == 0,
+                                      onTap: () => _onTabChanged(0),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _SegmentItem(
+                                      label: 'Mis reportes',
+                                      selected: _selectedTab == 1,
+                                      onTap: () => _onTabChanged(1),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          onPressed: _openReportForm,
-                          icon: const Icon(Icons.add_rounded, size: 20, color: Colors.white),
-                          label: const Text(
-                            'Crear nuevo reporte',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  for (final status in const [
+                                    'Todos',
+                                    'En revisión',
+                                    'En atención',
+                                    'Resueltos',
+                                  ]) ...[
+                                    _StatusFilterPill(
+                                      label: status,
+                                      selected: _selectedStatusFilter == status,
+                                      onTap: () => setState(
+                                        () => _selectedStatusFilter = status,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                  else ...[
-                    Text(
-                      'Reportes',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                        letterSpacing: -0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Tu voz ayuda a cuidar Cartagena.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F4C81),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: _openReportForm,
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_rounded, size: 20, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text(
-                              'Crear nuevo reporte',
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkCard
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${allIncidents.length} reportes',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkCard
+                              : const Color(0xFFEEF2F6),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _SegmentItem(
+                                label: 'Comunidad',
+                                selected: _selectedTab == 0,
+                                onTap: () => _onTabChanged(0),
+                              ),
+                            ),
+                            Expanded(
+                              child: _SegmentItem(
+                                label: 'Mis reportes',
+                                selected: _selectedTab == 1,
+                                onTap: () => _onTabChanged(1),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 18),
-
-                  // 2. CONTROLES: Segmented toggle + Chips de estado
-                  if (isWide)
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 280,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppColors.darkCard : const Color(0xFFEEF2F6),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: _SegmentItem(
-                                    label: 'Comunidad',
-                                    selected: _selectedTab == 0,
-                                    onTap: () => _onTabChanged(0),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _SegmentItem(
-                                    label: 'Mis reportes',
-                                    selected: _selectedTab == 1,
-                                    onTap: () => _onTabChanged(1),
-                                  ),
-                                ),
-                              ],
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _selectedTab == 0 ? 'Cerca de ti' : 'Mis reportes',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : const Color(0xFF142C40),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (final status in const [
-                                  'Todos',
-                                  'En revisión',
-                                  'En atención',
-                                  'Resueltos',
-                                ]) ...[
-                                  _StatusFilterPill(
-                                    label: status,
-                                    selected: _selectedStatusFilter == status,
-                                    onTap: () => setState(() => _selectedStatusFilter = status),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkCard : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${allIncidents.length} reportes',
+                          Text(
+                            '${allIncidents.length} activos',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else ...[
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : const Color(0xFFEEF2F6),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _SegmentItem(
-                              label: 'Comunidad',
-                              selected: _selectedTab == 0,
-                              onTap: () => _onTabChanged(0),
-                            ),
-                          ),
-                          Expanded(
-                            child: _SegmentItem(
-                              label: 'Mis reportes',
-                              selected: _selectedTab == 1,
-                              onTap: () => _onTabChanged(1),
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedTab == 0 ? 'Cerca de ti' : 'Mis reportes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                          ),
-                        ),
-                        Text(
-                          '${allIncidents.length} activos',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          for (final status in const [
-                            'Todos',
-                            'En revisión',
-                            'En atención',
-                            'Resueltos',
-                          ]) ...[
-                            _StatusFilterPill(
-                              label: status,
-                              selected: _selectedStatusFilter == status,
-                              onTap: () => setState(() => _selectedStatusFilter = status),
-                            ),
-                            const SizedBox(width: 8),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (final status in const [
+                              'Todos',
+                              'En revisión',
+                              'En atención',
+                              'Resueltos',
+                            ]) ...[
+                              _StatusFilterPill(
+                                label: status,
+                                selected: _selectedStatusFilter == status,
+                                onTap: () => setState(
+                                  () => _selectedStatusFilter = status,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
 
-                  const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-                  // ESTADOS DE CARGA / LISTADO
-                  if (snapshot.connectionState == ConnectionState.waiting)
-                    const Column(
-                      children: [
-                        SkeletonIncidentCard(),
-                        SizedBox(height: 10),
-                        SkeletonIncidentCard(),
-                        SizedBox(height: 10),
-                        SkeletonIncidentCard(),
-                      ],
-                    )
-                  else if (snapshot.hasError)
-                    _ReportsError(
-                      message: snapshot.error.toString(),
-                      onRetry: _reload,
-                    )
-                  else if (filtered.isEmpty)
-                    _EmptyReports(
-                      isMyReports: _selectedTab == 1,
-                      onCreate: _openReportForm,
-                    )
-                  else
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final availableWidth = constraints.maxWidth;
-                        final cols = availableWidth >= 1100 ? 3 : (availableWidth >= 680 ? 2 : 1);
-                        if (cols == 1) {
-                          return Column(
+                    // ESTADOS DE CARGA / LISTADO
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const Column(
+                        children: [
+                          SkeletonIncidentCard(),
+                          SizedBox(height: 10),
+                          SkeletonIncidentCard(),
+                          SizedBox(height: 10),
+                          SkeletonIncidentCard(),
+                        ],
+                      )
+                    else if (snapshot.hasError)
+                      _ReportsError(
+                        message: snapshot.error.toString(),
+                        onRetry: _reload,
+                      )
+                    else if (filtered.isEmpty)
+                      _EmptyReports(
+                        isMyReports: _selectedTab == 1,
+                        onCreate: _openReportForm,
+                      )
+                    else
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final availableWidth = constraints.maxWidth;
+                          final cols = availableWidth >= 1100
+                              ? 3
+                              : (availableWidth >= 680 ? 2 : 1);
+                          if (cols == 1) {
+                            return Column(
+                              children: [
+                                for (final incident in filtered)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _FigmaReportCard(
+                                      incident: incident,
+                                      onTap: () => _showDetails(incident),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }
+                          const spacing = 16.0;
+                          final cardWidth =
+                              (availableWidth - (spacing * (cols - 1))) / cols;
+                          return Wrap(
+                            spacing: spacing,
+                            runSpacing: spacing,
                             children: [
                               for (final incident in filtered)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
+                                SizedBox(
+                                  width: cardWidth,
                                   child: _FigmaReportCard(
                                     incident: incident,
                                     onTap: () => _showDetails(incident),
@@ -501,64 +568,58 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                                 ),
                             ],
                           );
-                        }
-                        const spacing = 16.0;
-                        final cardWidth = (availableWidth - (spacing * (cols - 1))) / cols;
-                        return Wrap(
-                          spacing: spacing,
-                          runSpacing: spacing,
-                          children: [
-                            for (final incident in filtered)
-                              SizedBox(
-                                width: cardWidth,
-                                child: _FigmaReportCard(
-                                  incident: incident,
-                                  onTap: () => _showDetails(incident),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
+                        },
+                      ),
 
-                  Offstage(
-                    offstage: _selectedTab != 1,
-                    child: FutureBuilder<List<ReportDraft>>(
-                      future: _pending,
-                      builder: (context, snapshot) {
-                        final pending = snapshot.data ?? const <ReportDraft>[];
-                        return Column(
-                          children: [
-                            DraftReminderCard(store: widget.drafts, pending: pending),
-                            if (pending.isNotEmpty)
-                              _PendingReports(
-                                drafts: pending,
-                                onRetry: _retryPending,
-                                onDelete: _deletePending,
+                    Offstage(
+                      offstage: _selectedTab != 1,
+                      child: FutureBuilder<List<ReportDraft>>(
+                        future: _pending,
+                        builder: (context, snapshot) {
+                          final pending =
+                              snapshot.data ?? const <ReportDraft>[];
+                          return Column(
+                            children: [
+                              DraftReminderCard(
+                                store: widget.drafts,
+                                pending: pending,
                               ),
-                          ],
-                        );
-                      },
+                              if (pending.isNotEmpty)
+                                _PendingReports(
+                                  drafts: pending,
+                                  onRetry: _retryPending,
+                                  onDelete: _deletePending,
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
 
                     const SizedBox(height: 18),
 
                     // 5. BANNER INFORMATIVO (Figma 04): "Una comunidad que se cuida"
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.people_outline_rounded,
-                            color: isDark ? AppColors.sky : const Color(0xFF0F4C81),
+                            color: isDark
+                                ? AppColors.sky
+                                : const Color(0xFF0F4C81),
                             size: 22,
                           ),
                           const SizedBox(width: 12),
@@ -571,7 +632,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                    color: isDark
+                                        ? AppColors.darkText
+                                        : const Color(0xFF142C40),
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -579,7 +642,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                                   'Reporta con respeto. No compartas datos personales.',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -593,12 +658,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   ],
                 ),
               );
-              },
-            ),
+            },
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
   void _openInitialIncidentIfAvailable(
     BuildContext context,
@@ -622,7 +687,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       showDialog<void>(
         context: context,
         builder: (ctx) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: isDark ? AppColors.darkCard : Colors.white,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 580, maxHeight: 680),
@@ -641,7 +708,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                            color: isDark
+                                ? AppColors.darkText
+                                : const Color(0xFF142C40),
                           ),
                         ),
                       ),
@@ -683,7 +752,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                    color: isDark
+                        ? AppColors.darkText
+                        : const Color(0xFF142C40),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -708,7 +779,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -716,7 +789,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF475569),
                 ),
               ),
             ),
@@ -724,7 +799,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          incident.description.isEmpty ? 'Sin descripción' : incident.description,
+          incident.description.isEmpty
+              ? 'Sin descripción'
+              : incident.description,
           style: TextStyle(
             fontSize: 14,
             color: isDark ? AppColors.darkText : const Color(0xFF334155),
@@ -748,7 +825,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                    color: isDark
+                        ? AppColors.darkText
+                        : const Color(0xFF142C40),
                   ),
                 ),
               ),
@@ -773,6 +852,25 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
               fontSize: 11,
             ),
+          ),
+        ],
+        if (incident.imageUrls.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          const Text('Evidencias adjuntas'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final url in incident.imageUrls)
+                EvidenceImage(
+                  url: url,
+                  api: widget.api,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+            ],
           ),
         ],
       ],
@@ -882,10 +980,7 @@ class _StatusFilterPill extends StatelessWidget {
 }
 
 class _FigmaReportCard extends StatelessWidget {
-  const _FigmaReportCard({
-    required this.incident,
-    required this.onTap,
-  });
+  const _FigmaReportCard({required this.incident, required this.onTap});
 
   final Incident incident;
   final VoidCallback onTap;
@@ -893,7 +988,10 @@ class _FigmaReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final (categoryName, iconData, iconColor, iconBg) = _categoryInfo(incident.type, isDark);
+    final (categoryName, iconData, iconColor, iconBg) = _categoryInfo(
+      incident.type,
+      isDark,
+    );
 
     return InkWell(
       onTap: onTap,
@@ -949,7 +1047,9 @@ class _FigmaReportCard extends StatelessWidget {
                         'a 450 m',
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF94A3B8),
                         ),
                       ),
                     ],
@@ -957,13 +1057,17 @@ class _FigmaReportCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   // Título / Descripción
                   Text(
-                    incident.description.isNotEmpty ? incident.description : incident.type,
+                    incident.description.isNotEmpty
+                        ? incident.description
+                        : incident.type,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                      color: isDark
+                          ? AppColors.darkText
+                          : const Color(0xFF142C40),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -972,7 +1076,9 @@ class _FigmaReportCard extends StatelessWidget {
                     '${incident.location.isNotEmpty ? incident.location : "Cartagena"} · ${_formatRelativeTime(incident.createdAt)}',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -988,7 +1094,9 @@ class _FigmaReportCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10),
               child: Icon(
                 Icons.chevron_right_rounded,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFFCBD5E1),
                 size: 20,
               ),
             ),
@@ -1000,7 +1108,9 @@ class _FigmaReportCard extends StatelessWidget {
 
   (String, IconData, Color, Color) _categoryInfo(String type, bool isDark) {
     final lower = type.toLowerCase();
-    if (lower.contains('traf') || lower.contains('movil') || lower.contains('accidente')) {
+    if (lower.contains('traf') ||
+        lower.contains('movil') ||
+        lower.contains('accidente')) {
       return (
         'Tráfico',
         Icons.directions_car_rounded,
@@ -1008,7 +1118,9 @@ class _FigmaReportCard extends StatelessWidget {
         isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
       );
     }
-    if (lower.contains('segur') || lower.contains('robo') || lower.contains('sospech')) {
+    if (lower.contains('segur') ||
+        lower.contains('robo') ||
+        lower.contains('sospech')) {
       return (
         'Seguridad',
         Icons.shield_outlined,
@@ -1016,7 +1128,10 @@ class _FigmaReportCard extends StatelessWidget {
         isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
       );
     }
-    if (lower.contains('vía') || lower.contains('via') || lower.contains('calle') || lower.contains('obra')) {
+    if (lower.contains('vía') ||
+        lower.contains('via') ||
+        lower.contains('calle') ||
+        lower.contains('obra')) {
       return (
         'Vía cerrada',
         Icons.construction_rounded,
@@ -1024,7 +1139,9 @@ class _FigmaReportCard extends StatelessWidget {
         isDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
       );
     }
-    if (lower.contains('alumbr') || lower.contains('luz') || lower.contains('lumin')) {
+    if (lower.contains('alumbr') ||
+        lower.contains('luz') ||
+        lower.contains('lumin')) {
       return (
         'Servicios',
         Icons.lightbulb_outline_rounded,
@@ -1049,23 +1166,24 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
+    final effectiveIsDark =
+        isDark ?? (Theme.of(context).brightness == Brightness.dark);
     final (label, bg, fg) = switch (status.toUpperCase()) {
       'RESOLVED' => (
-          'Resuelto',
-          effectiveIsDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
-          effectiveIsDark ? const Color(0xFF6EE7B7) : const Color(0xFF087554),
-        ),
+        'Resuelto',
+        effectiveIsDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),
+        effectiveIsDark ? const Color(0xFF6EE7B7) : const Color(0xFF087554),
+      ),
       'IN_PROGRESS' => (
-          'En atención',
-          effectiveIsDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
-          effectiveIsDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
-        ),
+        'En atención',
+        effectiveIsDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
+        effectiveIsDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
+      ),
       _ => (
-          'En revisión',
-          effectiveIsDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-          effectiveIsDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-        ),
+        'En revisión',
+        effectiveIsDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        effectiveIsDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+      ),
     };
 
     return Container(
@@ -1074,16 +1192,14 @@ class _StatusBadge extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: effectiveIsDark ? fg.withValues(alpha: 0.3) : Colors.transparent,
+          color: effectiveIsDark
+              ? fg.withValues(alpha: 0.3)
+              : Colors.transparent,
         ),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }
@@ -1125,7 +1241,9 @@ class _EmptyReports extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            isMyReports ? 'No has creado reportes aún' : 'No hay reportes en esta categoría',
+            isMyReports
+                ? 'No has creado reportes aún'
+                : 'No hay reportes en esta categoría',
             style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 15,
@@ -1146,7 +1264,9 @@ class _EmptyReports extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0F4C81),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: onCreate,
             icon: const Icon(Icons.add, size: 16),
@@ -1167,7 +1287,8 @@ class _ReportsError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isAuthError = message.contains('401') ||
+    final isAuthError =
+        message.contains('401') ||
         message.contains('403') ||
         message.toLowerCase().contains('sesión') ||
         message.toLowerCase().contains('autentic');
@@ -1290,7 +1411,9 @@ class _PendingReports extends StatelessWidget {
               children: [
                 Icon(
                   Icons.cloud_upload_outlined,
-                  color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                  color: isDark
+                      ? AppColors.brightBlue
+                      : const Color(0xFF0F4C81),
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -1303,7 +1426,9 @@ class _PendingReports extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
-                          color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                          color: isDark
+                              ? AppColors.darkText
+                              : const Color(0xFF142C40),
                         ),
                       ),
                       Text(
@@ -1312,7 +1437,9 @@ class _PendingReports extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -1324,7 +1451,9 @@ class _PendingReports extends StatelessWidget {
                   icon: Icon(
                     Icons.refresh_rounded,
                     size: 20,
-                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                    color: isDark
+                        ? AppColors.brightBlue
+                        : const Color(0xFF0F4C81),
                   ),
                 ),
                 IconButton(

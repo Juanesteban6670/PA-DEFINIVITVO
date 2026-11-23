@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:cartagena_segura/shared/theme.dart';
@@ -69,7 +70,10 @@ class KpiMetricCard extends StatelessWidget {
                   ),
                   if (badgeText != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: (badgeColor ?? color).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(999),
@@ -108,7 +112,9 @@ class KpiMetricCard extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   fontSize: 10,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ],
@@ -133,7 +139,10 @@ class CategoryBarChartWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (categories.isEmpty) {
-      return const SizedBox(height: 180, child: Center(child: Text('Sin datos de categorías')));
+      return const SizedBox(
+        height: 180,
+        child: Center(child: Text('Sin datos de categorías')),
+      );
     }
 
     final entries = categories.entries.toList();
@@ -185,9 +194,13 @@ class CategoryBarChartWidget extends StatelessWidget {
                 showTitles: true,
                 getTitlesWidget: (val, meta) {
                   final idx = val.toInt();
-                  if (idx < 0 || idx >= entries.length) return const SizedBox.shrink();
+                  if (idx < 0 || idx >= entries.length) {
+                    return const SizedBox.shrink();
+                  }
                   final name = entries[idx].key;
-                  final shortName = name.length > 7 ? '${name.substring(0, 6)}.' : name;
+                  final shortName = name.length > 7
+                      ? '${name.substring(0, 6)}.'
+                      : name;
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
@@ -195,7 +208,9 @@ class CategoryBarChartWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
                       ),
                     ),
                   );
@@ -207,7 +222,9 @@ class CategoryBarChartWidget extends StatelessWidget {
                 showTitles: true,
                 reservedSize: 28,
                 getTitlesWidget: (val, meta) {
-                  if (val == meta.max || val == 0) return const SizedBox.shrink();
+                  if (val == meta.max || val == 0) {
+                    return const SizedBox.shrink();
+                  }
                   return Text(
                     '${val.toInt()}',
                     style: TextStyle(
@@ -218,8 +235,12 @@ class CategoryBarChartWidget extends StatelessWidget {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: FlGridData(
             show: true,
@@ -240,11 +261,15 @@ class CategoryBarChartWidget extends StatelessWidget {
                     toY: entries[i].value.toDouble(),
                     color: colors[i % colors.length],
                     width: 20,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(6),
+                    ),
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: topLimit,
-                      color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.04)
+                          : Colors.black.withValues(alpha: 0.03),
                     ),
                   ),
                 ],
@@ -264,16 +289,22 @@ class TimelineLineChartWidget extends StatelessWidget {
     super.key,
   });
 
-  final List<Map<String, dynamic>> timelinePoints; // {'label': 'Lun', 'count': 5}
+  final List<Map<String, dynamic>>
+  timelinePoints; // {'label': 'Lun', 'count': 5}
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     if (timelinePoints.isEmpty) {
-      return const SizedBox(height: 200, child: Center(child: Text('Sin datos temporales')));
+      return const SizedBox(
+        height: 200,
+        child: Center(child: Text('Sin datos temporales')),
+      );
     }
 
-    final maxVal = timelinePoints.map((p) => p['count'] as int).fold<int>(0, math.max);
+    final maxVal = timelinePoints
+        .map((p) => p['count'] as int)
+        .fold<int>(0, math.max);
     final topLimit = maxVal > 0 ? (maxVal * 1.3).ceil().toDouble() : 5.0;
 
     final lineSpots = <FlSpot>[
@@ -294,10 +325,16 @@ class TimelineLineChartWidget extends StatelessWidget {
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final idx = spot.x.toInt();
-                  final label = idx >= 0 && idx < timelinePoints.length ? timelinePoints[idx]['label'] : '';
+                  final label = idx >= 0 && idx < timelinePoints.length
+                      ? timelinePoints[idx]['label']
+                      : '';
                   return LineTooltipItem(
                     '$label: ${spot.y.toInt()} casos',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
                   );
                 }).toList();
               },
@@ -309,7 +346,9 @@ class TimelineLineChartWidget extends StatelessWidget {
                 showTitles: true,
                 getTitlesWidget: (val, meta) {
                   final idx = val.toInt();
-                  if (idx < 0 || idx >= timelinePoints.length) return const SizedBox.shrink();
+                  if (idx < 0 || idx >= timelinePoints.length) {
+                    return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
@@ -317,7 +356,9 @@ class TimelineLineChartWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.muted,
                       ),
                     ),
                   );
@@ -329,7 +370,9 @@ class TimelineLineChartWidget extends StatelessWidget {
                 showTitles: true,
                 reservedSize: 24,
                 getTitlesWidget: (val, meta) {
-                  if (val == meta.max || val == 0) return const SizedBox.shrink();
+                  if (val == meta.max || val == 0) {
+                    return const SizedBox.shrink();
+                  }
                   return Text(
                     '${val.toInt()}',
                     style: TextStyle(
@@ -340,8 +383,12 @@ class TimelineLineChartWidget extends StatelessWidget {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: FlGridData(
             show: true,
@@ -418,10 +465,16 @@ class ComparisonChartWidget extends StatelessWidget {
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final label = group.x == 0 ? 'Reportes Recibidos' : 'Casos Resueltos';
+                final label = group.x == 0
+                    ? 'Reportes Recibidos'
+                    : 'Casos Resueltos';
                 return BarTooltipItem(
                   '$label: ${rod.toY.toInt()}',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 );
               },
             ),
@@ -451,18 +504,33 @@ class ComparisonChartWidget extends StatelessWidget {
                 showTitles: true,
                 reservedSize: 26,
                 getTitlesWidget: (val, meta) {
-                  if (val == meta.max || val == 0) return const SizedBox.shrink();
-                  return Text('${val.toInt()}', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.muted));
+                  if (val == meta.max || val == 0) {
+                    return const SizedBox.shrink();
+                  }
+                  return Text(
+                    '${val.toInt()}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                    ),
+                  );
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => FlLine(color: isDark ? AppColors.darkBorder : AppColors.border, strokeWidth: 0.8),
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+              strokeWidth: 0.8,
+            ),
           ),
           borderData: FlBorderData(show: false),
           barGroups: [
@@ -473,7 +541,9 @@ class ComparisonChartWidget extends StatelessWidget {
                   toY: receivedCount.toDouble(),
                   color: isDark ? AppColors.brightBlue : AppColors.blue,
                   width: 38,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
                 ),
               ],
             ),
@@ -484,7 +554,9 @@ class ComparisonChartWidget extends StatelessWidget {
                   toY: resolvedCount.toDouble(),
                   color: isDark ? AppColors.darkGreen : AppColors.green,
                   width: 38,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
                 ),
               ],
             ),

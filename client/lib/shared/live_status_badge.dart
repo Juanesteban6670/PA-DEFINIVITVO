@@ -23,25 +23,25 @@ class LiveStatusBadge extends StatelessWidget {
       builder: (context, mode, _) {
         final (Color dotColor, String label, String tooltip) = switch (mode) {
           RealtimeMode.webSocket => (
-              AppColors.green,
-              compact ? 'VIVO' : 'EN VIVO',
-              'Conexión WebSocket STOMP activa (latencia cero)',
-            ),
+            AppColors.green,
+            compact ? 'VIVO' : 'EN VIVO',
+            'Conexión WebSocket STOMP activa (latencia cero)',
+          ),
           RealtimeMode.pollingFallback => (
-              AppColors.brightBlue,
-              compact ? 'SYNC' : 'EN LÍNEA',
-              'Sincronización adaptativa activa (modo resiliente)',
-            ),
+            AppColors.brightBlue,
+            compact ? 'SYNC' : 'EN LÍNEA',
+            'Sincronización adaptativa activa (modo resiliente)',
+          ),
           RealtimeMode.connecting => (
-              AppColors.amber,
-              compact ? '...' : 'CONECTANDO',
-              'Estableciendo canal en tiempo real...',
-            ),
+            AppColors.amber,
+            compact ? '...' : 'CONECTANDO',
+            'Estableciendo canal en tiempo real...',
+          ),
           RealtimeMode.disconnected => (
-              AppColors.muted,
-              compact ? 'OFF' : 'DESCONECTADO',
-              'Sin conexión al canal en tiempo real',
-            ),
+            AppColors.muted,
+            compact ? 'OFF' : 'DESCONECTADO',
+            'Sin conexión al canal en tiempo real',
+          ),
         };
 
         final isDark = Theme.of(context).brightness == Brightness.dark;

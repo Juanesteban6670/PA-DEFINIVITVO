@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
@@ -91,11 +92,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
       context: context,
       firstDate: DateTime(2025, 1, 1),
       lastDate: now.add(const Duration(days: 1)),
-      initialDateRange: _customDateRange ??
-          DateTimeRange(
-            start: now.subtract(const Duration(days: 7)),
-            end: now,
-          ),
+      initialDateRange:
+          _customDateRange ??
+          DateTimeRange(start: now.subtract(const Duration(days: 7)), end: now),
       helpText: 'Seleccionar rango de fechas',
       confirmText: 'Aplicar',
       cancelText: 'Cancelar',
@@ -115,8 +114,19 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     return all.where((inc) {
       // 1. Filtro temporal
       if (_customDateRange != null && _selectedPeriod == 'Personalizado') {
-        final start = DateTime(_customDateRange!.start.year, _customDateRange!.start.month, _customDateRange!.start.day);
-        final end = DateTime(_customDateRange!.end.year, _customDateRange!.end.month, _customDateRange!.end.day, 23, 59, 59);
+        final start = DateTime(
+          _customDateRange!.start.year,
+          _customDateRange!.start.month,
+          _customDateRange!.start.day,
+        );
+        final end = DateTime(
+          _customDateRange!.end.year,
+          _customDateRange!.end.month,
+          _customDateRange!.end.day,
+          23,
+          59,
+          59,
+        );
         final d = inc.createdAt;
         if (d == null || d.isBefore(start) || d.isAfter(end)) return false;
       } else {
@@ -131,13 +141,19 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
             if (d.isBefore(now.subtract(const Duration(days: 7)))) return false;
             break;
           case 'Últimos 30 días':
-            if (d.isBefore(now.subtract(const Duration(days: 30)))) return false;
+            if (d.isBefore(now.subtract(const Duration(days: 30)))) {
+              return false;
+            }
             break;
           case 'Últimos 6 meses':
-            if (d.isBefore(now.subtract(const Duration(days: 180)))) return false;
+            if (d.isBefore(now.subtract(const Duration(days: 180)))) {
+              return false;
+            }
             break;
           case 'Último año':
-            if (d.isBefore(now.subtract(const Duration(days: 365)))) return false;
+            if (d.isBefore(now.subtract(const Duration(days: 365)))) {
+              return false;
+            }
             break;
         }
       }
@@ -146,13 +162,36 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
       if (_selectedCategory != 'Todas') {
         final t = inc.type.toUpperCase();
         if (_selectedCategory == 'Seguridad') {
-          if (!t.contains('ROBO') && !t.contains('HURTO') && !t.contains('SEGURIDAD') && !t.contains('SOS') && !t.contains('PELEA')) return false;
+          if (!t.contains('ROBO') &&
+              !t.contains('HURTO') &&
+              !t.contains('SEGURIDAD') &&
+              !t.contains('SOS') &&
+              !t.contains('PELEA')) {
+            return false;
+          }
         } else if (_selectedCategory == 'Tráfico') {
-          if (!t.contains('TRAF') && !t.contains('TRANSIT') && !t.contains('VIA') && !t.contains('OBSTACULO') && !t.contains('CONGESTION')) return false;
+          if (!t.contains('TRAF') &&
+              !t.contains('TRANSIT') &&
+              !t.contains('VIA') &&
+              !t.contains('OBSTACULO') &&
+              !t.contains('CONGESTION')) {
+            return false;
+          }
         } else if (_selectedCategory == 'Servicios') {
-          if (!t.contains('INFRA') && !t.contains('ALUMBR') && !t.contains('HUECO') && !t.contains('AGUA') && !t.contains('BASURA')) return false;
+          if (!t.contains('INFRA') &&
+              !t.contains('ALUMBR') &&
+              !t.contains('HUECO') &&
+              !t.contains('AGUA') &&
+              !t.contains('BASURA')) {
+            return false;
+          }
         } else if (_selectedCategory == 'Otros') {
-          if (t.contains('ROBO') || t.contains('TRAF') || t.contains('INFRA') || t.contains('SEGURIDAD')) return false;
+          if (t.contains('ROBO') ||
+              t.contains('TRAF') ||
+              t.contains('INFRA') ||
+              t.contains('SEGURIDAD')) {
+            return false;
+          }
         }
       }
 
@@ -168,7 +207,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
       if (_selectedStatus != 'Todos') {
         final st = inc.status.toUpperCase();
         if (_selectedStatus == 'Pendientes' && st != 'PENDING') return false;
-        if (_selectedStatus == 'En atención' && st != 'IN_PROGRESS') return false;
+        if (_selectedStatus == 'En atención' && st != 'IN_PROGRESS') {
+          return false;
+        }
         if (_selectedStatus == 'Resueltos' && st != 'RESOLVED') return false;
       }
 
@@ -186,7 +227,11 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
         child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
-            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            horizontal: context.responsiveValue(
+              mobile: 16.0,
+              tablet: 24.0,
+              desktop: 32.0,
+            ),
             vertical: 14.0,
           ),
           child: FutureBuilder<List<Incident>>(
@@ -200,9 +245,19 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.error_outline_rounded, size: 40, color: isDark ? AppColors.darkRed : AppColors.red),
+                      Icon(
+                        Icons.error_outline_rounded,
+                        size: 40,
+                        color: isDark ? AppColors.darkRed : AppColors.red,
+                      ),
                       const SizedBox(height: 10),
-                      Text('Error al cargar datos estadísticos', style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? AppColors.darkText : AppColors.navy)),
+                      Text(
+                        'Error al cargar datos estadísticos',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.darkText : AppColors.navy,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       ElevatedButton.icon(
                         onPressed: () => setState(_loadData),
@@ -219,10 +274,18 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
 
               // Cálculos KPI
               final total = filtered.length;
-              final pendingCount = filtered.where((i) => i.status.toUpperCase() == 'PENDING').length;
-              final inProgressCount = filtered.where((i) => i.status.toUpperCase() == 'IN_PROGRESS').length;
-              final resolvedCount = filtered.where((i) => i.status.toUpperCase() == 'RESOLVED').length;
-              final resolutionRate = total > 0 ? ((resolvedCount / total) * 100).round() : 0;
+              final pendingCount = filtered
+                  .where((i) => i.status.toUpperCase() == 'PENDING')
+                  .length;
+              final inProgressCount = filtered
+                  .where((i) => i.status.toUpperCase() == 'IN_PROGRESS')
+                  .length;
+              final resolvedCount = filtered
+                  .where((i) => i.status.toUpperCase() == 'RESOLVED')
+                  .length;
+              final resolutionRate = total > 0
+                  ? ((resolvedCount / total) * 100).round()
+                  : 0;
 
               // Conteo por categorías para el BarChart
               int segCount = 0;
@@ -232,11 +295,21 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
 
               for (final inc in filtered) {
                 final t = inc.type.toUpperCase();
-                if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA')) {
+                if (t.contains('ROBO') ||
+                    t.contains('HURTO') ||
+                    t.contains('SEGURIDAD') ||
+                    t.contains('SOS') ||
+                    t.contains('PELEA')) {
                   segCount++;
-                } else if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('VIA') || t.contains('CONGESTION')) {
+                } else if (t.contains('TRAF') ||
+                    t.contains('TRANSIT') ||
+                    t.contains('VIA') ||
+                    t.contains('CONGESTION')) {
                   trafCount++;
-                } else if (t.contains('INFRA') || t.contains('ALUMBR') || t.contains('HUECO') || t.contains('AGUA')) {
+                } else if (t.contains('INFRA') ||
+                    t.contains('ALUMBR') ||
+                    t.contains('HUECO') ||
+                    t.contains('AGUA')) {
                   servCount++;
                 } else {
                   otrosCount++;
@@ -253,7 +326,15 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
               // Evolución temporal para el LineChart (últimos 7 cortes o días)
               final now = DateTime.now();
               final List<Map<String, dynamic>> timelinePoints = [];
-              const dayLetters = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+              const dayLetters = [
+                'Lun',
+                'Mar',
+                'Mié',
+                'Jue',
+                'Vie',
+                'Sáb',
+                'Dom',
+              ];
 
               for (int i = 6; i >= 0; i--) {
                 final targetDay = now.subtract(Duration(days: i));
@@ -261,7 +342,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                 final count = filtered.where((inc) {
                   final d = inc.createdAt;
                   if (d == null) return false;
-                  return d.year == targetDay.year && d.month == targetDay.month && d.day == targetDay.day;
+                  return d.year == targetDay.year &&
+                      d.month == targetDay.month &&
+                      d.day == targetDay.day;
                 }).length;
                 timelinePoints.add({'label': label, 'count': count});
               }
@@ -273,14 +356,17 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                 final count = filtered.where((inc) {
                   final loc = inc.location.toLowerCase();
                   final desc = inc.description.toLowerCase();
-                  return loc.contains(sec.toLowerCase()) || desc.contains(sec.toLowerCase());
+                  return loc.contains(sec.toLowerCase()) ||
+                      desc.contains(sec.toLowerCase());
                 }).length;
                 if (count > 0) sectorMap[sec] = count;
               }
 
               final sortedSectors = sectorMap.entries.toList()
                 ..sort((a, b) => b.value.compareTo(a.value));
-              final maxSectorVal = sortedSectors.isNotEmpty ? sortedSectors.first.value : 1;
+              final maxSectorVal = sortedSectors.isNotEmpty
+                  ? sortedSectors.first.value
+                  : 1;
 
               return RefreshIndicator(
                 color: isDark ? AppColors.brightBlue : AppColors.blue,
@@ -302,7 +388,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? AppColors.darkText : AppColors.navy,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.navy,
                                   letterSpacing: -0.4,
                                 ),
                               ),
@@ -311,7 +399,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 'Monitoreo de incidentes y resolución en tiempo real',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                  color: isDark
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.muted,
                                 ),
                               ),
                             ],
@@ -328,7 +418,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                         children: [
                           for (final p in _periods) ...[
                             _buildPeriodChip(
-                              label: p == 'Personalizado' && _customDateRange != null
+                              label:
+                                  p == 'Personalizado' &&
+                                      _customDateRange != null
                                   ? '${_customDateRange!.start.day}/${_customDateRange!.start.month} - ${_customDateRange!.end.day}/${_customDateRange!.end.month}'
                                   : p,
                               isSelected: _selectedPeriod == p,
@@ -361,7 +453,8 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             label: 'Sector: $_selectedSector',
                             items: _sectors,
                             currentValue: _selectedSector,
-                            onChanged: (val) => setState(() => _selectedSector = val),
+                            onChanged: (val) =>
+                                setState(() => _selectedSector = val),
                             isDark: isDark,
                           ),
                           const SizedBox(width: 8),
@@ -371,7 +464,8 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             label: 'Categoría: $_selectedCategory',
                             items: _categories,
                             currentValue: _selectedCategory,
-                            onChanged: (val) => setState(() => _selectedCategory = val),
+                            onChanged: (val) =>
+                                setState(() => _selectedCategory = val),
                             isDark: isDark,
                           ),
                           const SizedBox(width: 8),
@@ -381,10 +475,13 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                             label: 'Estado: $_selectedStatus',
                             items: _statuses,
                             currentValue: _selectedStatus,
-                            onChanged: (val) => setState(() => _selectedStatus = val),
+                            onChanged: (val) =>
+                                setState(() => _selectedStatus = val),
                             isDark: isDark,
                           ),
-                          if (_selectedCategory != 'Todas' || _selectedSector != 'Todos' || _selectedStatus != 'Todos') ...[
+                          if (_selectedCategory != 'Todas' ||
+                              _selectedSector != 'Todos' ||
+                              _selectedStatus != 'Todos') ...[
                             const SizedBox(width: 8),
                             TextButton(
                               onPressed: () {
@@ -394,7 +491,10 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                   _selectedStatus = 'Todos';
                                 });
                               },
-                              child: const Text('Limpiar', style: TextStyle(fontSize: 12)),
+                              child: const Text(
+                                'Limpiar',
+                                style: TextStyle(fontSize: 12),
+                              ),
                             ),
                           ],
                         ],
@@ -406,7 +506,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth >= 600;
-                        final cardWidth = isWide ? (constraints.maxWidth - 36) / 4 : (constraints.maxWidth - 12) / 2;
+                        final cardWidth = isWide
+                            ? (constraints.maxWidth - 36) / 4
+                            : (constraints.maxWidth - 12) / 2;
 
                         return Wrap(
                           spacing: 12,
@@ -419,7 +521,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 value: '$total',
                                 subtitle: 'Registrados en base de datos',
                                 icon: Icons.assignment_outlined,
-                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                                color: isDark
+                                    ? AppColors.brightBlue
+                                    : AppColors.blue,
                                 isDark: isDark,
                               ),
                             ),
@@ -430,7 +534,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 value: '$pendingCount',
                                 subtitle: '$inProgressCount en atención activa',
                                 icon: Icons.hourglass_top_rounded,
-                                color: isDark ? AppColors.darkAmber : AppColors.amber,
+                                color: isDark
+                                    ? AppColors.darkAmber
+                                    : AppColors.amber,
                                 badgeText: 'Pendientes',
                                 isDark: isDark,
                               ),
@@ -442,9 +548,13 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 value: '$resolvedCount',
                                 subtitle: '$resolutionRate% tasa de solución',
                                 icon: Icons.check_circle_outline_rounded,
-                                color: isDark ? AppColors.darkGreen : AppColors.green,
+                                color: isDark
+                                    ? AppColors.darkGreen
+                                    : AppColors.green,
                                 badgeText: '$resolutionRate%',
-                                badgeColor: isDark ? AppColors.darkGreen : AppColors.green,
+                                badgeColor: isDark
+                                    ? AppColors.darkGreen
+                                    : AppColors.green,
                                 isDark: isDark,
                               ),
                             ),
@@ -455,9 +565,13 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 value: '2.8 h',
                                 subtitle: 'Meta de cuadrante < 4h',
                                 icon: Icons.speed_rounded,
-                                color: isDark ? AppColors.sky : const Color(0xFF0284C7),
+                                color: isDark
+                                    ? AppColors.sky
+                                    : const Color(0xFF0284C7),
                                 badgeText: 'Óptimo',
-                                badgeColor: isDark ? AppColors.darkGreen : AppColors.green,
+                                badgeColor: isDark
+                                    ? AppColors.darkGreen
+                                    : AppColors.green,
                                 isDark: isDark,
                               ),
                             ),
@@ -504,7 +618,14 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                   title: 'Distribución Porcentual',
                                   subtitle: 'Participación por categorías',
                                   isDark: isDark,
-                                  child: _buildDonutChart(segCount, trafCount, servCount, otrosCount, total, isDark),
+                                  child: _buildDonutChart(
+                                    segCount,
+                                    trafCount,
+                                    servCount,
+                                    otrosCount,
+                                    total,
+                                    isDark,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -529,7 +650,14 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                                 title: 'Distribución Porcentual',
                                 subtitle: 'Participación por categorías',
                                 isDark: isDark,
-                                child: _buildDonutChart(segCount, trafCount, servCount, otrosCount, total, isDark),
+                                child: _buildDonutChart(
+                                  segCount,
+                                  trafCount,
+                                  servCount,
+                                  otrosCount,
+                                  total,
+                                  isDark,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               _buildSectionCard(
@@ -552,14 +680,17 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
                     // 4. Ranking de Barrios y Sectores con Mayor Concentración
                     _buildSectionCard(
                       title: 'Ranking de Sectores con Mayor Concentración',
-                      subtitle: 'Identificación de focos de incidentes en Cartagena',
+                      subtitle:
+                          'Identificación de focos de incidentes en Cartagena',
                       isDark: isDark,
                       child: Column(
                         children: [
                           if (sortedSectors.isEmpty)
                             const Padding(
                               padding: EdgeInsets.all(20),
-                              child: Text('No hay incidentes reportados en los sectores principales.'),
+                              child: Text(
+                                'No hay incidentes reportados en los sectores principales.',
+                              ),
                             )
                           else
                             for (final entry in sortedSectors.take(6)) ...[
@@ -606,7 +737,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           color: isSelected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? activeBg : (isDark ? AppColors.darkBorder : AppColors.border),
+            color: isSelected
+                ? activeBg
+                : (isDark ? AppColors.darkBorder : AppColors.border),
             width: 0.8,
           ),
         ),
@@ -615,7 +748,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            color: isSelected ? Colors.white : (isDark ? AppColors.darkText : AppColors.navy),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkText : AppColors.navy),
           ),
         ),
       ),
@@ -635,7 +770,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       decoration: BoxDecoration(
         color: isSelected
-            ? (isDark ? AppColors.brightBlue.withValues(alpha: 0.15) : AppColors.blue.withValues(alpha: 0.1))
+            ? (isDark
+                  ? AppColors.brightBlue.withValues(alpha: 0.15)
+                  : AppColors.blue.withValues(alpha: 0.1))
             : (isDark ? AppColors.darkCard : Colors.white),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
@@ -650,7 +787,11 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           value: currentValue,
           isDense: true,
           dropdownColor: isDark ? AppColors.darkCard : Colors.white,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: isDark ? AppColors.darkText : AppColors.navy),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: isDark ? AppColors.darkText : AppColors.navy,
+          ),
           items: items.map((item) {
             return DropdownMenuItem<String>(
               value: item,
@@ -722,9 +863,19 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     );
   }
 
-  Widget _buildDonutChart(int seg, int traf, int serv, int otros, int total, bool isDark) {
+  Widget _buildDonutChart(
+    int seg,
+    int traf,
+    int serv,
+    int otros,
+    int total,
+    bool isDark,
+  ) {
     if (total == 0) {
-      return const SizedBox(height: 180, child: Center(child: Text('Sin incidentes en este período')));
+      return const SizedBox(
+        height: 180,
+        child: Center(child: Text('Sin incidentes en este período')),
+      );
     }
 
     final segPct = ((seg / total) * 100).round();
@@ -806,11 +957,27 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
           runSpacing: 6,
           alignment: WrapAlignment.center,
           children: [
-            _buildLegendItem('Seguridad ($segPct%)', isDark ? AppColors.darkRed : AppColors.red, isDark),
-            _buildLegendItem('Tráfico ($trafPct%)', isDark ? AppColors.darkAmber : AppColors.amber, isDark),
-            _buildLegendItem('Servicios ($servPct%)', isDark ? AppColors.sky : AppColors.blue, isDark),
+            _buildLegendItem(
+              'Seguridad ($segPct%)',
+              isDark ? AppColors.darkRed : AppColors.red,
+              isDark,
+            ),
+            _buildLegendItem(
+              'Tráfico ($trafPct%)',
+              isDark ? AppColors.darkAmber : AppColors.amber,
+              isDark,
+            ),
+            _buildLegendItem(
+              'Servicios ($servPct%)',
+              isDark ? AppColors.sky : AppColors.blue,
+              isDark,
+            ),
             if (otros > 0)
-              _buildLegendItem('Otros ($otrosPct%)', isDark ? AppColors.darkPurple : AppColors.purple, isDark),
+              _buildLegendItem(
+                'Otros ($otrosPct%)',
+                isDark ? AppColors.darkPurple : AppColors.purple,
+                isDark,
+              ),
           ],
         ),
       ],
@@ -821,11 +988,19 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 5),
         Text(
           label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkText : AppColors.navy),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.darkText : AppColors.navy,
+          ),
         ),
       ],
     );
@@ -843,7 +1018,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
     final isModerate = count > 7;
     final barColor = isCritical
         ? (isDark ? AppColors.darkRed : AppColors.red)
-        : (isModerate ? (isDark ? AppColors.darkAmber : AppColors.amber) : (isDark ? AppColors.brightBlue : AppColors.blue));
+        : (isModerate
+              ? (isDark ? AppColors.darkAmber : AppColors.amber)
+              : (isDark ? AppColors.brightBlue : AppColors.blue));
 
     return InkWell(
       onTap: onTap,
@@ -880,7 +1057,9 @@ class _AnalyticsCitizenScreenState extends State<AnalyticsCitizenScreen> {
               child: LinearProgressIndicator(
                 value: pct,
                 minHeight: 6,
-                backgroundColor: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                backgroundColor: isDark
+                    ? AppColors.darkBorder
+                    : const Color(0xFFE2E8F0),
                 valueColor: AlwaysStoppedAnimation<Color>(barColor),
               ),
             ),

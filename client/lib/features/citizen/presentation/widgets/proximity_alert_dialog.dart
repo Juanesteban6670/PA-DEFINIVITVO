@@ -20,7 +20,8 @@ class ProximityAlertDialog extends StatelessWidget {
   }) {
     showDialog<void>(
       context: context,
-      builder: (_) => ProximityAlertDialog(alert: alert, onViewOnMap: onViewOnMap),
+      builder: (_) =>
+          ProximityAlertDialog(alert: alert, onViewOnMap: onViewOnMap),
     );
   }
 
@@ -35,7 +36,9 @@ class ProximityAlertDialog extends StatelessWidget {
     if (alert.riskLevel == 'MEDIO') {
       return (
         isDark ? AppColors.darkAmber : AppColors.amber,
-        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: 0.15),
+        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(
+          alpha: 0.15,
+        ),
         Icons.shield_outlined,
       );
     }
@@ -112,7 +115,11 @@ class ProximityAlertDialog extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.fmd_good_rounded, size: 16, color: isDark ? AppColors.brightBlue : AppColors.blue),
+                    Icon(
+                      Icons.fmd_good_rounded,
+                      size: 16,
+                      color: isDark ? AppColors.brightBlue : AppColors.blue,
+                    ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -138,7 +145,9 @@ class ProximityAlertDialog extends StatelessWidget {
                     _buildInfoBadge(
                       label: 'A ~${alert.formattedDistance}',
                       color: isDark ? AppColors.darkText : AppColors.navy,
-                      bg: isDark ? AppColors.darkCardHover : const Color(0xFFE2E8F0),
+                      bg: isDark
+                          ? AppColors.darkCardHover
+                          : const Color(0xFFE2E8F0),
                     ),
                   ],
                 ),
@@ -164,7 +173,9 @@ class ProximityAlertDialog extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkBorder : const Color(0xFFEFF6FF),
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -184,7 +195,8 @@ class ProximityAlertDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: 0.1),
+              color: (isDark ? AppColors.darkAmber : AppColors.amber)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -202,7 +214,9 @@ class ProximityAlertDialog extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       height: 1.35,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF92400E),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF92400E),
                     ),
                   ),
                 ),
@@ -231,11 +245,16 @@ class ProximityAlertDialog extends StatelessWidget {
             onViewOnMap();
           },
           icon: const Icon(Icons.map_rounded, size: 16),
-          label: const Text('Ver en el mapa', style: TextStyle(fontWeight: FontWeight.w700)),
+          label: const Text(
+            'Ver en el mapa',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ],

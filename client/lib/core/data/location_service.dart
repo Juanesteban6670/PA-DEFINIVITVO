@@ -69,9 +69,7 @@ class LocationService {
 
     if (permission == LocationPermission.deniedForever) {
       throw LocationAccessException(
-        kIsWeb
-            ? 'El permiso de ubicación fue bloqueado en el navegador.'
-            : 'El permiso está bloqueado. Activa la ubicación para Cartagena Segura en los ajustes del dispositivo.',
+        kIsWeb ? 'El permiso de ubicación fue bloqueado en el navegador.' : 'El permiso está bloqueado. Activa la ubicación para Cartagena Segura en los ajustes del dispositivo.',
         settingsTarget: LocationSettingsTarget.app,
         isPermissionBlocked: true,
       );

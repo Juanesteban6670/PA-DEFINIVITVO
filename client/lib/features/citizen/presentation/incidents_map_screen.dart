@@ -380,34 +380,34 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       distanceFilter: 2,
     );
     try {
-      _gpsStreamSubscription = Geolocator.getPositionStream(
-        locationSettings: locationSettings,
-      ).listen(
-        (pos) {
-          if (!_isNavigating || !mounted) return;
-          if (_isSimulating) return;
+      _gpsStreamSubscription =
+          Geolocator.getPositionStream(locationSettings: locationSettings)
+              .listen(
+                (pos) {
+                  if (!_isNavigating || !mounted) return;
+                  if (_isSimulating) return;
 
-          final newPoint = LatLng(pos.latitude, pos.longitude);
-          final speed = pos.speed > 0 ? (pos.speed * 3.6) : 0.0;
-          final heading = pos.heading > 0 ? pos.heading : _navHeading;
+                  final newPoint = LatLng(pos.latitude, pos.longitude);
+                  final speed = pos.speed > 0 ? (pos.speed * 3.6) : 0.0;
+                  final heading = pos.heading > 0 ? pos.heading : _navHeading;
 
-          setState(() {
-            _position = pos;
-            _navPosition = newPoint;
-            _currentSpeedKmh = speed;
-            if (pos.heading > 0) _navHeading = heading;
-          });
+                  setState(() {
+                    _position = pos;
+                    _navPosition = newPoint;
+                    _currentSpeedKmh = speed;
+                    if (pos.heading > 0) _navHeading = heading;
+                  });
 
-          _updateNavProgress(newPoint, route);
+                  _updateNavProgress(newPoint, route);
 
-          if (_isFollowingGps) {
-            _mapController.move(newPoint, 17.5);
-          }
-        },
-        onError: (err) {
-          debugPrint('Error en stream GPS de navegación: $err');
-        },
-      );
+                  if (_isFollowingGps) {
+                    _mapController.move(newPoint, 17.5);
+                  }
+                },
+                onError: (err) {
+                  debugPrint('Error en stream GPS de navegación: $err');
+                },
+              );
     } catch (e) {
       debugPrint('No se pudo inicializar getPositionStream: $e');
     }
@@ -585,7 +585,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     if (_navRoutePointIndex < route.points.length - 1) {
       final nextP = route.points[_navRoutePointIndex + 1];
       final b = _distance.bearing(currentLoc, nextP);
-      if (!_isSimulating && _position?.heading != null && _position!.heading > 0) {
+      if (!_isSimulating &&
+          _position?.heading != null &&
+          _position!.heading > 0) {
         _navHeading = _position!.heading;
       } else {
         _navHeading = (b + 360) % 360;
@@ -715,17 +717,26 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Row(
@@ -733,7 +744,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   children: [
                     Column(
                       children: [
-                        const Icon(Icons.timer_outlined, size: 20, color: Color(0xFF0F4C81)),
+                        const Icon(
+                          Icons.timer_outlined,
+                          size: 20,
+                          color: Color(0xFF0F4C81),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           _formatNavDuration(elapsedSecs.toDouble()),
@@ -747,15 +762,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           'Tiempo empleado',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
                     ),
-                    Container(width: 1, height: 35, color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1)),
+                    Container(
+                      width: 1,
+                      height: 35,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : const Color(0xFFCBD5E1),
+                    ),
                     Column(
                       children: [
-                        const Icon(Icons.straighten_rounded, size: 20, color: Color(0xFF0F4C81)),
+                        const Icon(
+                          Icons.straighten_rounded,
+                          size: 20,
+                          color: Color(0xFF0F4C81),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           route.formattedDistance,
@@ -769,15 +796,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           'Distancia total',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
                     ),
-                    Container(width: 1, height: 35, color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1)),
+                    Container(
+                      width: 1,
+                      height: 35,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : const Color(0xFFCBD5E1),
+                    ),
                     Column(
                       children: [
-                        const Icon(Icons.shield_outlined, size: 20, color: Color(0xFF10B981)),
+                        const Icon(
+                          Icons.shield_outlined,
+                          size: 20,
+                          color: Color(0xFF10B981),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           '${route.safetyScore}%',
@@ -791,7 +830,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           'Ruta segura',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -853,7 +894,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     });
 
     _simulationTimer?.cancel();
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 700), (
+      timer,
+    ) {
       if (!_isNavigating || !_isSimulating || !mounted) {
         timer.cancel();
         return;
@@ -928,10 +971,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Color _routeColor(SafetyLevel level) => switch (level) {
-        SafetyLevel.safe => const Color(0xFF10B981),
-        SafetyLevel.moderate => const Color(0xFFF59E0B),
-        SafetyLevel.risky => const Color(0xFFEF4444),
-      };
+    SafetyLevel.safe => const Color(0xFF10B981),
+    SafetyLevel.moderate => const Color(0xFFF59E0B),
+    SafetyLevel.risky => const Color(0xFFEF4444),
+  };
 
   void _zoomIn() {
     final currentZoom = _mapController.camera.zoom;
@@ -1031,18 +1074,23 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
             )
             .toList();
 
-        final displayedIncident = _selectedIncident ??
+        final displayedIncident =
+            _selectedIncident ??
             (withLocation.isNotEmpty ? withLocation.first : null);
 
         return Scaffold(
-          backgroundColor: isDark ? AppColors.darkCanvas : const Color(0xFFF8FAFC),
+          backgroundColor: isDark
+              ? AppColors.darkCanvas
+              : const Color(0xFFF8FAFC),
           body: SafeArea(
             child: Column(
               children: [
                 // Encabezado Figma (03 · Mapa) - Oculto durante navegación activa para pantalla completa tipo Waze
                 if (!_isNavigating)
                   Container(
-                    color: isDark ? AppColors.darkSurface : const Color(0xFFF8FAFC),
+                    color: isDark
+                        ? AppColors.darkSurface
+                        : const Color(0xFFF8FAFC),
                     padding: EdgeInsets.symmetric(
                       horizontal: context.isWide ? 24 : 20,
                       vertical: 12,
@@ -1058,7 +1106,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : const Color(0xFF142C40),
                                       letterSpacing: -0.4,
                                     ),
                                   ),
@@ -1066,7 +1116,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                     'Muévete informado. Llega seguro.',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                      color: isDark
+                                          ? AppColors.darkTextMuted
+                                          : const Color(0xFF64748B),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -1080,19 +1132,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                   borderRadius: BorderRadius.circular(14),
                                   child: Container(
                                     height: 42,
-                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isDark ? AppColors.darkCard : Colors.white,
+                                      color: isDark
+                                          ? AppColors.darkCard
+                                          : Colors.white,
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                        color: isDark
+                                            ? AppColors.darkBorder
+                                            : const Color(0xFFE2E8F0),
                                       ),
                                     ),
                                     child: Row(
                                       children: [
                                         Icon(
                                           Icons.search_rounded,
-                                          color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                          color: isDark
+                                              ? AppColors.darkTextMuted
+                                              : const Color(0xFF94A3B8),
                                           size: 18,
                                         ),
                                         const SizedBox(width: 8),
@@ -1100,7 +1160,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                           child: Text(
                                             'Buscar sector, CAI o dirección...',
                                             style: TextStyle(
-                                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                              color: isDark
+                                                  ? AppColors.darkTextMuted
+                                                  : const Color(0xFF94A3B8),
                                               fontSize: 13,
                                             ),
                                             overflow: TextOverflow.ellipsis,
@@ -1119,21 +1181,28 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                   width: 42,
                                   height: 42,
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppColors.darkCard : Colors.white,
+                                    color: isDark
+                                        ? AppColors.darkCard
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                      color: isDark
+                                          ? AppColors.darkBorder
+                                          : const Color(0xFFE2E8F0),
                                     ),
                                   ),
                                   child: Badge(
-                                    isLabelVisible: _typeFilter != null ||
+                                    isLabelVisible:
+                                        _typeFilter != null ||
                                         _statusFilter != null ||
                                         _priorityFilter != null ||
                                         _distanceFilterKm != null ||
                                         _timeFilter != null,
                                     child: Icon(
                                       Icons.tune_rounded,
-                                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                      color: isDark
+                                          ? AppColors.brightBlue
+                                          : const Color(0xFF0F4C81),
                                       size: 18,
                                     ),
                                   ),
@@ -1149,7 +1218,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : const Color(0xFF142C40),
                                   letterSpacing: -0.4,
                                 ),
                               ),
@@ -1158,7 +1229,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 'Muévete informado. Llega seguro.',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                  color: isDark
+                                      ? AppColors.darkTextMuted
+                                      : const Color(0xFF64748B),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -1171,19 +1244,29 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                       borderRadius: BorderRadius.circular(14),
                                       child: Container(
                                         height: 44,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: isDark ? AppColors.darkCard : Colors.white,
-                                          borderRadius: BorderRadius.circular(14),
+                                          color: isDark
+                                              ? AppColors.darkCard
+                                              : Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
                                           border: Border.all(
-                                            color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                            color: isDark
+                                                ? AppColors.darkBorder
+                                                : const Color(0xFFE2E8F0),
                                           ),
                                         ),
                                         child: Row(
                                           children: [
                                             Icon(
                                               Icons.search_rounded,
-                                              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                              color: isDark
+                                                  ? AppColors.darkTextMuted
+                                                  : const Color(0xFF94A3B8),
                                               size: 20,
                                             ),
                                             const SizedBox(width: 8),
@@ -1191,7 +1274,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                               child: Text(
                                                 'Buscar sector o dirección',
                                                 style: TextStyle(
-                                                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                                                  color: isDark
+                                                      ? AppColors.darkTextMuted
+                                                      : const Color(0xFF94A3B8),
                                                   fontSize: 13,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
@@ -1210,21 +1295,28 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                       width: 44,
                                       height: 44,
                                       decoration: BoxDecoration(
-                                        color: isDark ? AppColors.darkCard : Colors.white,
+                                        color: isDark
+                                            ? AppColors.darkCard
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(14),
                                         border: Border.all(
-                                          color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
+                                          color: isDark
+                                              ? AppColors.darkBorder
+                                              : const Color(0xFFE2E8F0),
                                         ),
                                       ),
                                       child: Badge(
-                                        isLabelVisible: _typeFilter != null ||
+                                        isLabelVisible:
+                                            _typeFilter != null ||
                                             _statusFilter != null ||
                                             _priorityFilter != null ||
                                             _distanceFilterKm != null ||
                                             _timeFilter != null,
                                         child: Icon(
                                           Icons.tune_rounded,
-                                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                          color: isDark
+                                              ? AppColors.brightBlue
+                                              : const Color(0xFF0F4C81),
                                           size: 20,
                                         ),
                                       ),
@@ -1247,7 +1339,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           initialZoom: 12.5,
                           onTap: (tapPosition, point) => _onMapTap(point),
                           onPositionChanged: (camera, hasGesture) {
-                            if (hasGesture && _isNavigating && _isFollowingGps) {
+                            if (hasGesture &&
+                                _isNavigating &&
+                                _isFollowingGps) {
                               setState(() => _isFollowingGps = false);
                             }
                           },
@@ -1259,7 +1353,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                               TileLayer(
                                 urlTemplate: urlTemplate,
                                 panBuffer: 2,
-                                evictErrorTileStrategy: EvictErrorTileStrategy.none,
+                                evictErrorTileStrategy:
+                                    EvictErrorTileStrategy.none,
                                 userAgentPackageName:
                                     'com.cartagenasegura.cartagena_segura',
                               ),
@@ -1268,632 +1363,704 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                             TileLayer(
                               urlTemplate: urlTemplate,
                               panBuffer: 2,
-                              evictErrorTileStrategy: EvictErrorTileStrategy.none,
+                              evictErrorTileStrategy:
+                                  EvictErrorTileStrategy.none,
                               userAgentPackageName:
                                   'com.cartagenasegura.cartagena_segura',
                             ),
 
-                // Capa de Zonas de Riesgo Distrital
-                if (_showRiskZones && _zones.isNotEmpty)
-                  CircleLayer(
-                    circles: [
-                      for (final zone in _zones)
-                        CircleMarker(
-                          point: zone.center,
-                          radius: 650,
-                          useRadiusInMeter: true,
-                          color: _zoneColor(zone.riskLevel)
-                              .withValues(alpha: isDark ? 0.16 : 0.12),
-                          borderColor: _zoneColor(zone.riskLevel)
-                              .withValues(alpha: isDark ? 0.55 : 0.45),
-                          borderStrokeWidth: 1.5,
-                        ),
-                    ],
-                  ),
-
-                // Capa de Rutas Seguras (PolylineLayer)
-                if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
-                  PolylineLayer(
-                    polylines: [
-                      // Rutas alternativas en modo pre-navegación
-                      for (var i = 0; i < routes.length; i++)
-                        if (i != _selectedRouteIndex && !_isNavigating)
-                          Polyline(
-                            points: routes[i].points,
-                            strokeWidth: 4.0,
-                            color: isDark
-                                ? const Color(0xFF475569)
-                                : const Color(0xFF94A3B8),
-                            borderColor:
-                                isDark ? Colors.black54 : Colors.white70,
-                            borderStrokeWidth: 1.0,
-                          ),
-                      // En modo estático (pre-navegación): ruta completa seleccionada
-                      if (!_isNavigating)
-                        Polyline(
-                          points: routes[_selectedRouteIndex].points,
-                          strokeWidth: 6.0,
-                          color: _routeColor(
-                            routes[_selectedRouteIndex].safetyLevel,
-                          ),
-                          borderColor: isDark ? Colors.black : Colors.white,
-                          borderStrokeWidth: 2.5,
-                        ),
-                      // En modo NAVEGACIÓN ACTIVA: Ruta Bicolor Dinámica
-                      // 1. Tramo Recorrido: color gris suave que avanza conforme el usuario se desplaza
-                      if (_isNavigating && _traveledPoints.length >= 2)
-                        Polyline(
-                          points: _traveledPoints,
-                          strokeWidth: 5.0,
-                          color: isDark
-                              ? const Color(0xFF64748B)
-                              : const Color(0xFF94A3B8),
-                          borderColor:
-                              isDark ? Colors.black45 : Colors.white70,
-                          borderStrokeWidth: 1.2,
-                        ),
-                      // 2. Tramo Pendiente: azul institucional vibrante que se reduce progresivamente
-                      if (_isNavigating && _remainingPoints.isNotEmpty)
-                        Polyline(
-                          points: _remainingPoints,
-                          strokeWidth: 6.5,
-                          color: const Color(0xFF0F4C81),
-                          borderColor: isDark ? Colors.black : Colors.white,
-                          borderStrokeWidth: 2.5,
-                        ),
-                    ],
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      // Marcador de inicio (Origen)
-                      Marker(
-                        point: routes[_selectedRouteIndex].points.first,
-                        width: 40,
-                        height: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.brightBlue,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.brightBlue.withValues(
-                                  alpha: 0.4,
-                                ),
-                                blurRadius: 10,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.near_me_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      // Marcador de destino
-                      Marker(
-                        point: routes[_selectedRouteIndex].points.last,
-                        width: 40,
-                        height: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.red,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.red.withValues(alpha: 0.4),
-                                blurRadius: 10,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.flag_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      // Peligros detectados en la ruta
-                      for (final hazard
-                          in routes[_selectedRouteIndex].hazardsOnRoute)
-                        Marker(
-                          point: LatLng(hazard.latitude!, hazard.longitude!),
-                          width: 32,
-                          height: 32,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF450A0A)
-                                  : const Color(0xFFFEF2F2),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.red,
-                                width: 2,
-                              ),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 6),
+                          // Capa de Zonas de Riesgo Distrital
+                          if (_showRiskZones && _zones.isNotEmpty)
+                            CircleLayer(
+                              circles: [
+                                for (final zone in _zones)
+                                  CircleMarker(
+                                    point: zone.center,
+                                    radius: 650,
+                                    useRadiusInMeter: true,
+                                    color: _zoneColor(
+                                      zone.riskLevel,
+                                    ).withValues(alpha: isDark ? 0.16 : 0.12),
+                                    borderColor: _zoneColor(
+                                      zone.riskLevel,
+                                    ).withValues(alpha: isDark ? 0.55 : 0.45),
+                                    borderStrokeWidth: 1.5,
+                                  ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.warning_amber_rounded,
-                              color: AppColors.red,
-                              size: 16,
+
+                          // Capa de Rutas Seguras (PolylineLayer)
+                          if (_safeRoutes case final routes?
+                              when routes.isNotEmpty) ...[
+                            PolylineLayer(
+                              polylines: [
+                                // Rutas alternativas en modo pre-navegación
+                                for (var i = 0; i < routes.length; i++)
+                                  if (i != _selectedRouteIndex &&
+                                      !_isNavigating)
+                                    Polyline(
+                                      points: routes[i].points,
+                                      strokeWidth: 4.0,
+                                      color: isDark
+                                          ? const Color(0xFF475569)
+                                          : const Color(0xFF94A3B8),
+                                      borderColor: isDark
+                                          ? Colors.black54
+                                          : Colors.white70,
+                                      borderStrokeWidth: 1.0,
+                                    ),
+                                // En modo estático (pre-navegación): ruta completa seleccionada
+                                if (!_isNavigating)
+                                  Polyline(
+                                    points: routes[_selectedRouteIndex].points,
+                                    strokeWidth: 6.0,
+                                    color: _routeColor(
+                                      routes[_selectedRouteIndex].safetyLevel,
+                                    ),
+                                    borderColor: isDark
+                                        ? Colors.black
+                                        : Colors.white,
+                                    borderStrokeWidth: 2.5,
+                                  ),
+                                // En modo NAVEGACIÓN ACTIVA: Ruta Bicolor Dinámica
+                                // 1. Tramo Recorrido: color gris suave que avanza conforme el usuario se desplaza
+                                if (_isNavigating &&
+                                    _traveledPoints.length >= 2)
+                                  Polyline(
+                                    points: _traveledPoints,
+                                    strokeWidth: 5.0,
+                                    color: isDark
+                                        ? const Color(0xFF64748B)
+                                        : const Color(0xFF94A3B8),
+                                    borderColor: isDark
+                                        ? Colors.black45
+                                        : Colors.white70,
+                                    borderStrokeWidth: 1.2,
+                                  ),
+                                // 2. Tramo Pendiente: azul institucional vibrante que se reduce progresivamente
+                                if (_isNavigating &&
+                                    _remainingPoints.isNotEmpty)
+                                  Polyline(
+                                    points: _remainingPoints,
+                                    strokeWidth: 6.5,
+                                    color: const Color(0xFF0F4C81),
+                                    borderColor: isDark
+                                        ? Colors.black
+                                        : Colors.white,
+                                    borderStrokeWidth: 2.5,
+                                  ),
+                              ],
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                // Marcador de inicio (Origen)
+                                Marker(
+                                  point:
+                                      routes[_selectedRouteIndex].points.first,
+                                  width: 40,
+                                  height: 40,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.brightBlue,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.brightBlue
+                                              .withValues(alpha: 0.4),
+                                          blurRadius: 10,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.near_me_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                                // Marcador de destino
+                                Marker(
+                                  point:
+                                      routes[_selectedRouteIndex].points.last,
+                                  width: 40,
+                                  height: 40,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.red,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.red.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          blurRadius: 10,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.flag_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                                // Peligros detectados en la ruta
+                                for (final hazard
+                                    in routes[_selectedRouteIndex]
+                                        .hazardsOnRoute)
+                                  Marker(
+                                    point: LatLng(
+                                      hazard.latitude!,
+                                      hazard.longitude!,
+                                    ),
+                                    width: 32,
+                                    height: 32,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? const Color(0xFF450A0A)
+                                            : const Color(0xFFFEF2F2),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: AppColors.red,
+                                          width: 2,
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: AppColors.red,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+
+                          // Marcadores de incidentes reportados (con clustering en zooms lejanos)
+                          MarkerLayer(
+                            markers: [
+                              ..._buildIncidentMarkers(withLocation, isDark),
+                              // Marcador GPS: Cursor de navegación direccional Waze o marcador estándar
+                              if (_isNavigating && _navPosition != null)
+                                Marker(
+                                  point: _navPosition!,
+                                  width: 56,
+                                  height: 56,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: 54,
+                                        height: 54,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(0xFF3B82F6)
+                                              .withValues(alpha: 0.22),
+                                        ),
+                                      ),
+                                      Transform.rotate(
+                                        angle: (_navHeading * pi) / 180,
+                                        child: Container(
+                                          width: 38,
+                                          height: 38,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: const Color(0xFF0F4C81),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2.5,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF0F4C81)
+                                                    .withValues(alpha: 0.45),
+                                                blurRadius: 10,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.navigation_rounded,
+                                            color: Colors.white,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else if (_position case final position?)
+                                Marker(
+                                  point: LatLng(
+                                    position.latitude,
+                                    position.longitude,
+                                  ),
+                                  width: 48,
+                                  height: 48,
+                                  child: const _ModernUserLocationMarker(),
+                                ),
+                            ],
+                          ),
+
+                          RichAttributionWidget(
+                            attributions: [
+                              TextSourceAttribution(
+                                isSatellite
+                                    ? 'Esri, Maxar, Earthstar Geographics'
+                                    : 'OpenStreetMap contributors',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Badge flotante "En tiempo real" (Figma 03 · Mapa) - Oculto durante navegación
+                      if (!_isNavigating)
+                        Positioned(
+                          top: 14,
+                          left: 14,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkCard : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkBorder
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.25 : 0.08,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'En tiempo real',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? AppColors.darkText
+                                        : const Color(0xFF142C40),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ],
 
-                // Marcadores de incidentes reportados (con clustering en zooms lejanos)
-                MarkerLayer(
-                  markers: [
-                    ..._buildIncidentMarkers(withLocation, isDark),
-                    // Marcador GPS: Cursor de navegación direccional Waze o marcador estándar
-                    if (_isNavigating && _navPosition != null)
-                      Marker(
-                        point: _navPosition!,
-                        width: 56,
-                        height: 56,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 54,
-                              height: 54,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFF3B82F6)
-                                    .withValues(alpha: 0.22),
+                      // Acciones rápidas superiores derechas (Lista accesible + Actualizar) - Oculto durante navegación
+                      if (!_isNavigating)
+                        Positioned(
+                          top: 14,
+                          right: 14,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkCard : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkBorder
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.25 : 0.08,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Ver lista accesible de incidentes',
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _showIncidentList(filtered),
+                                  icon: Icon(
+                                    Icons.format_list_bulleted_rounded,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppColors.brightBlue
+                                        : const Color(0xFF0F4C81),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Actualizar incidentes',
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: _reload,
+                                  icon: Icon(
+                                    Icons.refresh_rounded,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppColors.brightBlue
+                                        : const Color(0xFF0F4C81),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // Botón flotante para Trazar Ruta Segura estilo Waze
+                      if (!_isSelectingDestinationOnMap && _safeRoutes == null)
+                        Positioned(
+                          top: 54,
+                          left: 14,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF1D4ED8)
+                                      .withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(30),
+                                onTap: _openDestinationSearch,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.alt_route_rounded,
+                                        size: 18,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Trazar Ruta Segura',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Colors.white,
+                                          letterSpacing: 0.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                            Transform.rotate(
-                              angle: (_navHeading * pi) / 180,
-                              child: Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFF0F4C81),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2.5,
+                          ),
+                        ),
+
+                      // Banner informativo para elegir destino en el mapa
+                      if (_isSelectingDestinationOnMap)
+                        Positioned(
+                          top: 76,
+                          left: 14,
+                          right: 14,
+                          child: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(16),
+                            color: isDark ? AppColors.darkCard : AppColors.navy,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.touch_app_rounded,
+                                    color: Color(0xFFFBBF24),
+                                    size: 20,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF0F4C81)
-                                          .withValues(alpha: 0.45),
-                                      blurRadius: 10,
-                                      spreadRadius: 1,
+                                  const SizedBox(width: 10),
+                                  const Expanded(
+                                    child: Text(
+                                      'Toca en el mapa el punto de destino',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ],
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.white70,
+                                      size: 18,
+                                    ),
+                                    onPressed: () => setState(
+                                      () =>
+                                          _isSelectingDestinationOnMap = false,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Indicador de cálculo de rutas
+                      if (_isRouting)
+                        Positioned(
+                          top: 130,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.border,
                                 ),
-                                child: const Icon(
-                                  Icons.navigation_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 12,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Calculando rutas seguras en Cartagena…',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : AppColors.navy,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Barra lateral flotante de controles (Zoom + Zonas + Mi Ubicación)
+                      Positioned(
+                        right: 14,
+                        bottom: _isNavigating
+                            ? 190
+                            : (_safeRoutes != null ? 240 : 190),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _FloatingMapButton(
+                              tooltip: 'Cambiar estilo de mapa',
+                              icon: switch (_tileTheme) {
+                                MapTileTheme.auto => Icons.layers_outlined,
+                                MapTileTheme.light => Icons.wb_sunny_outlined,
+                                MapTileTheme.dark => Icons.nightlight_round,
+                                MapTileTheme.satellite =>
+                                  Icons.satellite_alt_outlined,
+                              },
+                              isDark: isDark,
+                              onPressed: _cycleTileTheme,
+                            ),
+                            const SizedBox(height: 8),
+                            _FloatingMapButton(
+                              tooltip: _showRiskZones
+                                  ? 'Ocultar sectores distritales'
+                                  : 'Ver sectores de seguridad',
+                              icon: _showRiskZones
+                                  ? Icons.security_rounded
+                                  : Icons.security_outlined,
+                              isDark: isDark,
+                              isActive: _showRiskZones,
+                              onPressed: () => setState(
+                                () => _showRiskZones = !_showRiskZones,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _FloatingMapButton(
+                              tooltip: 'Acercar',
+                              icon: Icons.add_rounded,
+                              isDark: isDark,
+                              onPressed: _zoomIn,
+                            ),
+                            const SizedBox(height: 8),
+                            _FloatingMapButton(
+                              tooltip: 'Alejar',
+                              icon: Icons.remove_rounded,
+                              isDark: isDark,
+                              onPressed: _zoomOut,
+                            ),
+                            const SizedBox(height: 12),
+                            // Botón Mi Ubicación
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0F4C81)
+                                        .withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: FloatingActionButton.small(
+                                heroTag: 'locate_me_fab',
+                                tooltip: 'Mi ubicación GPS',
+                                backgroundColor: const Color(0xFF0F4C81),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                onPressed: _locating ? null : _locateMe,
+                                child: _locating
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.my_location_rounded,
+                                        size: 20,
+                                      ),
                               ),
                             ),
                           ],
                         ),
-                      )
-                    else if (_position case final position?)
-                      Marker(
-                        point: LatLng(position.latitude, position.longitude),
-                        width: 48,
-                        height: 48,
-                        child: const _ModernUserLocationMarker(),
                       ),
-                  ],
-                ),
 
-                RichAttributionWidget(
-                  attributions: [
-                    TextSourceAttribution(
-                      isSatellite
-                          ? 'Esri, Maxar, Earthstar Geographics'
-                          : 'OpenStreetMap contributors',
-                    ),
-                  ],
+                      // Tarjeta flotante inferior: Incidente cercano (Figma 03 · Mapa)
+                      if (_safeRoutes == null && !_isNavigating)
+                        Positioned(
+                          bottom: 14,
+                          left: 16,
+                          right: 16,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: _FigmaMapIncidentCard(
+                                incident: displayedIncident,
+                                onTapReport: () {
+                                  if (displayedIncident != null) {
+                                    _showIncident(displayedIncident);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Tarjeta HUD de la Ruta Segura activa (Estilo Waze) o HUD de Navegación Activa
+                      if (_safeRoutes case final routes?
+                          when routes.isNotEmpty) ...[
+                        if (_isNavigating) ...[
+                          _buildTopManeuverCard(isDark),
+                          _buildHazardAlertBanner(isDark),
+                          _buildSpeedometer(isDark),
+                          _buildRecenterButton(isDark),
+                          _buildBottomNavHud(
+                            routes[_selectedRouteIndex],
+                            isDark,
+                          ),
+                          _buildArrivalCelebration(isDark),
+                        ] else
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: SafeRouteSheet(
+                                routes: routes,
+                                selectedRouteIndex: _selectedRouteIndex,
+                                destinationName:
+                                    _selectedDestination?.name ??
+                                    'Destino seleccionado',
+                                onSelectRoute: (idx) {
+                                  setState(() => _selectedRouteIndex = idx);
+                                  _centerRoute();
+                                },
+                                onCloseRoute: _closeRoute,
+                                onCenterRoute: _centerRoute,
+                                onStartNavigation: _startNavigation,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
-
-            // Badge flotante "En tiempo real" (Figma 03 · Mapa) - Oculto durante navegación
-            if (!_isNavigating)
-              Positioned(
-                top: 14,
-                left: 14,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'En tiempo real',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.darkText : const Color(0xFF142C40),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Acciones rápidas superiores derechas (Lista accesible + Actualizar) - Oculto durante navegación
-            if (!_isNavigating)
-              Positioned(
-                top: 14,
-                right: 14,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        tooltip: 'Ver lista accesible de incidentes',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _showIncidentList(filtered),
-                        icon: Icon(
-                          Icons.format_list_bulleted_rounded,
-                          size: 18,
-                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Actualizar incidentes',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _reload,
-                        icon: Icon(
-                          Icons.refresh_rounded,
-                          size: 18,
-                          color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Botón flotante para Trazar Ruta Segura estilo Waze
-            if (!_isSelectingDestinationOnMap && _safeRoutes == null)
-              Positioned(
-                top: 54,
-                left: 14,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
-                        blurRadius: 14,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(30),
-                      onTap: _openDestinationSearch,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.alt_route_rounded,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Trazar Ruta Segura',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Colors.white,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Banner informativo para elegir destino en el mapa
-            if (_isSelectingDestinationOnMap)
-              Positioned(
-                top: 76,
-                left: 14,
-                right: 14,
-                child: Material(
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(16),
-                  color: isDark ? AppColors.darkCard : AppColors.navy,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.touch_app_rounded,
-                          color: Color(0xFFFBBF24),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            'Toca en el mapa el punto de destino',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.close,
-                            color: Colors.white70,
-                            size: 18,
-                          ),
-                          onPressed: () => setState(
-                            () => _isSelectingDestinationOnMap = false,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Indicador de cálculo de rutas
-            if (_isRouting)
-              Positioned(
-                top: 130,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isDark ? AppColors.darkBorder : AppColors.border,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Calculando rutas seguras en Cartagena…',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkText : AppColors.navy,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Barra lateral flotante de controles (Zoom + Zonas + Mi Ubicación)
-            Positioned(
-              right: 14,
-              bottom: _isNavigating ? 190 : (_safeRoutes != null ? 240 : 190),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _FloatingMapButton(
-                    tooltip: 'Cambiar estilo de mapa',
-                    icon: switch (_tileTheme) {
-                      MapTileTheme.auto => Icons.layers_outlined,
-                      MapTileTheme.light => Icons.wb_sunny_outlined,
-                      MapTileTheme.dark => Icons.nightlight_round,
-                      MapTileTheme.satellite => Icons.satellite_alt_outlined,
-                    },
-                    isDark: isDark,
-                    onPressed: _cycleTileTheme,
-                  ),
-                  const SizedBox(height: 8),
-                  _FloatingMapButton(
-                    tooltip: _showRiskZones
-                        ? 'Ocultar sectores distritales'
-                        : 'Ver sectores de seguridad',
-                    icon: _showRiskZones
-                        ? Icons.security_rounded
-                        : Icons.security_outlined,
-                    isDark: isDark,
-                    isActive: _showRiskZones,
-                    onPressed: () =>
-                        setState(() => _showRiskZones = !_showRiskZones),
-                  ),
-                  const SizedBox(height: 8),
-                  _FloatingMapButton(
-                    tooltip: 'Acercar',
-                    icon: Icons.add_rounded,
-                    isDark: isDark,
-                    onPressed: _zoomIn,
-                  ),
-                  const SizedBox(height: 8),
-                  _FloatingMapButton(
-                    tooltip: 'Alejar',
-                    icon: Icons.remove_rounded,
-                    isDark: isDark,
-                    onPressed: _zoomOut,
-                  ),
-                  const SizedBox(height: 12),
-                  // Botón Mi Ubicación
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0F4C81).withValues(alpha: 0.35),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: FloatingActionButton.small(
-                      heroTag: 'locate_me_fab',
-                      tooltip: 'Mi ubicación GPS',
-                      backgroundColor: const Color(0xFF0F4C81),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      onPressed: _locating ? null : _locateMe,
-                      child: _locating
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.my_location_rounded, size: 20),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Tarjeta flotante inferior: Incidente cercano (Figma 03 · Mapa)
-            if (_safeRoutes == null && !_isNavigating)
-              Positioned(
-                bottom: 14,
-                left: 16,
-                right: 16,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: _FigmaMapIncidentCard(
-                      incident: displayedIncident,
-                      onTapReport: () {
-                        if (displayedIncident != null) {
-                          _showIncident(displayedIncident);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ),
-
-            // Tarjeta HUD de la Ruta Segura activa (Estilo Waze) o HUD de Navegación Activa
-            if (_safeRoutes case final routes? when routes.isNotEmpty) ...[
-              if (_isNavigating) ...[
-                _buildTopManeuverCard(isDark),
-                _buildHazardAlertBanner(isDark),
-                _buildSpeedometer(isDark),
-                _buildRecenterButton(isDark),
-                _buildBottomNavHud(routes[_selectedRouteIndex], isDark),
-                _buildArrivalCelebration(isDark),
-              ] else
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: SafeRouteSheet(
-                      routes: routes,
-                      selectedRouteIndex: _selectedRouteIndex,
-                      destinationName:
-                          _selectedDestination?.name ?? 'Destino seleccionado',
-                      onSelectRoute: (idx) {
-                        setState(() => _selectedRouteIndex = idx);
-                        _centerRoute();
-                      },
-                      onCloseRoute: _closeRoute,
-                      onCenterRoute: _centerRoute,
-                      onStartNavigation: _startNavigation,
-                    ),
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ),
-    ],
-  ),
-),
-);
-},
-);
-}
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildTopManeuverCard(bool isDark) {
     return Positioned(
@@ -1989,7 +2156,10 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   const SizedBox(width: 8),
                   IconButton(
                     tooltip: 'Detener navegación',
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                    ),
                     onPressed: _stopNavigation,
                   ),
                 ],
@@ -2004,16 +2174,17 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   Widget _buildHazardAlertBanner(bool isDark) {
     if (_approachingHazard == null) return const SizedBox.shrink();
     final hazard = _approachingHazard!;
-    final hazardDist = (_navPosition != null &&
+    final hazardDist =
+        (_navPosition != null &&
             hazard.latitude != null &&
             hazard.longitude != null)
         ? _distance
-            .as(
-              LengthUnit.Meter,
-              _navPosition!,
-              LatLng(hazard.latitude!, hazard.longitude!),
-            )
-            .round()
+              .as(
+                LengthUnit.Meter,
+                _navPosition!,
+                LatLng(hazard.latitude!, hazard.longitude!),
+              )
+              .round()
         : 200;
 
     return Positioned(
@@ -2078,7 +2249,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                     onPressed: () => setState(() => _approachingHazard = null),
                   ),
                 ],
@@ -2100,10 +2275,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: BoxShape.circle,
-          border: Border.all(
-            color: const Color(0xFF0F4C81),
-            width: 2.5,
-          ),
+          border: Border.all(color: const Color(0xFF0F4C81), width: 2.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.18),
@@ -2129,7 +2301,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -2239,9 +2413,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFECFDF5),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFFA7F3D0),
-                            ),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
                           ),
                           child: Text(
                             '${route.safetyScore}% SEGURO',
@@ -2268,12 +2440,19 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                   children: [
                     // Indicador de velocidad actual
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkSurface : const Color(0xFFF1F5F9),
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1),
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : const Color(0xFFCBD5E1),
                         ),
                       ),
                       child: Row(
@@ -2292,7 +2471,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppColors.darkText : AppColors.navy,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.navy,
                             ),
                           ),
                         ],
@@ -2303,10 +2484,13 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       children: [
                         // Botón de alternar silencio de voz (TTS)
                         ValueListenableBuilder<bool>(
-                          valueListenable: VoiceNavigationService.instance.isMuted,
+                          valueListenable:
+                              VoiceNavigationService.instance.isMuted,
                           builder: (context, isMuted, _) {
                             return IconButton(
-                              tooltip: isMuted ? 'Activar voz' : 'Silenciar voz',
+                              tooltip: isMuted
+                                  ? 'Activar voz'
+                                  : 'Silenciar voz',
                               style: IconButton.styleFrom(
                                 backgroundColor: isDark
                                     ? AppColors.darkSurface
@@ -2332,10 +2516,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           tooltip: 'Recentrar vehículo',
                           style: IconButton.styleFrom(
                             backgroundColor: _isFollowingGps
-                                ? const Color(0xFF0F4C81).withValues(alpha: 0.15)
+                                ? const Color(0xFF0F4C81)
+                                      .withValues(alpha: 0.15)
                                 : (isDark
-                                    ? AppColors.darkSurface
-                                    : const Color(0xFFF1F5F9)),
+                                      ? AppColors.darkSurface
+                                      : const Color(0xFFF1F5F9)),
                           ),
                           icon: Icon(
                             _isFollowingGps
@@ -2381,7 +2566,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           size: 18,
                         ),
                         label: Text(
-                          _isSimulating ? 'Pausar simulación' : 'Simular recorrido',
+                          _isSimulating
+                              ? 'Pausar simulación'
+                              : 'Simular recorrido',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -2441,10 +2628,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF10B981),
-                  width: 2,
-                ),
+                border: Border.all(color: const Color(0xFF10B981), width: 2),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -2535,9 +2719,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 children: [
                   Text(
                     'Filtros Avanzados del Mapa',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
+                    style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 14),
@@ -2682,39 +2864,38 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     required String? value,
     required List<String> values,
     required ValueChanged<String?> onChanged,
-  }) =>
-      DropdownButtonFormField<String>(
-        initialValue: value,
-        decoration: InputDecoration(labelText: label),
-        items: [
-          const DropdownMenuItem<String>(value: null, child: Text('Todos')),
-          ...values.map(
-            (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
-          ),
-        ],
-        onChanged: onChanged,
-      );
+  }) => DropdownButtonFormField<String>(
+    initialValue: value,
+    decoration: InputDecoration(labelText: label),
+    items: [
+      const DropdownMenuItem<String>(value: null, child: Text('Todos')),
+      ...values.map(
+        (item) => DropdownMenuItem(value: item, child: Text(_label(item))),
+      ),
+    ],
+    onChanged: onChanged,
+  );
 
   String _label(String value) => switch (value) {
-        'ROBO' => 'Robo',
-        'ACCIDENTE' => 'Accidente',
-        'PELEA' => 'Pelea',
-        'INCENDIO' => 'Incendio',
-        'EMERGENCIA' => 'Emergencia',
-        'ACTIVIDAD_SOSPECHOSA' => 'Actividad Sospechosa',
-        'LUMINARIA_DANADA' => 'Alumbrado Público',
-        'OBSTACULO_VIAL' => 'Obstáculo Vial',
-        'OTRO' => 'Otro',
-        'PENDING' => 'Pendiente',
-        'IN_PROGRESS' => 'En progreso',
-        'RESOLVED' => 'Resuelto',
-        'REJECTED' => 'Rechazado',
-        'LOW' => 'Baja',
-        'MEDIUM' => 'Media',
-        'HIGH' => 'Alta',
-        'CRITICAL' => 'Crítica',
-        _ => value,
-      };
+    'ROBO' => 'Robo',
+    'ACCIDENTE' => 'Accidente',
+    'PELEA' => 'Pelea',
+    'INCENDIO' => 'Incendio',
+    'EMERGENCIA' => 'Emergencia',
+    'ACTIVIDAD_SOSPECHOSA' => 'Actividad Sospechosa',
+    'LUMINARIA_DANADA' => 'Alumbrado Público',
+    'OBSTACULO_VIAL' => 'Obstáculo Vial',
+    'OTRO' => 'Otro',
+    'PENDING' => 'Pendiente',
+    'IN_PROGRESS' => 'En progreso',
+    'RESOLVED' => 'Resuelto',
+    'REJECTED' => 'Rechazado',
+    'LOW' => 'Baja',
+    'MEDIUM' => 'Media',
+    'HIGH' => 'Alta',
+    'CRITICAL' => 'Crítica',
+    _ => value,
+  };
 
   void _showIncidentList(List<Incident> incidents) {
     showModalBottomSheet<void>(
@@ -2796,9 +2977,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                 Expanded(
                   child: Text(
                     incident.type,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
+                    style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -2949,11 +3128,11 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   Color _priorityColor(String priority) => switch (priority) {
-        'CRITICAL' => const Color(0xFFEF4444),
-        'HIGH' => const Color(0xFFF97316),
-        'LOW' => const Color(0xFF10B981),
-        _ => const Color(0xFF3B82F6),
-      };
+    'CRITICAL' => const Color(0xFFEF4444),
+    'HIGH' => const Color(0xFFF97316),
+    'LOW' => const Color(0xFF10B981),
+    _ => const Color(0xFF3B82F6),
+  };
 }
 
 /// Marcador de cluster agrupado para vistas panorámicas del mapa
@@ -3181,11 +3360,11 @@ class _FloatingMapButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColor = isActive
         ? (isDark
-            ? AppColors.brightBlue.withValues(alpha: 0.35)
-            : AppColors.blue.withValues(alpha: 0.15))
+              ? AppColors.brightBlue.withValues(alpha: 0.35)
+              : AppColors.blue.withValues(alpha: 0.15))
         : (isDark
-            ? AppColors.darkCard.withValues(alpha: 0.82)
-            : Colors.white.withValues(alpha: 0.9));
+              ? AppColors.darkCard.withValues(alpha: 0.82)
+              : Colors.white.withValues(alpha: 0.9));
     final borderColor = isActive
         ? (isDark ? AppColors.brightBlue : AppColors.blue)
         : (isDark ? AppColors.darkBorder : AppColors.border);
@@ -3248,10 +3427,10 @@ class _MapZone {
 }
 
 Color _zoneColor(String risk) => switch (risk.toUpperCase()) {
-      'LOW' => const Color(0xFF10B981),
-      'HIGH' || 'CRITICAL' => const Color(0xFFEF4444),
-      _ => const Color(0xFFF59E0B),
-    };
+  'LOW' => const Color(0xFF10B981),
+  'HIGH' || 'CRITICAL' => const Color(0xFFEF4444),
+  _ => const Color(0xFFF59E0B),
+};
 
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.message, required this.onRetry});
@@ -3261,26 +3440,26 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off_outlined, size: 44),
-              const SizedBox(height: 12),
-              const Text('No se pudieron cargar los incidentes'),
-              const SizedBox(height: 8),
-              Text(message, textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cloud_off_outlined, size: 44),
+          const SizedBox(height: 12),
+          const Text('No se pudieron cargar los incidentes'),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }
 
 /// Tarjeta flotante inferior de incidente cercano (Figma 03 · Mapa)
@@ -3319,7 +3498,11 @@ class _FigmaMapIncidentCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
+                const Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: Color(0xFF10B981),
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
@@ -3327,7 +3510,9 @@ class _FigmaMapIncidentCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                      color: isDark
+                          ? AppColors.darkText
+                          : const Color(0xFF142C40),
                     ),
                   ),
                 ),
@@ -3338,7 +3523,9 @@ class _FigmaMapIncidentCard extends StatelessWidget {
               'Mapa de referencia · Datos en tiempo real',
               style: TextStyle(
                 fontSize: 10,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF94A3B8),
               ),
             ),
           ],
@@ -3391,7 +3578,9 @@ class _FigmaMapIncidentCard extends StatelessWidget {
                 'a 450 m de ti',
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -3421,7 +3610,9 @@ class _FigmaMapIncidentCard extends StatelessWidget {
             height: 38,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                backgroundColor: isDark
+                    ? AppColors.brightBlue
+                    : const Color(0xFF0F4C81),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -3449,7 +3640,9 @@ class _FigmaMapIncidentCard extends StatelessWidget {
               'Mapa de referencia · Datos de sentido',
               style: TextStyle(
                 fontSize: 10,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF94A3B8),
               ),
             ),
           ),
@@ -3460,21 +3653,28 @@ class _FigmaMapIncidentCard extends StatelessWidget {
 
   (String, Color, Color) _getCatInfo(String type, bool isDark) {
     final lower = type.toLowerCase();
-    if (lower.contains('traf') || lower.contains('movil') || lower.contains('accidente')) {
+    if (lower.contains('traf') ||
+        lower.contains('movil') ||
+        lower.contains('accidente')) {
       return (
         'Movilidad',
         isDark ? const Color(0xFF451A03) : const Color(0xFFFFF4DC),
         isDark ? const Color(0xFFFBBF24) : const Color(0xFF9A6200),
       );
     }
-    if (lower.contains('segur') || lower.contains('robo') || lower.contains('sospech')) {
+    if (lower.contains('segur') ||
+        lower.contains('robo') ||
+        lower.contains('sospech')) {
       return (
         'Seguridad',
         isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
         isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
       );
     }
-    if (lower.contains('vía') || lower.contains('via') || lower.contains('calle') || lower.contains('obra')) {
+    if (lower.contains('vía') ||
+        lower.contains('via') ||
+        lower.contains('calle') ||
+        lower.contains('obra')) {
       return (
         'Vía cerrada',
         isDark ? const Color(0xFF064E3B) : const Color(0xFFE6F7EF),

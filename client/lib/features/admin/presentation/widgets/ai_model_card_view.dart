@@ -24,8 +24,11 @@ class _AiModelCardViewState extends State<AiModelCardView> {
 
   void _loadCard() {
     setState(() {
-      _cardFuture = widget.api.get('Admin/Predictive/ModelCard').then(
-            (data) => AiModelCardResponse.fromJson(data as Map<String, dynamic>),
+      _cardFuture = widget.api
+          .get('Admin/Predictive/ModelCard')
+          .then(
+            (data) =>
+                AiModelCardResponse.fromJson(data as Map<String, dynamic>),
           );
     });
   }
@@ -46,7 +49,16 @@ class _AiModelCardViewState extends State<AiModelCardView> {
           );
         }
 
-        final card = snapshot.data ?? _fallbackModelCard();
+        final card = snapshot.data;
+        if (card == null) {
+          return Center(
+            child: OutlinedButton.icon(
+              onPressed: _loadCard,
+              icon: const Icon(Icons.refresh),
+              label: const Text('La ficha no está disponible. Reintentar'),
+            ),
+          );
+        }
 
         return Container(
           decoration: BoxDecoration(
@@ -101,11 +113,13 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppColors.darkText : AppColors.navy,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.navy,
                             ),
                           ),
                           Text(
-                            'Especificaciones auditadas • Matriz de confusión • Monitoreo de Data Drift',
+                            'Arquitectura y ejemplos de evaluación',
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark
@@ -125,6 +139,12 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                 ],
               ),
               const SizedBox(height: 20),
+
+              const Text(
+                'Las cifras, la matriz y la deriva son ejemplos ilustrativos de la demostración. '
+                'La evaluación con datos independientes está pendiente.',
+              ),
+              const SizedBox(height: 12),
 
               // 2. Grilla de Métricas de Evaluación Clave
               _buildEvaluationMetricsGrid(card, isDark),
@@ -195,7 +215,7 @@ class _AiModelCardViewState extends State<AiModelCardView> {
         _kpiMetricCard(
           title: 'Latencia Inferencia',
           value: '~${card.averageLatencyMs} ms',
-          subtitle: 'Tiempo real sin latencia de red',
+          subtitle: 'Latencia de ejemplo',
           icon: Icons.speed,
           color: const Color(0xFF06B6D4),
           isDark: isDark,
@@ -233,7 +253,9 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
                 ),
               ),
               Icon(icon, size: 14, color: color),
@@ -276,8 +298,11 @@ class _AiModelCardViewState extends State<AiModelCardView> {
         children: [
           Row(
             children: [
-              const Icon(Icons.settings_suggest_rounded,
-                  size: 18, color: AppColors.brightBlue),
+              const Icon(
+                Icons.settings_suggest_rounded,
+                size: 18,
+                color: AppColors.brightBlue,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Hiperparámetros y Topología del Perceptrón',
@@ -304,8 +329,16 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                 card.hiddenLayers.join(' ➔ '),
                 isDark,
               ),
-              _specBadge('Tensores de Entrada', '${card.inputNodes} variables', isDark),
-              _specBadge('Tensores de Salida', '${card.outputNodes} logits', isDark),
+              _specBadge(
+                'Tensores de Entrada',
+                '${card.inputNodes} variables',
+                isDark,
+              ),
+              _specBadge(
+                'Tensores de Salida',
+                '${card.outputNodes} logits',
+                isDark,
+              ),
             ],
           ),
         ],
@@ -367,8 +400,11 @@ class _AiModelCardViewState extends State<AiModelCardView> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.grid_4x4_rounded,
-                      size: 18, color: Color(0xFF8B5CF6)),
+                  const Icon(
+                    Icons.grid_4x4_rounded,
+                    size: 18,
+                    color: Color(0xFF8B5CF6),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Matriz de Confusión 4x4 (Clasificación de Riesgo)',
@@ -384,7 +420,9 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                 'Filas: Clase Real • Columnas: Predicción',
                 style: TextStyle(
                   fontSize: 10,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -454,12 +492,16 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                           );
 
                           final isDiagonal = actual == predicted;
-                          final alpha = (cell.percentage / 100.0).clamp(0.08, 0.95);
+                          final alpha = (cell.percentage / 100.0).clamp(
+                            0.08,
+                            0.95,
+                          );
                           final cellColor = isDiagonal
                               ? const Color(0xFF10B981).withValues(alpha: alpha)
                               : (cell.sampleCount > 0
-                                  ? const Color(0xFFEF4444).withValues(alpha: 0.15)
-                                  : Colors.transparent);
+                                    ? const Color(0xFFEF4444)
+                                          .withValues(alpha: 0.15)
+                                    : Colors.transparent);
 
                           final isSelected = _selectedCell == cell;
 
@@ -477,10 +519,10 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                                   color: isSelected
                                       ? Colors.white
                                       : (isDiagonal
-                                          ? const Color(0xFF10B981)
-                                          : (isDark
-                                              ? const Color(0xFF334155)
-                                              : const Color(0xFFE2E8F0))),
+                                            ? const Color(0xFF10B981)
+                                            : (isDark
+                                                  ? const Color(0xFF334155)
+                                                  : const Color(0xFFE2E8F0))),
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -493,8 +535,12 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                                       fontSize: 12,
                                       fontWeight: FontWeight.w900,
                                       color: isDiagonal
-                                          ? (isDark ? Colors.white : const Color(0xFF064E3B))
-                                          : (isDark ? AppColors.darkText : AppColors.navy),
+                                          ? (isDark
+                                                ? Colors.white
+                                                : const Color(0xFF064E3B))
+                                          : (isDark
+                                                ? AppColors.darkText
+                                                : AppColors.navy),
                                     ),
                                   ),
                                   Text(
@@ -502,8 +548,12 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                                     style: TextStyle(
                                       fontSize: 9,
                                       color: isDiagonal
-                                          ? (isDark ? const Color(0xFFD1FAE5) : const Color(0xFF047857))
-                                          : (isDark ? AppColors.darkTextMuted : const Color(0xFF64748B)),
+                                          ? (isDark
+                                                ? const Color(0xFFD1FAE5)
+                                                : const Color(0xFF047857))
+                                          : (isDark
+                                                ? AppColors.darkTextMuted
+                                                : const Color(0xFF64748B)),
                                     ),
                                   ),
                                 ],
@@ -529,7 +579,10 @@ class _AiModelCardViewState extends State<AiModelCardView> {
               ),
               child: Text(
                 'Detalle: ${_selectedCell!.sampleCount} muestras reales en "${_selectedCell!.actualClass}" clasificadas como "${_selectedCell!.predictedClass}" (${_selectedCell!.percentage.toStringAsFixed(1)}% tasa de coincidencia).',
-                style: const TextStyle(fontSize: 11, color: AppColors.brightBlue),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.brightBlue,
+                ),
               ),
             ),
           ],
@@ -556,11 +609,14 @@ class _AiModelCardViewState extends State<AiModelCardView> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.waterfall_chart_rounded,
-                      size: 18, color: Color(0xFF00C6FF)),
+                  const Icon(
+                    Icons.waterfall_chart_rounded,
+                    size: 18,
+                    color: Color(0xFF00C6FF),
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    'Monitoreo de Data Drift (Deriva de Datos Distrital)',
+                    'Ejemplo de deriva de datos',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -594,8 +650,8 @@ class _AiModelCardViewState extends State<AiModelCardView> {
             final deltaColor = item.shiftDeltaPercent.abs() > 2.5
                 ? Colors.amber
                 : (item.shiftDeltaPercent > 0
-                    ? const Color(0xFFEF4444)
-                    : const Color(0xFF10B981));
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF10B981));
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -630,12 +686,17 @@ class _AiModelCardViewState extends State<AiModelCardView> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(3),
                           child: LinearProgressIndicator(
-                            value: (item.recentRatioPercent / 50.0).clamp(0.0, 1.0),
+                            value: (item.recentRatioPercent / 50.0).clamp(
+                              0.0,
+                              1.0,
+                            ),
                             minHeight: 5,
                             backgroundColor: isDark
                                 ? const Color(0xFF1E293B)
                                 : const Color(0xFFE2E8F0),
-                            valueColor: AlwaysStoppedAnimation<Color>(deltaColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              deltaColor,
+                            ),
                           ),
                         ),
                       ),
@@ -647,67 +708,6 @@ class _AiModelCardViewState extends State<AiModelCardView> {
           }),
         ],
       ),
-    );
-  }
-
-  AiModelCardResponse _fallbackModelCard() {
-    return const AiModelCardResponse(
-      modelName: 'Cartagena Segura Deep Neural Predictor',
-      architecture: 'Multilayer Perceptron (MLP) Deep Feedforward (6 -> 12 -> 8 -> 1+4)',
-      version: 'v2.4-Production',
-      optimizer: 'Adam (beta1=0.9, beta2=0.999, eps=1e-8)',
-      lossFunction: 'Categorical Cross-Entropy + BCE',
-      learningRate: 0.001,
-      inputNodes: 6,
-      hiddenLayers: [12, 8],
-      outputNodes: 5,
-      accuracyScore: 93.4,
-      precisionScore: 91.8,
-      recallScore: 94.6,
-      f1Score: 0.931,
-      aucRocScore: 0.962,
-      averageLatencyMs: 2,
-      dataDriftIndex: 0.042,
-      dataDriftStatus: 'ESTABLE / SIN DERIVA (Normal)',
-      dataDriftComparison: [
-        DataDriftItem(incidentType: 'Hurto / Robo a Transeúntes', baselineRatioPercent: 38.0, recentRatioPercent: 39.2, shiftDeltaPercent: 1.2),
-        DataDriftItem(incidentType: 'Riña / Altercado Físico', baselineRatioPercent: 24.5, recentRatioPercent: 23.8, shiftDeltaPercent: -0.7),
-        DataDriftItem(incidentType: 'Congestión y Bloqueo Vial', baselineRatioPercent: 18.2, recentRatioPercent: 19.0, shiftDeltaPercent: 0.8),
-        DataDriftItem(incidentType: 'Emergencia / Asistencia SOS', baselineRatioPercent: 11.3, recentRatioPercent: 10.5, shiftDeltaPercent: -0.8),
-      ],
-      confusionMatrix: [
-        ConfusionMatrixCell(actualClass: 'BAJO', predictedClass: 'BAJO', sampleCount: 412, percentage: 94.7),
-        ConfusionMatrixCell(actualClass: 'BAJO', predictedClass: 'MODERADO', sampleCount: 19, percentage: 4.4),
-        ConfusionMatrixCell(actualClass: 'BAJO', predictedClass: 'ALTO', sampleCount: 4, percentage: 0.9),
-        ConfusionMatrixCell(actualClass: 'BAJO', predictedClass: 'CRÍTICO', sampleCount: 0, percentage: 0.0),
-        ConfusionMatrixCell(actualClass: 'MODERADO', predictedClass: 'BAJO', sampleCount: 14, percentage: 3.2),
-        ConfusionMatrixCell(actualClass: 'MODERADO', predictedClass: 'MODERADO', sampleCount: 401, percentage: 92.4),
-        ConfusionMatrixCell(actualClass: 'MODERADO', predictedClass: 'ALTO', sampleCount: 17, percentage: 3.9),
-        ConfusionMatrixCell(actualClass: 'MODERADO', predictedClass: 'CRÍTICO', sampleCount: 2, percentage: 0.5),
-        ConfusionMatrixCell(actualClass: 'ALTO', predictedClass: 'BAJO', sampleCount: 2, percentage: 0.6),
-        ConfusionMatrixCell(actualClass: 'ALTO', predictedClass: 'MODERADO', sampleCount: 16, percentage: 4.7),
-        ConfusionMatrixCell(actualClass: 'ALTO', predictedClass: 'ALTO', sampleCount: 312, percentage: 92.0),
-        ConfusionMatrixCell(actualClass: 'ALTO', predictedClass: 'CRÍTICO', sampleCount: 9, percentage: 2.7),
-        ConfusionMatrixCell(actualClass: 'CRÍTICO', predictedClass: 'BAJO', sampleCount: 0, percentage: 0.0),
-        ConfusionMatrixCell(actualClass: 'CRÍTICO', predictedClass: 'MODERADO', sampleCount: 3, percentage: 1.4),
-        ConfusionMatrixCell(actualClass: 'CRÍTICO', predictedClass: 'ALTO', sampleCount: 8, percentage: 3.8),
-        ConfusionMatrixCell(actualClass: 'CRÍTICO', predictedClass: 'CRÍTICO', sampleCount: 198, percentage: 94.8),
-      ],
-      inputFeatureNames: [
-        'Afluencia de Público',
-        'Condición Climática',
-        'Ciclo Horario Seno',
-        'Ciclo Horario Coseno',
-        'Fin de Semana',
-        'Interacción Socioambiental',
-      ],
-      outputCategoryNames: [
-        'Riesgo Bajo',
-        'Riesgo Moderado',
-        'Riesgo Alto',
-        'Riesgo Crítico',
-        'Amenaza Primaria',
-      ],
     );
   }
 }

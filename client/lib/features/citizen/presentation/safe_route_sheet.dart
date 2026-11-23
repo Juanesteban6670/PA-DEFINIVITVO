@@ -32,7 +32,8 @@ class SafeRouteSheet extends StatefulWidget {
 class _SafeRouteSheetState extends State<SafeRouteSheet> {
   bool _expandedAlerts = false;
 
-  SafeRoute get _currentRoute => widget.routes.isNotEmpty &&
+  SafeRoute get _currentRoute =>
+      widget.routes.isNotEmpty &&
           widget.selectedRouteIndex < widget.routes.length
       ? widget.routes[widget.selectedRouteIndex]
       : widget.routes.first;
@@ -49,23 +50,23 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
       badgeIcon,
     ) = switch (route.safetyLevel) {
       SafetyLevel.safe => (
-          isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
-          isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
-          isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0),
-          Icons.verified_user_outlined,
-        ),
+        isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
+        isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+        isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0),
+        Icons.verified_user_outlined,
+      ),
       SafetyLevel.moderate => (
-          isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB),
-          isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309),
-          isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A),
-          Icons.shield_outlined,
-        ),
+        isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB),
+        isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309),
+        isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A),
+        Icons.shield_outlined,
+      ),
       SafetyLevel.risky => (
-          isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
-          isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
-          isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA),
-          Icons.warning_amber_rounded,
-        ),
+        isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
+        isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+        isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA),
+        Icons.warning_amber_rounded,
+      ),
     };
 
     return Container(
@@ -269,8 +270,8 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                                 color: widget.selectedRouteIndex == i
                                     ? Colors.white
                                     : (isDark
-                                        ? AppColors.darkTextMuted
-                                        : const Color(0xFF475569)),
+                                          ? AppColors.darkTextMuted
+                                          : const Color(0xFF475569)),
                               ),
                               const SizedBox(width: 5),
                               Text(widget.routes[i].label),
@@ -284,8 +285,8 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                             color: widget.selectedRouteIndex == i
                                 ? Colors.white
                                 : (isDark
-                                    ? AppColors.darkText
-                                    : const Color(0xFF1E293B)),
+                                      ? AppColors.darkText
+                                      : const Color(0xFF1E293B)),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),

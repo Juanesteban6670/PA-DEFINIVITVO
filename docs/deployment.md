@@ -72,6 +72,10 @@ Compose mantiene datos en los volúmenes `postgres_data`, `mongo_data`, `uploade
 - `CORS_ALLOWED_ORIGINS`: orígenes permitidos separados por comas. En producción, agrega el origen HTTPS exacto.
 - `BASE_URL` y `FRONTEND_URL`: enlaces públicos usados por la API, por ejemplo para archivos y correos.
 - `WEB_PORT`: puerto local enlazado por defecto a loopback.
+- `DEMO_SEED_ENABLED`: activa la carga de incidentes de ejemplo en una base vacía. El valor predeterminado es `false`. Usa `true` solo en una base de demostración aislada.
+- `ANDROID_LATEST_VERSION`: versión que ofrece la API en el enlace oficial. Actualízala después de verificar que el nuevo APK esté disponible en GitHub Releases.
+
+La imagen de Render guarda las evidencias nuevas en MongoDB GridFS. Compose las guarda en el volumen de archivos con sus metadatos de propietario. El acceso requiere una sesión autorizada. Las URLs históricas de proveedores externos conservan los permisos que se hayan configurado en esos proveedores.
 
 Si se usan bases administradas, adapta `DB_URL`, `DB_SSL`, `DB_SSLMODE` y `MONGO_URI` y retira los servicios locales correspondientes. Las claves de servicios externos deben permanecer en el backend, nunca en el bundle Flutter.
 

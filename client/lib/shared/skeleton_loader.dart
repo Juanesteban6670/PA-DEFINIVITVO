@@ -41,10 +41,12 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? AppColors.darkCardHover : const Color(0xFFE2E8F0);
-    final highlightColor =
-        isDark ? AppColors.darkBorderSubtle : const Color(0xFFF1F5F9);
+    final baseColor = isDark
+        ? AppColors.darkCardHover
+        : const Color(0xFFE2E8F0);
+    final highlightColor = isDark
+        ? AppColors.darkBorderSubtle
+        : const Color(0xFFF1F5F9);
 
     return AnimatedBuilder(
       animation: _controller,

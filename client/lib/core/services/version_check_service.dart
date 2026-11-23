@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -33,17 +34,22 @@ class VersionCheckService {
 
     try {
       final currentAppVersion = (await PackageInfo.fromPlatform()).version;
-      final dynamic response = await api.get('System/Version').timeout(
-        const Duration(seconds: 4),
-        onTimeout: () => null,
-      ).catchError((_) => null);
+      final dynamic response = await api
+          .get('System/Version')
+          .timeout(const Duration(seconds: 4), onTimeout: () => null)
+          .catchError((_) => null);
 
       if (response is Map<String, dynamic>) {
-        final latestVersion = response['latestVersion']?.toString() ?? currentAppVersion;
-        final releaseNotes = response['releaseNotes']?.toString() ??
+        final latestVersion =
+            response['latestVersion']?.toString() ?? currentAppVersion;
+        final releaseNotes =
+            response['releaseNotes']?.toString() ??
             'Nueva versión con mejoras de seguridad, rendimiento y sincronización en tiempo real.';
-        final storeUrl = Uri.tryParse(response['storeUrlAndroid']?.toString() ?? '');
-        if (storeUrl == null || storeUrl.scheme != 'https' ||
+        final storeUrl = Uri.tryParse(
+          response['storeUrlAndroid']?.toString() ?? '',
+        );
+        if (storeUrl == null ||
+            storeUrl.scheme != 'https' ||
             storeUrl.host != 'github.com') {
           return;
         }
@@ -64,7 +70,9 @@ class VersionCheckService {
         } else if (showNoUpdateNotice && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Cartagena Segura está actualizada a la última versión (v$currentAppVersion)'),
+              content: Text(
+                'Cartagena Segura está actualizada a la última versión (v$currentAppVersion)',
+              ),
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 3),
             ),
@@ -108,14 +116,17 @@ class VersionCheckService {
           canPop: !forceUpdate,
           child: AlertDialog(
             backgroundColor: isDark ? AppColors.darkCard : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             title: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.15),
+                    color: (isDark ? AppColors.brightBlue : AppColors.blue)
+                        .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -142,9 +153,13 @@ class VersionCheckService {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.1),
+                    color: (isDark ? AppColors.brightBlue : AppColors.blue)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -201,18 +216,26 @@ class VersionCheckService {
               ElevatedButton(
                 onPressed: () async {
                   final opened = await launchUrl(
-                    storeUrl, mode: LaunchMode.externalApplication,
+                    storeUrl,
+                    mode: LaunchMode.externalApplication,
                   );
                   if (dialogContext.mounted && opened && !forceUpdate) {
                     Navigator.of(dialogContext).pop();
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  backgroundColor: isDark
+                      ? AppColors.brightBlue
+                      : AppColors.blue,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
                 ),
                 child: const Text(
                   'Actualizar ahora',

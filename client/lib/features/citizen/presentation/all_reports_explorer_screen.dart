@@ -18,7 +18,8 @@ class AllReportsExplorerScreen extends StatefulWidget {
   final String? initialSector;
 
   @override
-  State<AllReportsExplorerScreen> createState() => _AllReportsExplorerScreenState();
+  State<AllReportsExplorerScreen> createState() =>
+      _AllReportsExplorerScreenState();
 }
 
 class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
@@ -116,9 +117,15 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
 
       // 2. Filtro de categoría
       if (_selectedCategory != 'Todos') {
-        final (catName, _, _, _) = IncidentCompactCard.getCategoryMeta(inc.type, false);
+        final (catName, _, _, _) = IncidentCompactCard.getCategoryMeta(
+          inc.type,
+          false,
+        );
         if (catName != _selectedCategory) {
-          if (_selectedCategory == 'Otros' && (catName == 'Seguridad' || catName == 'Tráfico' || catName == 'Servicios')) {
+          if (_selectedCategory == 'Otros' &&
+              (catName == 'Seguridad' ||
+                  catName == 'Tráfico' ||
+                  catName == 'Servicios')) {
             return false;
           } else if (_selectedCategory != 'Otros') {
             return false;
@@ -130,7 +137,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
       if (_selectedStatus != 'Todos') {
         final st = inc.status.toUpperCase();
         if (_selectedStatus == 'En revisión' && st != 'PENDING') return false;
-        if (_selectedStatus == 'En atención' && st != 'IN_PROGRESS') return false;
+        if (_selectedStatus == 'En atención' && st != 'IN_PROGRESS') {
+          return false;
+        }
         if (_selectedStatus == 'Resueltos' && st != 'RESOLVED') return false;
       }
 
@@ -146,8 +155,19 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
       if (_selectedDateRange != null) {
         final date = inc.createdAt;
         if (date == null) return false;
-        final start = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day);
-        final end = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day, 23, 59, 59);
+        final start = DateTime(
+          _selectedDateRange!.start.year,
+          _selectedDateRange!.start.month,
+          _selectedDateRange!.start.day,
+        );
+        final end = DateTime(
+          _selectedDateRange!.end.year,
+          _selectedDateRange!.end.month,
+          _selectedDateRange!.end.day,
+          23,
+          59,
+          59,
+        );
         if (date.isBefore(start) || date.isAfter(end)) return false;
       }
 
@@ -194,7 +214,11 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
         child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
-            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            horizontal: context.responsiveValue(
+              mobile: 16.0,
+              tablet: 24.0,
+              desktop: 32.0,
+            ),
             vertical: 14.0,
           ),
           child: FutureBuilder<List<Incident>>(
@@ -220,12 +244,15 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                         color: isDark ? AppColors.darkCard : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.border,
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.border,
                         ),
                       ),
                       child: TextField(
                         controller: _searchController,
-                        onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                        onChanged: (val) =>
+                            setState(() => _searchQuery = val.trim()),
                         style: TextStyle(
                           color: isDark ? AppColors.darkText : AppColors.navy,
                           fontSize: 14,
@@ -233,17 +260,24 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                         decoration: InputDecoration(
                           hintText: 'Buscar por tipo, descripción o barrio...',
                           hintStyle: TextStyle(
-                            color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.muted,
                             fontSize: 13,
                           ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
                             size: 20,
-                            color: isDark ? AppColors.brightBlue : AppColors.blue,
+                            color: isDark
+                                ? AppColors.brightBlue
+                                : AppColors.blue,
                           ),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.clear_rounded, size: 18),
+                                  icon: const Icon(
+                                    Icons.clear_rounded,
+                                    size: 18,
+                                  ),
                                   onPressed: () {
                                     _searchController.clear();
                                     setState(() => _searchQuery = '');
@@ -251,7 +285,10 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                                 )
                               : null,
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -266,7 +303,8 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                             _buildChoiceChip(
                               label: cat,
                               isSelected: _selectedCategory == cat,
-                              onSelected: () => setState(() => _selectedCategory = cat),
+                              onSelected: () =>
+                                  setState(() => _selectedCategory = cat),
                               isDark: isDark,
                             ),
                             const SizedBox(width: 8),
@@ -294,7 +332,8 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                             _buildChoiceChip(
                               label: st,
                               isSelected: _selectedStatus == st,
-                              onSelected: () => setState(() => _selectedStatus = st),
+                              onSelected: () =>
+                                  setState(() => _selectedStatus = st),
                               isDark: isDark,
                               dense: true,
                             ),
@@ -313,7 +352,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.muted,
                           ),
                         ),
                         const Spacer(),
@@ -334,7 +375,10 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                               });
                             },
                             style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -343,7 +387,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                                color: isDark
+                                    ? AppColors.brightBlue
+                                    : AppColors.blue,
                               ),
                             ),
                           ),
@@ -390,7 +436,10 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
       borderRadius: BorderRadius.circular(999),
       onTap: onSelected,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12, vertical: dense ? 5 : 7),
+        padding: EdgeInsets.symmetric(
+          horizontal: dense ? 10 : 12,
+          vertical: dense ? 5 : 7,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(999),
@@ -406,7 +455,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
           style: TextStyle(
             fontSize: dense ? 11 : 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : (isDark ? AppColors.darkText : AppColors.navy),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkText : AppColors.navy),
           ),
         ),
       ),
@@ -418,7 +469,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       decoration: BoxDecoration(
         color: _selectedSector != 'Todos'
-            ? (isDark ? AppColors.brightBlue.withValues(alpha: 0.15) : AppColors.blue.withValues(alpha: 0.1))
+            ? (isDark
+                  ? AppColors.brightBlue.withValues(alpha: 0.15)
+                  : AppColors.blue.withValues(alpha: 0.1))
             : (isDark ? AppColors.darkCard : Colors.white),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
@@ -472,7 +525,9 @@ class _AllReportsExplorerScreenState extends State<AllReportsExplorerScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: hasRange
-              ? (isDark ? AppColors.brightBlue.withValues(alpha: 0.15) : AppColors.blue.withValues(alpha: 0.1))
+              ? (isDark
+                    ? AppColors.brightBlue.withValues(alpha: 0.15)
+                    : AppColors.blue.withValues(alpha: 0.1))
               : (isDark ? AppColors.darkCard : Colors.white),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(

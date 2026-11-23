@@ -7,6 +7,7 @@ import Com.Backend.CartagenaSegura.Repository.IncidentHistoryRepository;
 import Com.Backend.CartagenaSegura.Repository.IncidentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -118,7 +119,8 @@ public class IncidentService {
         // Emitir alerta en tiempo real a oficiales y administradores via WebSocket
         if (messagingTemplate != null) {
             try {
-                messagingTemplate.convertAndSend("/topic/incidents", saved);
+                PublicIncident publicIncident = PublicIncident.from(saved);
+                messagingTemplate.convertAndSend("/topic/incidents", publicIncident);
                 boolean isEmergency = saved.getPriority() == Incident.Priority.CRITICAL
                         || "SOS".equalsIgnoreCase(saved.getType())
                         || "BOTON_PANICO".equalsIgnoreCase(saved.getType())
@@ -127,11 +129,10 @@ public class IncidentService {
                     java.util.Map<String, Object> alert = new java.util.HashMap<>();
                     alert.put("id", saved.getId());
                     alert.put("type", saved.getType());
-                    alert.put("location", saved.getLocation());
-                    alert.put("latitude", saved.getLatitude());
-                    alert.put("longitude", saved.getLongitude());
+                    alert.put("location", publicIncident.location());
+                    alert.put("latitude", publicIncident.latitude());
+                    alert.put("longitude", publicIncident.longitude());
                     alert.put("priority", saved.getPriority().name());
-                    alert.put("reportedBy", reportedBy);
                     alert.put("timestamp", java.time.Instant.now().toEpochMilli());
                     messagingTemplate.convertAndSend("/topic/alerts", alert);
                 }
@@ -164,6 +165,17 @@ public class IncidentService {
 
     public List<Incident> getAll() {
         return incidentRepository.findAll();
+    }
+
+    public static boolean isAdmin(UserDetails user) {
+        return user != null && user.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+    }
+
+    public static boolean canReadDetails(Incident incident, UserDetails user) {
+        return isAdmin(user) || user != null && (
+                user.getUsername().equals(incident.getReportedBy())
+                        || user.getUsername().equals(incident.getAssignedTo()));
     }
 
     public List<Incident> getByStatus(Incident.Status status) {
@@ -226,7 +238,7 @@ public class IncidentService {
 
         if (messagingTemplate != null) {
             try {
-                messagingTemplate.convertAndSend("/topic/incidents", updated);
+                messagingTemplate.convertAndSend("/topic/incidents", PublicIncident.from(updated));
             } catch (Exception ignored) {}
         }
 

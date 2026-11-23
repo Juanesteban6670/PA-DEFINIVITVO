@@ -19,8 +19,8 @@ class ApiClient {
     required String baseUrl,
     http.Client? client,
     this.requestTimeout = const Duration(seconds: 20),
-  })  : _baseUrl = _normalizeBaseUrl(baseUrl),
-        _client = client ?? http.Client();
+  }) : _baseUrl = _normalizeBaseUrl(baseUrl),
+       _client = client ?? http.Client();
 
   final String _baseUrl;
   final http.Client _client;
@@ -77,12 +77,16 @@ class ApiClient {
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
-    final response = await _client.get(endpoint(path), headers: headers);
+    final response = await _client
+        .get(endpoint(path), headers: headers)
+        .timeout(requestTimeout);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return response.bodyBytes;
     }
-    throw ApiException('Error al descargar archivo: ${response.statusCode}',
-        statusCode: response.statusCode);
+    throw ApiException(
+      'Error al descargar archivo: ${response.statusCode}',
+      statusCode: response.statusCode,
+    );
   }
 
   Future<dynamic> post(String path, Map<String, dynamic> body) =>
@@ -199,7 +203,8 @@ class ApiClient {
 
     final envelope = decoded is Map<String, dynamic> ? decoded : null;
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      var message = envelope?['message']?.toString() ??
+      var message =
+          envelope?['message']?.toString() ??
           'La API respondió con HTTP ${response.statusCode}';
       if (message.isEmpty) {
         message = 'La API respondió con HTTP ${response.statusCode}';

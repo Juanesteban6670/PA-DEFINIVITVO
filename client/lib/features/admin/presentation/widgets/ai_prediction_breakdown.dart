@@ -50,7 +50,8 @@ class AiPredictionBreakdown extends StatelessWidget {
         featureName: 'Afluencia y Aglomeraciones',
         contributionPercent: 18.6,
         category: 'AFLUENCIA',
-        description: 'Densidad turística y concentración peatonal en vía pública',
+        description:
+            'Densidad turística y concentración peatonal en vía pública',
         isRiskAccelerator: true,
       ),
       FeatureContribution(
@@ -84,8 +85,9 @@ class AiPredictionBreakdown extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : Colors.blue.shade900)
-                .withValues(alpha: 0.08),
+            color: (isDark ? Colors.black : Colors.blue.shade900).withValues(
+              alpha: 0.08,
+            ),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -128,7 +130,7 @@ class AiPredictionBreakdown extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Ponderación SHAP-like • Intervalo de confianza y certeza matemática',
+                        'Contribuciones y márgenes ilustrativos para la simulación',
                         style: TextStyle(
                           fontSize: 11,
                           color: isDark
@@ -141,7 +143,10 @@ class AiPredictionBreakdown extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF312E81).withValues(alpha: 0.4)
@@ -191,7 +196,7 @@ class AiPredictionBreakdown extends StatelessWidget {
                 _metricItem(
                   icon: Icons.verified_user_outlined,
                   iconColor: const Color(0xFF10B981),
-                  title: 'Certeza del Modelo',
+                  title: 'Indicador ilustrativo',
                   value: '${modelCertaintyScore.toStringAsFixed(1)}%',
                   subtitle: 'Baja entropía de predicción',
                   isDark: isDark,
@@ -199,9 +204,10 @@ class AiPredictionBreakdown extends StatelessWidget {
                 _metricItem(
                   icon: Icons.graphic_eq_rounded,
                   iconColor: const Color(0xFF00C6FF),
-                  title: 'Intervalo de Confianza (95%)',
+                  title: 'Margen ilustrativo',
                   value: '± ${confidenceMargin.toStringAsFixed(1)}%',
-                  subtitle: '[${ciMin.toStringAsFixed(1)}% — ${ciMax.toStringAsFixed(1)}%]',
+                  subtitle:
+                      '[${ciMin.toStringAsFixed(1)}% — ${ciMax.toStringAsFixed(1)}%]',
                   isDark: isDark,
                 ),
                 _metricItem(
@@ -272,7 +278,9 @@ class AiPredictionBreakdown extends StatelessWidget {
                     'La red prioriza patrullaje dinámico en $sector debido a la combinación crítica de horario nocturno e histórico de reincidencia.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF475569),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF475569),
                     ),
                   ),
                 ),
@@ -312,7 +320,9 @@ class AiPredictionBreakdown extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 11,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF64748B),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -328,7 +338,9 @@ class AiPredictionBreakdown extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 10,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -361,7 +373,9 @@ class AiPredictionBreakdown extends StatelessWidget {
 
   Widget _buildContributionBar(FeatureContribution fc, bool isDark) {
     final isPositive = fc.contributionPercent >= 0;
-    final color = isPositive ? const Color(0xFFEF4444) : const Color(0xFF10B981);
+    final color = isPositive
+        ? const Color(0xFFEF4444)
+        : const Color(0xFF10B981);
     final absVal = fc.contributionPercent.abs();
     final factorWidth = (absVal / 40.0).clamp(0.05, 1.0);
 
@@ -405,7 +419,10 @@ class AiPredictionBreakdown extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
@@ -426,7 +443,9 @@ class AiPredictionBreakdown extends StatelessWidget {
               fc.description,
               style: TextStyle(
                 fontSize: 10,
-                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF64748B),
               ),
             ),
             const SizedBox(height: 8),
@@ -436,7 +455,9 @@ class AiPredictionBreakdown extends StatelessWidget {
                 Container(
                   height: 6,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -448,7 +469,10 @@ class AiPredictionBreakdown extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: isPositive
                             ? [const Color(0xFFF87171), const Color(0xFFEF4444)]
-                            : [const Color(0xFF34D399), const Color(0xFF10B981)],
+                            : [
+                                const Color(0xFF34D399),
+                                const Color(0xFF10B981),
+                              ],
                       ),
                       borderRadius: BorderRadius.circular(3),
                     ),

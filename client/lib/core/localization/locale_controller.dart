@@ -8,7 +8,7 @@ import 'app_strings.dart';
 /// Permite alternar instantáneamente entre Español (es) e Inglés (en) para residentes y turistas.
 class LocaleController extends ChangeNotifier {
   LocaleController({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage() {
+    : _storage = storage ?? const FlutterSecureStorage() {
     _loadLanguage();
   }
 

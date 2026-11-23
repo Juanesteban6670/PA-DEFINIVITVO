@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum TooltipPosition {
-  auto,
-  top,
-  bottom,
-}
+enum TooltipPosition { auto, top, bottom }
 
 class TourStep {
   const TourStep({

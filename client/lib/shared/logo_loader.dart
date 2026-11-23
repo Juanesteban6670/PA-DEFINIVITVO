@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// Pantalla de carga interactiva de Cartagena Segura con el ciclo:
@@ -83,8 +84,10 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
                         } else if (elapsed <= 4000) {
                           textOpacity = (elapsed - 3400) / 600.0;
                         } else if (elapsed > 7000 && elapsed <= 7600) {
-                          textOpacity =
-                              (1.0 - (elapsed - 7000) / 600.0).clamp(0.0, 1.0);
+                          textOpacity = (1.0 - (elapsed - 7000) / 600.0).clamp(
+                            0.0,
+                            1.0,
+                          );
                         } else if (elapsed > 7600) {
                           textOpacity = 0.0;
                         }
@@ -107,7 +110,8 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
                             Text(
                               'Cartagena de Indias · Línea 123 y Red Distrital',
                               style: TextStyle(
-                                color: const Color(0xFFFAF6F9).withValues(alpha: 0.72),
+                                color: const Color(0xFFFAF6F9)
+                                    .withValues(alpha: 0.72),
                                 fontSize: screenWidth < 500 ? 11.5 : 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -122,7 +126,6 @@ class _LogoLoaderScreenState extends State<LogoLoaderScreen>
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -174,7 +177,9 @@ class _LogoPainter extends CustomPainter {
       outlineOpacity = 1.0;
       fillOpacity = 0.0;
     } else if (elapsed <= crossfadeEndMs) {
-      final t = _easeCos((elapsed - crossfadeStartMs) / (crossfadeEndMs - crossfadeStartMs));
+      final t = _easeCos(
+        (elapsed - crossfadeStartMs) / (crossfadeEndMs - crossfadeStartMs),
+      );
       outlineOpacity = 1.0 - t;
       fillOpacity = t;
     } else {
@@ -192,7 +197,12 @@ class _LogoPainter extends CustomPainter {
     // Draw Filled Group
     if (fillOpacity > 0 && overallOpacity > 0) {
       final fillPaint = Paint()
-        ..color = Color.fromRGBO(250, 246, 249, (fillOpacity * overallOpacity).clamp(0.0, 1.0));
+        ..color = Color.fromRGBO(
+          250,
+          246,
+          249,
+          (fillOpacity * overallOpacity).clamp(0.0, 1.0),
+        );
 
       final shieldGrad = Paint()
         ..shader = const LinearGradient(
@@ -200,7 +210,12 @@ class _LogoPainter extends CustomPainter {
           end: Alignment.bottomRight,
           colors: [Color(0xFF0071E3), Color(0xFF063970)],
         ).createShader(const Rect.fromLTWH(6, 4, 22, 25))
-        ..color = Color.fromRGBO(255, 255, 255, (fillOpacity * overallOpacity).clamp(0.0, 1.0));
+        ..color = Color.fromRGBO(
+          255,
+          255,
+          255,
+          (fillOpacity * overallOpacity).clamp(0.0, 1.0),
+        );
 
       // Shield base
       final shieldPath = Path()
@@ -220,7 +235,10 @@ class _LogoPainter extends CustomPainter {
         ..close();
       canvas.drawPath(
         innerShield,
-        Paint()..color = Colors.white.withValues(alpha: 0.14 * fillOpacity * overallOpacity),
+        Paint()
+          ..color = Colors.white.withValues(
+            alpha: 0.14 * fillOpacity * overallOpacity,
+          ),
       );
 
       // Star
@@ -240,12 +258,35 @@ class _LogoPainter extends CustomPainter {
           ..shader = const LinearGradient(
             colors: [Color(0xFF38BDF8), Color(0xFFF5EDDE)],
           ).createShader(const Rect.fromLTWH(10.5, 9, 13, 13))
-          ..color = Color.fromRGBO(255, 255, 255, (fillOpacity * overallOpacity).clamp(0.0, 1.0)),
+          ..color = Color.fromRGBO(
+            255,
+            255,
+            255,
+            (fillOpacity * overallOpacity).clamp(0.0, 1.0),
+          ),
       );
 
       // Text Lines
-      _drawText(canvas, 'CARTAGENA', 36, 6, 7.5, FontWeight.w600, 1.8, fillPaint);
-      _drawText(canvas, 'SEGURA', 36, 15, 12.5, FontWeight.w800, -0.3, fillPaint);
+      _drawText(
+        canvas,
+        'CARTAGENA',
+        36,
+        6,
+        7.5,
+        FontWeight.w600,
+        1.8,
+        fillPaint,
+      );
+      _drawText(
+        canvas,
+        'SEGURA',
+        36,
+        15,
+        12.5,
+        FontWeight.w800,
+        -0.3,
+        fillPaint,
+      );
     }
 
     // Draw Outline Group (Stroke drawing)
@@ -254,7 +295,12 @@ class _LogoPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..color = Color.fromRGBO(245, 237, 222, (outlineOpacity * overallOpacity).clamp(0.0, 1.0));
+        ..color = Color.fromRGBO(
+          245,
+          237,
+          222,
+          (outlineOpacity * overallOpacity).clamp(0.0, 1.0),
+        );
 
       final List<_ContourItem> contours = [
         // Shield Contours (delays 0, 90, 180, 270, 360)

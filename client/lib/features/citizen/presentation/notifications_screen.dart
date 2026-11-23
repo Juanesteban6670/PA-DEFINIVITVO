@@ -23,7 +23,8 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late Future<List<AppNotification>> _notifications;
   bool _updating = false;
-  String _selectedFilter = 'Todas'; // 'Todas', 'No leídas', 'Con fotos', 'Resueltos'
+  String _selectedFilter =
+      'Todas'; // 'Todas', 'No leídas', 'Con fotos', 'Resueltos'
 
   @override
   void initState() {
@@ -97,10 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -112,10 +110,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return all.where((n) => n.hasPhotos).toList();
       case 'Resueltos':
         return all
-            .where((n) =>
-                n.incidentStatus?.toUpperCase() == 'RESOLVED' ||
-                n.type.contains('RESOLVED') ||
-                n.title.toLowerCase().contains('resuelto'))
+            .where(
+              (n) =>
+                  n.incidentStatus?.toUpperCase() == 'RESOLVED' ||
+                  n.type.contains('RESOLVED') ||
+                  n.title.toLowerCase().contains('resuelto'),
+            )
             .toList();
       case 'Todas':
       default:
@@ -131,14 +131,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   (String, Color, Color) _getStatusBadge(String? status, bool isDark) {
     switch (status?.toUpperCase()) {
       case 'RESOLVED':
-        return ('Resuelto', isDark ? AppColors.darkGreen : AppColors.green, (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: 0.15));
+        return (
+          'Resuelto',
+          isDark ? AppColors.darkGreen : AppColors.green,
+          (isDark ? AppColors.darkGreen : AppColors.green).withValues(
+            alpha: 0.15,
+          ),
+        );
       case 'IN_PROGRESS':
-        return ('En atención', isDark ? AppColors.brightBlue : AppColors.blue, (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.15));
+        return (
+          'En atención',
+          isDark ? AppColors.brightBlue : AppColors.blue,
+          (isDark ? AppColors.brightBlue : AppColors.blue).withValues(
+            alpha: 0.15,
+          ),
+        );
       case 'REJECTED':
-        return ('Rechazado', isDark ? AppColors.darkRed : AppColors.red, (isDark ? AppColors.darkRed : AppColors.red).withValues(alpha: 0.15));
+        return (
+          'Rechazado',
+          isDark ? AppColors.darkRed : AppColors.red,
+          (isDark ? AppColors.darkRed : AppColors.red).withValues(alpha: 0.15),
+        );
       case 'PENDING':
       default:
-        return ('Pendiente / Nuevo', isDark ? AppColors.darkAmber : AppColors.amber, (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: 0.15));
+        return (
+          'Pendiente / Nuevo',
+          isDark ? AppColors.darkAmber : AppColors.amber,
+          (isDark ? AppColors.darkAmber : AppColors.amber).withValues(
+            alpha: 0.15,
+          ),
+        );
     }
   }
 
@@ -210,7 +232,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
-            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            horizontal: context.responsiveValue(
+              mobile: 16.0,
+              tablet: 24.0,
+              desktop: 32.0,
+            ),
             vertical: 14.0,
           ),
           child: FutureBuilder<List<AppNotification>>(
@@ -226,7 +252,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.error_outline_rounded, size: 40, color: isDark ? AppColors.darkRed : AppColors.red),
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 40,
+                          color: isDark ? AppColors.darkRed : AppColors.red,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'No se pudieron cargar las notificaciones',
@@ -264,9 +294,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          for (final f in ['Todas', 'No leídas', 'Con fotos', 'Resueltos']) ...[
+                          for (final f in [
+                            'Todas',
+                            'No leídas',
+                            'Con fotos',
+                            'Resueltos',
+                          ]) ...[
                             _buildFilterChip(
-                              label: f == 'No leídas' && unreadCount > 0 ? '$f ($unreadCount)' : f,
+                              label: f == 'No leídas' && unreadCount > 0
+                                  ? '$f ($unreadCount)'
+                                  : f,
                               isSelected: _selectedFilter == f,
                               onTap: () => setState(() => _selectedFilter = f),
                               isDark: isDark,
@@ -287,7 +324,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.muted,
                           ),
                         ),
                       ],
@@ -354,7 +393,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected ? Colors.white : (isDark ? AppColors.darkText : AppColors.navy),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.darkText : AppColors.navy),
               ),
             ),
           ],
@@ -366,9 +407,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildNotificationCard(AppNotification n, bool isDark) {
     final (catName, catColor, catBg, catIcon) =
         IncidentCompactCard.getCategoryMeta(n.category ?? n.type, isDark);
-    final (statusLabel, statusColor, statusBg) =
-        _getStatusBadge(n.incidentStatus, isDark);
-    final hasIncident = n.relatedEntityId != null && n.relatedEntityId!.isNotEmpty;
+    final (statusLabel, statusColor, statusBg) = _getStatusBadge(
+      n.incidentStatus,
+      isDark,
+    );
+    final hasIncident =
+        n.relatedEntityId != null && n.relatedEntityId!.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -379,7 +423,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: !n.read
-              ? (isDark ? AppColors.brightBlue.withValues(alpha: 0.4) : AppColors.blue.withValues(alpha: 0.3))
+              ? (isDark
+                    ? AppColors.brightBlue.withValues(alpha: 0.4)
+                    : AppColors.blue.withValues(alpha: 0.3))
               : (isDark ? AppColors.darkBorder : AppColors.border),
           width: !n.read ? 1.2 : 0.8,
         ),
@@ -420,7 +466,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               width: 7,
                               height: 7,
                               decoration: BoxDecoration(
-                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                                color: isDark
+                                    ? AppColors.brightBlue
+                                    : AppColors.blue,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -433,8 +481,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: !n.read ? FontWeight.w800 : FontWeight.w700,
-                                color: isDark ? AppColors.darkText : AppColors.navy,
+                                fontWeight: !n.read
+                                    ? FontWeight.w800
+                                    : FontWeight.w700,
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : AppColors.navy,
                               ),
                             ),
                           ),
@@ -445,7 +497,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         _formatDate(n.createdAt),
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.muted,
                         ),
                       ),
                     ],
@@ -454,7 +508,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                 // Chip de estado del incidente
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(8),
@@ -520,13 +577,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _open(n),
                     icon: const Icon(Icons.arrow_forward_rounded, size: 14),
-                    label: const Text('Ver incidente', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    label: const Text(
+                      'Ver incidente',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                      backgroundColor: isDark
+                          ? AppColors.brightBlue
+                          : AppColors.blue,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -565,7 +635,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     required bool isDark,
     Color? color,
   }) {
-    final textColor = color ?? (isDark ? AppColors.darkTextMuted : AppColors.muted);
+    final textColor =
+        color ?? (isDark ? AppColors.darkTextMuted : AppColors.muted);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

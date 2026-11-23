@@ -1,3 +1,5 @@
+import 'package:cartagena_segura/shared/evidence_image.dart';
+
 import 'dart:convert';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -10,6 +12,7 @@ import 'package:cartagena_segura/core/data/realtime_service.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:cartagena_segura/core/localization/language_widgets.dart';
 import 'package:cartagena_segura/shared/live_status_badge.dart';
+
 import 'widgets/admin_ai_operations_center.dart';
 import 'widgets/admin_comments_dialog.dart';
 import 'widgets/admin_predictive_screen.dart';
@@ -128,9 +131,14 @@ class AdminShell extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCardHover : const Color(0xFFF2F2F7),
+                  color: isDark
+                      ? AppColors.darkCardHover
+                      : const Color(0xFFF2F2F7),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark ? AppColors.darkBorder : AppColors.border,
@@ -201,7 +209,9 @@ class AdminShell extends StatelessWidget {
           if (wide)
             NavigationRail(
               selectedIndex: selectedIndex,
-              backgroundColor: isDark ? const Color(0xFF121214) : AppColors.canvas,
+              backgroundColor: isDark
+                  ? const Color(0xFF121214)
+                  : AppColors.canvas,
               extended: MediaQuery.sizeOf(context).width >= 1100,
               onDestinationSelected: (index) => context.go(_sections[index].$1),
               destinations: [
@@ -212,7 +222,11 @@ class AdminShell extends StatelessWidget {
                   ),
               ],
             ),
-          if (wide) VerticalDivider(width: 1, color: isDark ? AppColors.darkBorder : AppColors.border),
+          if (wide)
+            VerticalDivider(
+              width: 1,
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+            ),
           Expanded(
             child: AdminSectionPage(
               key: ValueKey(location),
@@ -280,14 +294,19 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
           duration: const Duration(seconds: 7),
           content: Row(
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  color: Colors.white, size: 24),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   '🚨 ALERTA SOS CRÍTICA: $type en $loc',
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -366,26 +385,26 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   }
 
   Widget _error(BuildContext context, Object error) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off_outlined, size: 44),
-              const SizedBox(height: 12),
-              const Text('No se pudo cargar la información'),
-              const SizedBox(height: 8),
-              Text('$error', textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cloud_off_outlined, size: 44),
+          const SizedBox(height: 12),
+          const Text('No se pudo cargar la información'),
+          const SizedBox(height: 8),
+          Text('$error', textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _reload,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 
   Widget _page(
     BuildContext context, {
@@ -393,93 +412,90 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     required String subtitle,
     required Widget child,
     Widget? action,
-  }) =>
-      ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 600;
-              if (isNarrow) {
-                return Column(
+  }) => ListView(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    children: [
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 600;
+          if (isNarrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Actualizar',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _reload,
+                      icon: const Icon(Icons.refresh, size: 20),
+                    ),
+                    LiveStatusBadge(
+                      realtimeService: _realtimeService,
+                      compact: true,
+                    ),
+                  ],
+                ),
+                if (action != null) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(width: double.infinity, child: action),
+                ],
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                subtitle,
-                                style: Theme.of(context).textTheme.bodySmall,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Actualizar',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: _reload,
-                          icon: const Icon(Icons.refresh, size: 20),
-                        ),
-                        LiveStatusBadge(
-                          realtimeService: _realtimeService,
-                          compact: true,
-                        ),
-                      ],
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    if (action != null) ...[
-                      const SizedBox(height: 10),
-                      SizedBox(width: double.infinity, child: action),
-                    ],
+                    const SizedBox(height: 4),
+                    Text(subtitle),
                   ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(subtitle),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Actualizar',
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh),
-                  ),
-                  const SizedBox(width: 4),
-                  LiveStatusBadge(realtimeService: _realtimeService),
-                  const SizedBox(width: 8),
-                  ?action,
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 18),
-          child,
-        ],
-      );
+                ),
+              ),
+              IconButton(
+                tooltip: 'Actualizar',
+                onPressed: _reload,
+                icon: const Icon(Icons.refresh),
+              ),
+              const SizedBox(width: 4),
+              LiveStatusBadge(realtimeService: _realtimeService),
+              const SizedBox(width: 8),
+              ?action,
+            ],
+          );
+        },
+      ),
+      const SizedBox(height: 18),
+      child,
+    ],
+  );
 
   Widget _dashboard(BuildContext context, List<dynamic> results) {
     final incidents = _maps(results[0]);
@@ -604,34 +620,31 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     String title,
     String value,
     IconData icon,
-  ) =>
-      SizedBox(
-        width: 220,
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
+  ) => SizedBox(
+    width: 220,
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.blue, size: 28),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: AppColors.blue, size: 28),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title),
-                    Text(
-                      value,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                  ],
+                Text(title),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
-          ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   void _exportIncidentsToCsv(
     BuildContext context,
@@ -715,8 +728,8 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     final visible = _statusFilter == 'ALL'
         ? searched
         : searched
-            .where((incident) => incident['status'] == _statusFilter)
-            .toList(growable: false);
+              .where((incident) => incident['status'] == _statusFilter)
+              .toList(growable: false);
     return _page(
       context,
       title: 'Incidentes',
@@ -1025,60 +1038,58 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   Future<void> _showIncident(
     BuildContext context,
     Map<String, dynamic> incident,
-  ) =>
-      showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(_string(incident['type'], 'Incidente')),
-          content: SizedBox(
-            width: 560,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_string(incident['description'])),
-                  const SizedBox(height: 12),
-                  Text('Ubicación: ${_string(incident['location'])}'),
-                  Text('Reportado por: ${_string(incident['reportedBy'])}'),
-                  Text(
-                    'Asignado a: ${_string(incident['assignedTo'], 'Sin asignar')}',
-                  ),
-                  Text(
-                    'Estado: ${_statusLabel(_string(incident['status'], 'PENDING'))}',
-                  ),
-                  Text('Prioridad: ${_string(incident['priority'], 'MEDIUM')}'),
-                  Text('Fecha: ${_string(incident['createdAt'])}'),
-                  if (incident['latitude'] != null &&
-                      incident['longitude'] != null)
-                    Text(
-                      'Coordenadas: ${incident['latitude']}, ${incident['longitude']}',
-                    ),
-                  for (final url in (incident['imageUrls'] as List? ?? const [])
-                      .whereType<String>())
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 260),
-                        child: Image.network(
-                          url,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => const Text(
-                              'No se pudo cargar una imagen adjunta.'),
-                        ),
-                      ),
-                    ),
-                ],
+  ) => showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(_string(incident['type'], 'Incidente')),
+      content: SizedBox(
+        width: 560,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_string(incident['description'])),
+              const SizedBox(height: 12),
+              Text('Ubicación: ${_string(incident['location'])}'),
+              Text('Reportado por: ${_string(incident['reportedBy'])}'),
+              Text(
+                'Asignado a: ${_string(incident['assignedTo'], 'Sin asignar')}',
               ),
-            ),
+              Text(
+                'Estado: ${_statusLabel(_string(incident['status'], 'PENDING'))}',
+              ),
+              Text('Prioridad: ${_string(incident['priority'], 'MEDIUM')}'),
+              Text('Fecha: ${_string(incident['createdAt'])}'),
+              if (incident['latitude'] != null && incident['longitude'] != null)
+                Text(
+                  'Coordenadas: ${incident['latitude']}, ${incident['longitude']}',
+                ),
+              for (final url
+                  in (incident['imageUrls'] as List? ?? const [])
+                      .whereType<String>())
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 260),
+                    child: EvidenceImage(
+                      url: url,
+                      api: widget.api,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar'),
-            ),
-          ],
         ),
-      );
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cerrar'),
+        ),
+      ],
+    ),
+  );
 
   Future<void> _showHistory(BuildContext context, String incidentId) async {
     try {
@@ -1289,7 +1300,9 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
               Card(
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.15),
+                    backgroundColor:
+                        (isDark ? AppColors.brightBlue : AppColors.blue)
+                            .withValues(alpha: 0.15),
                     child: Icon(
                       Icons.phone_in_talk_outlined,
                       color: isDark ? AppColors.brightBlue : AppColors.blue,
@@ -1310,7 +1323,8 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                         tooltip: 'Llamar inmediatamente',
                         icon: const Icon(Icons.phone, color: AppColors.green),
                         onPressed: () {
-                          final p = _string(contact['phone']).replaceAll(RegExp(r'[^\d+]'), '');
+                          final p = _string(contact['phone'])
+                              .replaceAll(RegExp(r'[^\d+]'), '');
                           if (p.isNotEmpty) launchUrl(Uri.parse('tel:$p'));
                         },
                       ),
@@ -1357,23 +1371,24 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
                       DropdownButtonFormField<String>(
                         initialValue: type,
                         decoration: const InputDecoration(labelText: 'Tipo'),
-                        items: const [
-                          'POLICE',
-                          'FIRE_STATION',
-                          'CIVIL_DEFENSE',
-                          'HOSPITAL',
-                          'AMBULANCE',
-                          'COAST_GUARD',
-                          'MUNICIPALITY',
-                          'OTHER',
-                        ]
-                            .map(
-                              (item) => DropdownMenuItem(
-                                value: item,
-                                child: Text(item),
-                              ),
-                            )
-                            .toList(),
+                        items:
+                            const [
+                                  'POLICE',
+                                  'FIRE_STATION',
+                                  'CIVIL_DEFENSE',
+                                  'HOSPITAL',
+                                  'AMBULANCE',
+                                  'COAST_GUARD',
+                                  'MUNICIPALITY',
+                                  'OTHER',
+                                ]
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (value) {
                           if (value != null) {
                             setDialogState(() => type = value);
@@ -1494,79 +1509,76 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
   }
 
   Widget _reports(BuildContext context) => _page(
-        context,
-        title: 'Reportes y análisis',
-        subtitle: 'Tablero analítico externo del sistema',
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.query_stats_outlined,
-                  size: 36,
-                  color: AppColors.blue,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Estadísticas del sistema',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'El tablero de Power BI se abre en una pestaña o aplicación externa. Su disponibilidad depende de los permisos de publicación del informe.',
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: () async {
-                    final uri = Uri.parse(
-                      'https://app.powerbi.com/view?r=eyJrIjoiNmZiOGI1NWMtMjEzYi00ZmFiLWE2Y2MtZjVmMDdjMGE5ZjVmIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9',
-                    );
-                    final opened = await launchUrl(
-                      uri,
-                      mode: LaunchMode.externalApplication,
-                    );
-                    if (!opened && context.mounted) {
-                      _notify(context, 'No se pudo abrir el tablero externo');
-                    }
-                  },
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text('Abrir tablero'),
-                ),
-              ],
+    context,
+    title: 'Reportes y análisis',
+    subtitle: 'Tablero analítico externo del sistema',
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.query_stats_outlined,
+              size: 36,
+              color: AppColors.blue,
             ),
-          ),
+            const SizedBox(height: 12),
+            Text(
+              'Estadísticas del sistema',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'El tablero de Power BI se abre en una pestaña o aplicación externa. Su disponibilidad depende de los permisos de publicación del informe.',
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () async {
+                final uri = Uri.parse(
+                  'https://app.powerbi.com/view?r=eyJrIjoiNmZiOGI1NWMtMjEzYi00ZmFiLWE2Y2MtZjVmMDdjMGE5ZjVmIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9',
+                );
+                final opened = await launchUrl(
+                  uri,
+                  mode: LaunchMode.externalApplication,
+                );
+                if (!opened && context.mounted) {
+                  _notify(context, 'No se pudo abrir el tablero externo');
+                }
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Abrir tablero'),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _ai(BuildContext context, List<dynamic> data) =>
-      AdminAiOperationsCenter(
-        api: widget.api,
-        data: data,
-        onRefresh: _reload,
-      );
+      AdminAiOperationsCenter(api: widget.api, data: data, onRefresh: _reload);
 
   Widget _searchField() => TextField(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.search),
-          labelText: 'Buscar',
-          border: OutlineInputBorder(),
-        ),
-        onChanged: (value) =>
-            setState(() => _search = value.trim().toLowerCase()),
-      );
+    decoration: const InputDecoration(
+      prefixIcon: Icon(Icons.search),
+      labelText: 'Buscar',
+      border: OutlineInputBorder(),
+    ),
+    onChanged: (value) => setState(() => _search = value.trim().toLowerCase()),
+  );
 
   List<Map<String, dynamic>> _filter(
     List<Map<String, dynamic>> items,
     List<String> fields,
   ) {
     if (_search.isEmpty) return items;
-    return items.where((item) {
-      return fields.any(
-        (field) => _string(item[field]).toLowerCase().contains(_search),
-      );
-    }).toList(growable: false);
+    return items
+        .where((item) {
+          return fields.any(
+            (field) => _string(item[field]).toLowerCase().contains(_search),
+          );
+        })
+        .toList(growable: false);
   }
 
   List<Map<String, dynamic>> _maps(dynamic value) {
@@ -1593,26 +1605,24 @@ class _AdminSectionPageState extends State<AdminSectionPage> {
     String label, {
     bool required = false,
     bool number = false,
-  }) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TextFormField(
-          controller: controller,
-          keyboardType: number
-              ? const TextInputType.numberWithOptions(
-                  decimal: true, signed: true)
-              : TextInputType.text,
-          decoration: InputDecoration(labelText: label),
-          validator: (value) {
-            final text = value?.trim() ?? '';
-            if (required && text.isEmpty) return 'Este campo es obligatorio';
-            if (number && text.isNotEmpty && double.tryParse(text) == null) {
-              return 'Ingresa un número válido';
-            }
-            return null;
-          },
-        ),
-      );
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextFormField(
+      controller: controller,
+      keyboardType: number
+          ? const TextInputType.numberWithOptions(decimal: true, signed: true)
+          : TextInputType.text,
+      decoration: InputDecoration(labelText: label),
+      validator: (value) {
+        final text = value?.trim() ?? '';
+        if (required && text.isEmpty) return 'Este campo es obligatorio';
+        if (number && text.isNotEmpty && double.tryParse(text) == null) {
+          return 'Ingresa un número válido';
+        }
+        return null;
+      },
+    ),
+  );
 
   Future<bool?> _confirm(BuildContext context, String message) =>
       showDialog<bool>(
@@ -1647,9 +1657,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(36),
-        child: Center(child: Text(message)),
-      );
+    padding: const EdgeInsets.all(36),
+    child: Center(child: Text(message)),
+  );
 }
 
 const _statuses = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
@@ -1657,9 +1667,9 @@ const _priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const _risks = ['LOW', 'MODERATE', 'HIGH', 'CRITICAL'];
 
 String _statusLabel(String status) => switch (status) {
-      'PENDING' => 'Pendiente',
-      'IN_PROGRESS' => 'En proceso',
-      'RESOLVED' => 'Resuelto',
-      'REJECTED' => 'Rechazado',
-      _ => status,
-    };
+  'PENDING' => 'Pendiente',
+  'IN_PROGRESS' => 'En proceso',
+  'RESOLVED' => 'Resuelto',
+  'REJECTED' => 'Rechazado',
+  _ => status,
+};

@@ -298,7 +298,7 @@ public class PredictiveNeuralNetworkService {
         ModelMetadata metadata = new ModelMetadata(
                 "Cartagena-NeuralHotspot",
                 "Multilayer Perceptron (6 -> 12 -> 8 -> 1+4)",
-                "v2.4-Production",
+                "v2.4-Demo",
                 dataMiningService.getTotalHistoricalSamples(),
                 System.currentTimeMillis(),
                 91.4
@@ -489,7 +489,7 @@ public class PredictiveNeuralNetworkService {
         return new AiModelCardResponse(
                 "Cartagena Segura Deep Neural Predictor",
                 "Multilayer Perceptron (MLP) Deep Feedforward (6 -> 12 -> 8 -> 1+4)",
-                "v2.4-Production",
+                "v2.4-Demo",
                 "Adam (beta1=0.9, beta2=0.999, eps=1e-8)",
                 "Categorical Cross-Entropy + BCE (L2 weight decay 1e-4)",
                 0.001,
@@ -503,7 +503,7 @@ public class PredictiveNeuralNetworkService {
                 0.962,
                 2,
                 0.042,
-                "ESTABLE / SIN DERIVA (Normal)",
+                "Ejemplo: distribución estable",
                 driftComparison,
                 confusionMatrix,
                 List.of(
