@@ -56,7 +56,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       final res = await widget.session.api.get('Zones');
       final list = res is List
           ? res
-          : (res is Map<String, dynamic> && res['data'] is List ? res['data'] as List : null);
+          : (res is Map<String, dynamic> && res['data'] is List
+                ? res['data'] as List
+                : null);
       if (list != null && mounted) {
         setState(() => _zones = list);
       }
@@ -90,7 +92,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Future<void> _handlePullToRefresh() async {
     try {
       final incFuture = loadIncidents(widget.session.api, mine: false);
-      final zonesFuture = widget.session.api.get('Zones').catchError((_) => null);
+      final zonesFuture = widget.session.api
+          .get('Zones')
+          .catchError((_) => null);
       final results = await Future.wait([incFuture, zonesFuture]);
 
       if (mounted) {
@@ -99,7 +103,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           final res = results[1];
           final list = res is List
               ? res
-              : (res is Map<String, dynamic> && res['data'] is List ? res['data'] as List : null);
+              : (res is Map<String, dynamic> && res['data'] is List
+                    ? res['data'] as List
+                    : null);
           if (list != null) {
             _zones = list;
           }
@@ -136,7 +142,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final user = widget.session.user;
     final name = (user != null && user.fullName.isNotEmpty)
         ? user.fullName
-        : (user != null && user.username.isNotEmpty ? user.username : 'ciudadano');
+        : (user != null && user.username.isNotEmpty
+              ? user.username
+              : 'ciudadano');
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.canvas,
@@ -144,22 +152,38 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: ResponsiveContent(
           maxWidth: Breakpoints.maxContentWidth,
           padding: EdgeInsets.symmetric(
-            horizontal: context.responsiveValue(mobile: 16.0, tablet: 24.0, desktop: 32.0),
+            horizontal: context.responsiveValue(
+              mobile: 16.0,
+              tablet: 24.0,
+              desktop: 32.0,
+            ),
             vertical: 16.0,
           ),
           child: FutureBuilder<List<Incident>>(
             future: _incidents,
             builder: (context, snapshot) {
               final incidents = snapshot.data ?? const <Incident>[];
-              final activeCount = incidents.where((i) => i.status != 'RESOLVED').length;
-              final resolvedCount = incidents.where((i) => i.status == 'RESOLVED').length;
+              final activeCount = incidents
+                  .where((i) => i.status != 'RESOLVED')
+                  .length;
+              final resolvedCount = incidents
+                  .where((i) => i.status == 'RESOLVED')
+                  .length;
               final mobilityCount = incidents.where((i) {
                 final t = i.type.toUpperCase();
-                return t.contains('TRAF') || t.contains('TRANSIT') || t.contains('VIA') || t.contains('OBSTACULO');
+                return t.contains('TRAF') ||
+                    t.contains('TRANSIT') ||
+                    t.contains('VIA') ||
+                    t.contains('OBSTACULO');
               }).length;
-              final safeZonesCount = _zones.where((zone) =>
-                  zone is Map && zone['riskLevel'] == 'LOW' &&
-                  zone['active'] != false).length;
+              final safeZonesCount = _zones
+                  .where(
+                    (zone) =>
+                        zone is Map &&
+                        zone['riskLevel'] == 'LOW' &&
+                        zone['active'] != false,
+                  )
+                  .length;
 
               // Filtrar incidentes por sector seleccionado
               final filteredIncidents = _selectedSector == 'Todos'
@@ -178,7 +202,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 value: '$activeCount',
                 label: 'Reportes activos',
                 valColor: isDark ? AppColors.brightBlue : AppColors.blue,
-                iconBg: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconBg: (isDark ? AppColors.brightBlue : AppColors.blue)
+                    .withValues(alpha: isDark ? 0.2 : 0.1),
                 iconColor: isDark ? AppColors.brightBlue : AppColors.blue,
                 icon: Icons.assignment_outlined,
                 isDark: isDark,
@@ -188,7 +213,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 value: '$safeZonesCount',
                 label: 'Zonas seguras',
                 valColor: isDark ? AppColors.darkGreen : AppColors.green,
-                iconBg: (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconBg: (isDark ? AppColors.darkGreen : AppColors.green)
+                    .withValues(alpha: isDark ? 0.2 : 0.1),
                 iconColor: isDark ? AppColors.darkGreen : AppColors.green,
                 icon: Icons.shield_outlined,
                 isDark: isDark,
@@ -198,7 +224,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 value: '$mobilityCount',
                 label: 'Alertas movilidad',
                 valColor: isDark ? AppColors.darkAmber : AppColors.amber,
-                iconBg: (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconBg: (isDark ? AppColors.darkAmber : AppColors.amber)
+                    .withValues(alpha: isDark ? 0.2 : 0.1),
                 iconColor: isDark ? AppColors.darkAmber : AppColors.amber,
                 icon: Icons.directions_car_outlined,
                 isDark: isDark,
@@ -208,7 +235,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 value: '$resolvedCount',
                 label: 'Resueltos',
                 valColor: isDark ? AppColors.darkGreen : AppColors.green,
-                iconBg: (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.2 : 0.1),
+                iconBg: (isDark ? AppColors.darkGreen : AppColors.green)
+                    .withValues(alpha: isDark ? 0.2 : 0.1),
                 iconColor: isDark ? AppColors.darkGreen : AppColors.green,
                 icon: Icons.check_circle_outline_rounded,
                 isDark: isDark,
@@ -223,373 +251,420 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
                   children: [
-                  // Encabezado adaptable
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hola, $name',
-                              style: TextStyle(
-                                fontSize: isWide ? 28 : 24,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.darkText : AppColors.navy,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.location_on_rounded,
-                                      size: 15,
-                                      color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        'Cartagena de Indias, Bolívar',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                          letterSpacing: -0.1,
-                                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                    // Encabezado adaptable
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Hola, $name',
+                                style: TextStyle(
+                                  fontSize: isWide ? 28 : 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.navy,
+                                  letterSpacing: -0.5,
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? AppColors.darkGreen.withValues(alpha: 0.18)
-                                        : AppColors.green.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(999),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? AppColors.darkGreen.withValues(alpha: 0.35)
-                                          : AppColors.green.withValues(alpha: 0.25),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Row(
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: isDark ? AppColors.darkGreen : AppColors.green,
-                                          shape: BoxShape.circle,
-                                        ),
+                                      Icon(
+                                        Icons.location_on_rounded,
+                                        size: 15,
+                                        color: isDark
+                                            ? AppColors.darkTextMuted
+                                            : AppColors.muted,
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Distrito Conectado',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.1,
-                                          color: isDark ? AppColors.darkGreen : AppColors.green,
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          'Cartagena de Indias, Bolívar',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                            letterSpacing: -0.1,
+                                            color: isDark
+                                                ? AppColors.darkTextMuted
+                                                : AppColors.muted,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => NotificationsScreen(
-                                api: widget.session.api,
-                                isAdmin: widget.session.user?.isAdmin ?? false,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkCard : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isDark ? AppColors.darkBorder : AppColors.border,
-                              width: 0.8,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.notifications_none_rounded,
-                                color: isDark ? AppColors.darkText : AppColors.navy,
-                                size: 22,
-                              ),
-                              Positioned(
-                                top: 10,
-                                right: 11,
-                                child: Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: BoxDecoration(
-                                    color: isDark ? AppColors.darkRed : AppColors.red,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: isDark ? AppColors.darkCard : Colors.white,
-                                      width: 1.5,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3,
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Fila o cuadrícula de métricas según resolución
-                  if (isWide)
-                    Row(
-                      children: [
-                        Expanded(child: m1),
-                        const SizedBox(width: 14),
-                        Expanded(child: m2),
-                        const SizedBox(width: 14),
-                        Expanded(child: m3),
-                        const SizedBox(width: 14),
-                        Expanded(child: m4),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(child: m1),
-                            const SizedBox(width: 12),
-                            Expanded(child: m2),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(child: m3),
-                            const SizedBox(width: 12),
-                            Expanded(child: m4),
-                          ],
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 24),
-
-                  // CONTENIDO PRINCIPAL: Split de 2 columnas en Desktop o flujo continuo en Móvil
-                  if (isDesktop)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Columna Izquierda: Reportes e Incidentes de la Comunidad
-                        Expanded(
-                          flex: 7,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      'Reportes recientes en la comunidad',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? AppColors.darkText : AppColors.navy,
-                                        letterSpacing: -0.4,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.darkGreen.withValues(
+                                              alpha: 0.18,
+                                            )
+                                          : AppColors.green.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.darkGreen.withValues(
+                                                alpha: 0.35,
+                                              )
+                                            : AppColors.green.withValues(
+                                                alpha: 0.25,
+                                              ),
+                                        width: 0.8,
                                       ),
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  InkWell(
-                                    onTap: () => _openAllReports(context),
-                                    child: Text(
-                                      'Ver todos',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: -0.1,
-                                        color: isDark ? AppColors.brightBlue : AppColors.blue,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppColors.darkGreen
+                                                : AppColors.green,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Distrito Conectado',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -0.1,
+                                            color: isDark
+                                                ? AppColors.darkGreen
+                                                : AppColors.green,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    for (final sector in _sectors) ...[
-                                      _buildSectorChip(sector, isDark),
-                                      const SizedBox(width: 8),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              if (snapshot.connectionState == ConnectionState.waiting)
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              else if (filteredIncidents.isEmpty)
-                                _buildEmptySectorBanner(isDark)
-                              else
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final w = (constraints.maxWidth - 14) / 2;
-                                    final recentIncidents = latestIncidents(filteredIncidents);
-                                    return Wrap(
-                                      spacing: 14,
-                                      runSpacing: 12,
-                                      children: [
-                                        for (final inc in recentIncidents)
-                                          SizedBox(
-                                            width: w,
-                                            child: IncidentCompactCard(
-                                              incident: inc,
-                                              isDark: isDark,
-                                              onTap: () => IncidentCompactCard.showDetail(
-                                                context,
-                                                inc,
-                                                api: widget.session.api,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    );
-                                  },
-                                ),
                             ],
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        // Columna Derecha: Accesos rápidos y Asistente IA
-                        Expanded(
-                          flex: 4,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildDesktopActionPanel(isDark),
-                              const SizedBox(height: 16),
-                              _buildAiAssistantCard(isDark),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  else ...[
-                    // Vista Móvil / Tablet
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          for (final sector in _sectors) ...[
-                            _buildSectorChip(sector, isDark),
-                            const SizedBox(width: 8),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      children: [
-                        Text(
-                          'Reportes recientes',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.4,
-                            color: isDark ? AppColors.darkText : AppColors.navy,
                           ),
                         ),
                         InkWell(
-                          onTap: () => _openAllReports(context),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                            child: Text(
-                              'Ver todos',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.1,
-                                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => NotificationsScreen(
+                                  api: widget.session.api,
+                                  isAdmin:
+                                      widget.session.user?.isAdmin ?? false,
+                                ),
                               ),
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkCard : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.border,
+                                width: 0.8,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.2 : 0.03,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.navy,
+                                  size: 22,
+                                ),
+                                Positioned(
+                                  top: 10,
+                                  right: 11,
+                                  child: Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.darkRed
+                                          : AppColors.red,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.darkCard
+                                            : Colors.white,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: CircularProgressIndicator(),
-                        ),
+                    const SizedBox(height: 20),
+
+                    // Fila o cuadrícula de métricas según resolución
+                    if (isWide)
+                      Row(
+                        children: [
+                          Expanded(child: m1),
+                          const SizedBox(width: 14),
+                          Expanded(child: m2),
+                          const SizedBox(width: 14),
+                          Expanded(child: m3),
+                          const SizedBox(width: 14),
+                          Expanded(child: m4),
+                        ],
                       )
-                    else if (filteredIncidents.isEmpty)
-                      _buildEmptySectorBanner(isDark)
-                    else ...[
-                      for (final inc in latestIncidents(filteredIncidents))
-                        IncidentCompactCard(
-                          incident: inc,
-                          isDark: isDark,
-                          onTap: () => IncidentCompactCard.showDetail(
-                            context,
-                            inc,
-                            api: widget.session.api,
+                    else
+                      Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(child: m1),
+                              const SizedBox(width: 12),
+                              Expanded(child: m2),
+                            ],
                           ),
-                        ),
-                    ],
-                    const SizedBox(height: 18),
-                    _buildSafeRouteBanner(isDark),
-                    const SizedBox(height: 16),
-                    _buildAiAssistantCard(isDark),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(child: m3),
+                              const SizedBox(width: 12),
+                              Expanded(child: m4),
+                            ],
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 24),
+
+                    // CONTENIDO PRINCIPAL: Split de 2 columnas en Desktop o flujo continuo en Móvil
+                    if (isDesktop)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Columna Izquierda: Reportes e Incidentes de la Comunidad
+                          Expanded(
+                            flex: 7,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Reportes recientes en la comunidad',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppColors.darkText
+                                              : AppColors.navy,
+                                          letterSpacing: -0.4,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    InkWell(
+                                      onTap: () => _openAllReports(context),
+                                      child: Text(
+                                        'Ver todos',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: -0.1,
+                                          color: isDark
+                                              ? AppColors.brightBlue
+                                              : AppColors.blue,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      for (final sector in _sectors) ...[
+                                        _buildSectorChip(sector, isDark),
+                                        const SizedBox(width: 8),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting)
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(24),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                else if (filteredIncidents.isEmpty)
+                                  _buildEmptySectorBanner(isDark)
+                                else
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final w = (constraints.maxWidth - 14) / 2;
+                                      final recentIncidents = latestIncidents(
+                                        filteredIncidents,
+                                      );
+                                      return Wrap(
+                                        spacing: 14,
+                                        runSpacing: 12,
+                                        children: [
+                                          for (final inc in recentIncidents)
+                                            SizedBox(
+                                              width: w,
+                                              child: IncidentCompactCard(
+                                                incident: inc,
+                                                isDark: isDark,
+                                                onTap: () =>
+                                                    IncidentCompactCard.showDetail(
+                                                      context,
+                                                      inc,
+                                                      api: widget.session.api,
+                                                    ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          // Columna Derecha: Accesos rápidos y Asistente IA
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDesktopActionPanel(isDark),
+                                const SizedBox(height: 16),
+                                _buildAiAssistantCard(isDark),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      // Vista Móvil / Tablet
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (final sector in _sectors) ...[
+                              _buildSectorChip(sector, isDark),
+                              const SizedBox(width: 8),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        children: [
+                          Text(
+                            'Reportes recientes',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.navy,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => _openAllReports(context),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 2,
+                              ),
+                              child: Text(
+                                'Ver todos',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.1,
+                                  color: isDark
+                                      ? AppColors.brightBlue
+                                      : AppColors.blue,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (filteredIncidents.isEmpty)
+                        _buildEmptySectorBanner(isDark)
+                      else ...[
+                        for (final inc in latestIncidents(filteredIncidents))
+                          IncidentCompactCard(
+                            incident: inc,
+                            isDark: isDark,
+                            onTap: () => IncidentCompactCard.showDetail(
+                              context,
+                              inc,
+                              api: widget.session.api,
+                            ),
+                          ),
+                      ],
+                      const SizedBox(height: 18),
+                      _buildSafeRouteBanner(isDark),
+                      const SizedBox(height: 16),
+                      _buildAiAssistantCard(isDark),
+                      const SizedBox(height: 24),
+                    ],
                   ],
-                ],
-              ),
-            );
-          },
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -682,7 +757,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  backgroundColor: isDark
+                      ? AppColors.brightBlue
+                      : AppColors.blue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(
@@ -762,7 +839,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  backgroundColor: isDark
+                      ? AppColors.brightBlue
+                      : AppColors.blue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -774,7 +853,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 icon: const Icon(Icons.explore_rounded, size: 18),
                 label: const Text(
                   'Abrir Mapa y Navegación',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.1),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.1,
+                  ),
                 ),
               ),
             ),
@@ -790,65 +873,68 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       child: LiquidGlassContainer(
         padding: const EdgeInsets.all(16),
         borderRadius: BorderRadius.circular(18),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.1),
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: (isDark ? AppColors.brightBlue : AppColors.blue)
+                    .withValues(alpha: isDark ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.smart_toy_outlined,
+                color: isDark ? AppColors.brightBlue : AppColors.blue,
+                size: 22,
+              ),
             ),
-            child: Icon(
-              Icons.smart_toy_outlined,
-              color: isDark ? AppColors.brightBlue : AppColors.blue,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Asistente Cartagena Segura IA',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: isDark ? AppColors.darkText : AppColors.navy,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Asistente Cartagena Segura IA',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: isDark ? AppColors.darkText : AppColors.navy,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Orientación inteligente en seguridad y emergencias.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                  const SizedBox(height: 2),
+                  Text(
+                    'Orientación inteligente en seguridad y emergencias.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14,
-              color: isDark ? AppColors.darkTextMuted : const Color(0xFF94A3B8),
+            IconButton(
+              icon: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : const Color(0xFF94A3B8),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => CitizenChatScreen(session: widget.session),
+                  ),
+                );
+              },
             ),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => CitizenChatScreen(session: widget.session),
-                ),
-              );
-            },
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMetricCard({
     required String value,

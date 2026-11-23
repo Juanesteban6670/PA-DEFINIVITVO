@@ -62,69 +62,68 @@ class _AdminCommentsDialogState extends State<AdminCommentsDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Comentarios del incidente'),
-        content: SizedBox(
-          width: 540,
-          height: 420,
-          child: Column(
-            children: [
-              Expanded(
-                child: FutureBuilder<dynamic>(
-                  future: _comments,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'No se pudieron cargar los comentarios: ${snapshot.error}',
+    title: const Text('Comentarios del incidente'),
+    content: SizedBox(
+      width: 540,
+      height: 420,
+      child: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder<dynamic>(
+              future: _comments,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'No se pudieron cargar los comentarios: ${snapshot.error}',
+                    ),
+                  );
+                }
+                final comments = snapshot.data is List
+                    ? (snapshot.data as List)
+                    : const [];
+                if (comments.isEmpty) {
+                  return const Center(child: Text('No hay comentarios.'));
+                }
+                return ListView(
+                  children: [
+                    for (final item
+                        in comments.whereType<Map<String, dynamic>>())
+                      ListTile(
+                        title: Text(item['content']?.toString() ?? ''),
+                        subtitle: Text(
+                          '${item['username'] ?? item['author'] ?? ''} · ${item['createdAt'] ?? ''}',
                         ),
-                      );
-                    }
-                    final comments = snapshot.data is List
-                        ? (snapshot.data as List)
-                        : const [];
-                    if (comments.isEmpty) {
-                      return const Center(child: Text('No hay comentarios.'));
-                    }
-                    return ListView(
-                      children: [
-                        for (final item
-                            in comments.whereType<Map<String, dynamic>>())
-                          ListTile(
-                            title: Text(item['content']?.toString() ?? ''),
-                            subtitle: Text(
-                              '${item['username'] ?? item['author'] ?? ''} · ${item['createdAt'] ?? ''}',
-                            ),
-                            trailing: item['isInternal'] == true
-                                ? const Chip(label: Text('Interno'))
-                                : null,
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              TextField(
-                controller: _content,
-                minLines: 1,
-                maxLines: 3,
-                decoration:
-                    const InputDecoration(labelText: 'Nuevo comentario'),
-              ),
-            ],
+                        trailing: item['isInternal'] == true
+                            ? const Chip(label: Text('Interno'))
+                            : null,
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-          FilledButton(
-            onPressed: _sending ? null : _send,
-            child: const Text('Enviar'),
+          TextField(
+            controller: _content,
+            minLines: 1,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Nuevo comentario'),
           ),
         ],
-      );
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cerrar'),
+      ),
+      FilledButton(
+        onPressed: _sending ? null : _send,
+        child: const Text('Enviar'),
+      ),
+    ],
+  );
 }

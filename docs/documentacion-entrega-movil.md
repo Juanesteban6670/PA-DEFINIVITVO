@@ -28,7 +28,7 @@ El router redirige a la autenticación si no hay sesión y limita las rutas admi
 - Persistencia segura del token y perfil por medio de las implementaciones de almacenamiento disponibles en cada plataforma.
 - Reportes ciudadanos con categoría, descripción, referencia, prioridad y ubicación opcional.
 - Selección y carga de evidencia; en Web, los bytes de fotos permanecen solo en memoria de la pestaña.
-- Borradores y reintentos para reportes sin fotos; no se guardan fotos ni datos sensibles en caché offline.
+- Borradores y reintentos de reportes. Android guarda temporalmente las fotos seleccionadas en el almacenamiento privado de la aplicación. En web, una foto pendiente se conserva mientras la pestaña permanece abierta o hasta que la carga termina.
 - Mapa OpenStreetMap con incidentes georreferenciados, filtros y acceso a detalles.
 - Contactos de emergencia, notificaciones sincronizadas desde la API y perfil.
 - Panel administrativo para visualizar incidentes, historial, comentarios, estado, prioridad y asignación; administrar zonas y contactos; consultar auditoría y resúmenes de IA.
@@ -37,7 +37,7 @@ El router redirige a la autenticación si no hay sesión y limita las rutas admi
 
 GPS requiere permiso del usuario y HTTPS en navegadores. La ubicación es opcional; se puede proporcionar una dirección manual. El envío de fotos en Web requiere que la pestaña permanezca abierta hasta completar la carga.
 
-El centro de notificaciones consulta al abrirse o actualizarse manualmente. No hay suscripción push remota porque el backend actual no define una API para registrar suscripciones push.
+El centro de notificaciones sincroniza los avisos de la API. Los cambios de incidentes pueden activar una recarga mediante WebSocket mientras se usa la app. El candidato Android incluye recordatorios locales de borradores con permiso de notificaciones. Si el permiso está desactivado, el aviso aparece al volver a Mis reportes. Los avisos de la API dependen de la sincronización de la aplicación.
 
 ## API
 
@@ -46,7 +46,7 @@ La base se configura con `--dart-define=API_BASE_URL`; para el despliegue integr
 | Grupo | Operaciones principales |
 |---|---|
 | Autenticación | `POST /Auth/Login`, `/Auth/Register`, `/Auth/ForgotPassword`, `/Auth/ResetPassword`, `GET/PUT /Auth/Profile` |
-| Incidentes | `GET /Incidents`, `/Incidents/My`, `POST /Incidents`, carga por `POST /Files/Upload`, estado, historial y comentarios |
+| Incidentes | `GET /Incidents` con vista pública aproximada, `/Incidents/My`, `POST /Incidents`, carga por `POST /Files/Upload`, estado, historial y comentarios |
 | Zonas y auditoría | consulta/creación/actualización de `Zones`, `GET /Logs` |
 | Emergencias | consulta, creación, actualización y desactivación de `EmergencyContacts` |
 | Notificaciones | consulta, conteo, marcar como leída/todas leídas y eliminación |
@@ -69,4 +69,4 @@ flutter build web --release --base-href=/ \
 
 Los tests usan `MockClient` en memoria para validar modelos, solicitudes, sesión, navegación, reportes, chat y acciones administrativas; no es un servidor de datos. Antes de publicar, probar en HTTPS real, Chrome Android y Safari iOS: sesión, permisos, GPS, fotos, refresh de rutas directas y diseños pequeños/grandes.
 
-La instalación desde el navegador es una PWA Flutter Web. Los directorios fuente Android/iOS se conservan, pero no se generan ni publican APK/IPA en el alcance actual. Véase [la guía de despliegue](deployment.md) y [la guía del cliente](../client/README.md).
+Android tiene un APK oficial descargable desde GitHub Releases. La versión del código fuente puede corresponder a un candidato posterior a la versión publicada. En iOS la entrega se instala como PWA desde Safari. Consulta [el plan de cierre](plan-cierre.md) y [la guía del cliente](../client/README.md).

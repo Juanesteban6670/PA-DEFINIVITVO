@@ -33,11 +33,13 @@ void main() {
       ),
     );
   };
-  final recoveryLocation = kIsWeb ? recoveryLocationFromUri(Uri.base) : null;
-  runApp(ProviderScope(
-    overrides: [startupRecoveryLocationProvider.overrideWithValue(recoveryLocation)],
-    child: const CartagenaApp(),
-  ));
+  final startupLocation = kIsWeb ? startupLocationFromUri(Uri.base) : null;
+  runApp(
+    ProviderScope(
+      overrides: [startupLocationProvider.overrideWithValue(startupLocation)],
+      child: const CartagenaApp(),
+    ),
+  );
 }
 
 class CartagenaApp extends ConsumerWidget {

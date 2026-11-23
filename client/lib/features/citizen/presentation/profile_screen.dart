@@ -72,8 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    final initial =
-        user.username.isEmpty ? 'U' : user.username[0].toUpperCase();
+    final initial = user.username.isEmpty
+        ? 'U'
+        : user.username[0].toUpperCase();
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
@@ -180,8 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed:
-                      _saving ? null : () => setState(() => _editing = false),
+                  onPressed: _saving
+                      ? null
+                      : () => setState(() => _editing = false),
                   child: const Text('Cancelar'),
                 ),
               ),
@@ -224,9 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Apariencia y Tema',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
+                    style: Theme.of(context).textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
@@ -246,9 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Efecto Liquid Glass (iOS 27)',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
+                    style: Theme.of(context).textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
@@ -270,9 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     listenable: LocaleController.instance,
                     builder: (context, _) => Text(
                       LocaleController.instance.strings.languageTitle,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
+                      style: Theme.of(context).textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -300,9 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Guía y Ayuda Ciudadana',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
+                    style: Theme.of(context).textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
@@ -314,7 +308,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    color: Theme.of(context).colorScheme.primary
+                        .withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -405,59 +400,59 @@ class _ProfileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBorder
-                  : const Color(0xFFF1F5F9),
-              foregroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkTextMuted
-                  : const Color(0xFF64748B),
-              child: Icon(icon, size: 17),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label.toUpperCase(),
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  if (controller != null)
-                    TextField(
-                      controller: controller,
-                      keyboardType: keyboardType,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        hintText: 'Tu ${label.toLowerCase()}',
-                        isDense: true,
-                      ),
-                    )
-                  else
-                    Text(
-                      value.isEmpty ? 'No especificado' : value,
-                      style: TextStyle(
-                        color: value.isEmpty
-                            ? AppColors.muted
-                            : Theme.of(context).colorScheme.onSurface,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    child: Row(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : const Color(0xFFF1F5F9),
+          foregroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkTextMuted
+              : const Color(0xFF64748B),
+          child: Icon(icon, size: 17),
         ),
-      );
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              const SizedBox(height: 3),
+              if (controller != null)
+                TextField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: 'Tu ${label.toLowerCase()}',
+                    isDense: true,
+                  ),
+                )
+              else
+                Text(
+                  value.isEmpty ? 'No especificado' : value,
+                  style: TextStyle(
+                    color: value.isEmpty
+                        ? AppColors.muted
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }

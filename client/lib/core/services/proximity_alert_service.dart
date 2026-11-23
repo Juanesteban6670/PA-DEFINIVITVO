@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -105,7 +106,9 @@ class ProximityAlertService {
       final dynamic zonesRes = await api.get('Zones').catchError((_) => null);
       final List<dynamic> zonesList = zonesRes is List
           ? zonesRes
-          : (zonesRes is Map && zonesRes['data'] is List ? zonesRes['data'] as List : []);
+          : (zonesRes is Map && zonesRes['data'] is List
+                ? zonesRes['data'] as List
+                : []);
 
       // 4. Evaluar proximidad frente a zonas conocidas
       ProximityZoneAlert? highestAlert;
@@ -128,7 +131,12 @@ class ProximityAlertService {
           // Filtrar incidentes cercanos a esta zona (< 600m del centro)
           final zoneIncidents = incidents.where((inc) {
             if (inc.latitude == null || inc.longitude == null) return false;
-            final d = Geolocator.distanceBetween(lat, lon, inc.latitude!, inc.longitude!);
+            final d = Geolocator.distanceBetween(
+              lat,
+              lon,
+              inc.latitude!,
+              inc.longitude!,
+            );
             return d <= 600;
           }).toList();
 
@@ -144,7 +152,8 @@ class ProximityAlertService {
             // Verificar deduplicación (cooldown de 30 min)
             final lastTime = _lastAlertsByZone[name];
             final now = DateTime.now();
-            if (lastTime == null || now.difference(lastTime) > _cooldownDuration) {
+            if (lastTime == null ||
+                now.difference(lastTime) > _cooldownDuration) {
               final recentTypes = zoneIncidents
                   .map((i) => i.type)
                   .toSet()
@@ -156,13 +165,16 @@ class ProximityAlertService {
                 distanceMeters: distance,
                 riskLevel: riskLevel,
                 incidentCount: zoneIncidents.length,
-                recentTypes: recentTypes.isNotEmpty ? recentTypes : ['Atención preventiva'],
+                recentTypes: recentTypes.isNotEmpty
+                    ? recentTypes
+                    : ['Atención preventiva'],
                 latitude: lat,
                 longitude: lon,
                 timestamp: now,
               );
 
-              if (highestAlert == null || _priorityScore(alert) > _priorityScore(highestAlert)) {
+              if (highestAlert == null ||
+                  _priorityScore(alert) > _priorityScore(highestAlert)) {
                 highestAlert = alert;
               }
             }
@@ -203,7 +215,8 @@ class ProximityAlertService {
     required List<Incident> incidents,
     String? zoneRisk,
   }) {
-    if (zoneRisk?.toUpperCase() == 'CRITICAL' || zoneRisk?.toUpperCase() == 'HIGH') {
+    if (zoneRisk?.toUpperCase() == 'CRITICAL' ||
+        zoneRisk?.toUpperCase() == 'HIGH') {
       return 'ALTO';
     }
 
@@ -217,9 +230,14 @@ class ProximityAlertService {
       final type = inc.type.toUpperCase();
 
       // Ponderación por categoría
-      if (type.contains('ROBO') || type.contains('HURTO') || type.contains('SOS') || type.contains('PANICO')) {
+      if (type.contains('ROBO') ||
+          type.contains('HURTO') ||
+          type.contains('SOS') ||
+          type.contains('PANICO')) {
         weight = 3;
-      } else if (type.contains('SEGURIDAD') || type.contains('ALTERCADO') || type.contains('PELEA')) {
+      } else if (type.contains('SEGURIDAD') ||
+          type.contains('ALTERCADO') ||
+          type.contains('PELEA')) {
         weight = 2;
       }
 
@@ -260,13 +278,16 @@ class ProximityAlertService {
           builder: (ctx, setStateDialog) {
             return AlertDialog(
               backgroundColor: isDark ? AppColors.darkCard : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.15),
+                      color: (isDark ? AppColors.brightBlue : AppColors.blue)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -294,8 +315,17 @@ class ProximityAlertService {
                 children: [
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Alertas de proximidad activadas', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Notificarme si me aproximo a una zona de riesgo', style: TextStyle(fontSize: 11)),
+                    title: const Text(
+                      'Alertas de proximidad activadas',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Notificarme si me aproximo a una zona de riesgo',
+                      style: TextStyle(fontSize: 11),
+                    ),
                     value: isAlertsEnabled,
                     onChanged: (val) {
                       setStateDialog(() => isAlertsEnabled = val);
@@ -304,7 +334,10 @@ class ProximityAlertService {
                   const SizedBox(height: 8),
                   Text(
                     'Radio de detección: ${alertRadiusMeters.round()} metros',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Slider.adaptive(
                     value: alertRadiusMeters,
@@ -319,18 +352,33 @@ class ProximityAlertService {
                   const SizedBox(height: 4),
                   CheckboxListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Riesgo Alto y Emergencias', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    title: const Text(
+                      'Riesgo Alto y Emergencias',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     value: notifyHighRisk,
                     onChanged: isAlertsEnabled
-                        ? (val) => setStateDialog(() => notifyHighRisk = val ?? true)
+                        ? (val) =>
+                              setStateDialog(() => notifyHighRisk = val ?? true)
                         : null,
                   ),
                   CheckboxListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Riesgo Moderado y Tráfico', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    title: const Text(
+                      'Riesgo Moderado y Tráfico',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     value: notifyMediumRisk,
                     onChanged: isAlertsEnabled
-                        ? (val) => setStateDialog(() => notifyMediumRisk = val ?? true)
+                        ? (val) => setStateDialog(
+                            () => notifyMediumRisk = val ?? true,
+                          )
                         : null,
                   ),
                 ],
@@ -339,9 +387,13 @@ class ProximityAlertService {
                 ElevatedButton(
                   onPressed: () => Navigator.of(dialogCtx).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                    backgroundColor: isDark
+                        ? AppColors.brightBlue
+                        : AppColors.blue,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: const Text('Guardar'),
                 ),

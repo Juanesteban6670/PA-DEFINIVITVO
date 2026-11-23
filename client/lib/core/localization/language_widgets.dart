@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cartagena_segura/shared/theme.dart';
+
 import 'app_strings.dart';
 import 'locale_controller.dart';
 
@@ -43,8 +44,8 @@ class LanguageToggleButton extends StatelessWidget {
                 border: Border.all(
                   color: isDark
                       ? (isEnglish
-                          ? AppColors.brightBlue
-                          : AppColors.darkBorder)
+                            ? AppColors.brightBlue
+                            : AppColors.darkBorder)
                       : (isEnglish ? AppColors.blue : AppColors.border),
                   width: isEnglish ? 1.5 : 1.0,
                 ),

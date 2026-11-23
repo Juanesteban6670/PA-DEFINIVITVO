@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:cartagena_segura/shared/theme.dart';
 
@@ -47,7 +48,8 @@ class NeuralNetworkVisualizer extends StatefulWidget {
   final bool isWeekend;
 
   @override
-  State<NeuralNetworkVisualizer> createState() => _NeuralNetworkVisualizerState();
+  State<NeuralNetworkVisualizer> createState() =>
+      _NeuralNetworkVisualizerState();
 }
 
 class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
@@ -120,8 +122,10 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
   List<double> _getInputValues() {
     final crowd = _getCrowdNorm();
     final weather = _getWeatherNorm();
-    final hourSin = (math.sin(2 * math.pi * widget.hourOfDay / 24.0) + 1.0) / 2.0;
-    final hourCos = (math.cos(2 * math.pi * widget.hourOfDay / 24.0) + 1.0) / 2.0;
+    final hourSin =
+        (math.sin(2 * math.pi * widget.hourOfDay / 24.0) + 1.0) / 2.0;
+    final hourCos =
+        (math.cos(2 * math.pi * widget.hourOfDay / 24.0) + 1.0) / 2.0;
     final weekend = widget.isWeekend ? 1.0 : 0.0;
     final interaction = (crowd + weather) / 2.0;
     return [crowd, weather, hourSin, hourCos, weekend, interaction];
@@ -209,8 +213,9 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : Colors.blue.shade900)
-                .withValues(alpha: 0.08),
+            color: (isDark ? Colors.black : Colors.blue.shade900).withValues(
+              alpha: 0.08,
+            ),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -271,7 +276,10 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF064E3B).withValues(alpha: 0.4)
@@ -338,7 +346,9 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                 style: TextStyle(
                   fontSize: 10,
                   fontStyle: FontStyle.italic,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -361,7 +371,14 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                         height: 380,
                         child: GestureDetector(
                           onTapUp: (details) {
-                            _handleTap(details.localPosition, Size(canvasWidth, 380), inputs, h1, h2, outputs);
+                            _handleTap(
+                              details.localPosition,
+                              Size(canvasWidth, 380),
+                              inputs,
+                              h1,
+                              h2,
+                              outputs,
+                            );
                           },
                           child: CustomPaint(
                             size: Size(canvasWidth, 380),
@@ -412,10 +429,7 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
             color: iconColor,
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(
-                color: iconColor.withValues(alpha: 0.6),
-                blurRadius: 4,
-              ),
+              BoxShadow(color: iconColor.withValues(alpha: 0.6), blurRadius: 4),
             ],
           ),
         ),
@@ -454,7 +468,11 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
               color: AppColors.brightBlue.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.memory, color: AppColors.brightBlue, size: 22),
+            child: const Icon(
+              Icons.memory,
+              color: AppColors.brightBlue,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -484,7 +502,9 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                   node.description,
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppColors.darkTextMuted
+                        : const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -492,9 +512,21 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                   spacing: 12,
                   runSpacing: 6,
                   children: [
-                    _inspectorMetric('Activación (f)', node.activationFunction, isDark),
-                    _inspectorMetric('Bias (b)', '${node.bias > 0 ? "+" : ""}${node.bias.toStringAsFixed(3)}', isDark),
-                    _inspectorMetric('Valor Tensor (a)', node.activationValue.toStringAsFixed(3), isDark),
+                    _inspectorMetric(
+                      'Activación (f)',
+                      node.activationFunction,
+                      isDark,
+                    ),
+                    _inspectorMetric(
+                      'Bias (b)',
+                      '${node.bias > 0 ? "+" : ""}${node.bias.toStringAsFixed(3)}',
+                      isDark,
+                    ),
+                    _inspectorMetric(
+                      'Valor Tensor (a)',
+                      node.activationValue.toStringAsFixed(3),
+                      isDark,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -506,7 +538,9 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
                     backgroundColor: isDark
                         ? const Color(0xFF1E293B)
                         : const Color(0xFFCBD5E1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.brightBlue),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.brightBlue,
+                    ),
                   ),
                 ),
               ],
@@ -630,7 +664,8 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
             activationFunction: 'ReLU max(0, z)',
             bias: 0.01,
             activationValue: h2[k],
-            description: 'Extractor de nivel de criticidad y probabilidad criminal.',
+            description:
+                'Extractor de nivel de criticidad y probabilidad criminal.',
           ),
         );
         return;
@@ -646,7 +681,9 @@ class _NeuralNetworkVisualizerState extends State<NeuralNetworkVisualizer>
             id: 'out_$m',
             layerName: 'Capa de Salida (Output Layer)',
             nodeName: outputNames[m],
-            activationFunction: m == 4 ? 'Softmax Classifier' : 'Sigmoide Calibrada',
+            activationFunction: m == 4
+                ? 'Softmax Classifier'
+                : 'Sigmoide Calibrada',
             bias: -2.10,
             activationValue: outputs[m],
             description: m == 4
@@ -812,10 +849,7 @@ class _NeuralNetworkPainter extends CustomPainter {
         text: textSpan,
         textDirection: TextDirection.ltr,
       )..layout();
-      textPainter.paint(
-        canvas,
-        Offset(layerX[i] - textPainter.width / 2, 8),
-      );
+      textPainter.paint(canvas, Offset(layerX[i] - textPainter.width / 2, 8));
     }
   }
 
@@ -834,7 +868,9 @@ class _NeuralNetworkPainter extends CustomPainter {
 
       // Halo exterior
       final haloPaint = Paint()
-        ..color = baseColor.withValues(alpha: isSelected ? 0.6 : (0.2 + act * 0.3))
+        ..color = baseColor.withValues(
+          alpha: isSelected ? 0.6 : (0.2 + act * 0.3),
+        )
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, isSelected ? 8 : 4);
       canvas.drawCircle(center, isSelected ? 16 : (10 + act * 3), haloPaint);
 
@@ -881,7 +917,9 @@ class _NeuralNetworkPainter extends CustomPainter {
 
       // Halo
       final haloPaint = Paint()
-        ..color = color.withValues(alpha: isSelected ? 0.7 : (0.25 + val * 0.45))
+        ..color = color.withValues(
+          alpha: isSelected ? 0.7 : (0.25 + val * 0.45),
+        )
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, isSelected ? 10 : 5);
       canvas.drawCircle(center, isSelected ? 17 : (11 + val * 4), haloPaint);
 

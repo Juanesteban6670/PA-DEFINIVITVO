@@ -59,8 +59,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       storage: widget.session.storage,
       owner: widget.session.user?.username ?? 'ciudadano',
     );
-    _realtimeService =
-        RealtimeAlertService(baseUrl: widget.session.api.baseUrl);
+    _realtimeService = RealtimeAlertService(
+      baseUrl: widget.session.api.baseUrl,
+    );
     _realtimeService?.addIncidentListener(() {
       if (mounted) _incidentRefresh.value++;
     });
@@ -111,7 +112,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onAlertTriggered: _onProximityAlertTriggered,
       );
       if (mounted) {
-        VersionCheckService.instance.checkForUpdates(context, widget.session.api);
+        VersionCheckService.instance.checkForUpdates(
+          context,
+          widget.session.api,
+        );
       }
     }
   }
@@ -121,7 +125,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final isHigh = alert.riskLevel == 'ALTO';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: isHigh ? const Color(0xFFC0392B) : const Color(0xFFD97706),
+        backgroundColor: isHigh
+            ? const Color(0xFFC0392B)
+            : const Color(0xFFD97706),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 7),
         content: Row(
@@ -139,7 +145,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 children: [
                   Text(
                     '⚠️ ZONA DE RIESGO: ${alert.zoneName}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     'A ~${alert.formattedDistance} · Nivel ${alert.riskLevel} · ${alert.recentTypes.join(", ")}',
@@ -179,14 +189,19 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         duration: const Duration(seconds: 6),
         content: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded,
-                color: Colors.white, size: 24),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 '🚨 ALERTA SOS EN TIEMPO REAL: $type en $loc',
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.white),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -329,7 +344,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             actions: [
               if (wideLayout) ...[
                 LiveStatusBadge(
-                    realtimeService: _realtimeService, compact: true),
+                  realtimeService: _realtimeService,
+                  compact: true,
+                ),
                 const SizedBox(width: 4),
               ],
               // Botón SOS de Pánico (Visible SIEMPRE en móvil y PC)
@@ -340,7 +357,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   style: FilledButton.styleFrom(
                     backgroundColor: isDark ? AppColors.darkRed : AppColors.red,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: wideLayout ? 12 : 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: wideLayout ? 12 : 8,
+                    ),
                     visualDensity: VisualDensity.compact,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -351,7 +370,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   icon: const Icon(Icons.emergency_rounded, size: 15),
                   label: Text(
                     wideLayout ? 'SOS 123' : 'SOS',
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: -0.1),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      letterSpacing: -0.1,
+                    ),
                   ),
                 ),
               ),
@@ -388,7 +411,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                         children: [
                           LiquidGlassToggleButton(),
                           SizedBox(width: 10),
-                          Text('Efecto Cristal', style: TextStyle(fontSize: 13)),
+                          Text(
+                            'Efecto Cristal',
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -423,7 +449,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 onPressed: () => _selectTab(4),
                 icon: CircleAvatar(
                   radius: wideLayout ? 16 : 14,
-                  backgroundColor: isDark ? AppColors.brightBlue : AppColors.blue,
+                  backgroundColor: isDark
+                      ? AppColors.brightBlue
+                      : AppColors.blue,
                   child: Text(
                     (widget.session.user?.username.isNotEmpty ?? false)
                         ? widget.session.user!.username[0].toUpperCase()
@@ -445,7 +473,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     NavigationRail(
                       selectedIndex: _selectedIndex,
                       onDestinationSelected: _selectTab,
-                      backgroundColor: isDark ? const Color(0xFF121214) : AppColors.canvas,
+                      backgroundColor: isDark
+                          ? const Color(0xFF121214)
+                          : AppColors.canvas,
                       extended: MediaQuery.sizeOf(context).width >= 1000,
                       labelType: MediaQuery.sizeOf(context).width >= 1000
                           ? null
@@ -477,38 +507,52 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           bottomNavigationBar: wideLayout
               ? null
               : LiquidGlassContainer(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(22),
+                  ),
                   elevation: 2,
                   child: NavigationBarTheme(
                     data: NavigationBarThemeData(
                       backgroundColor: Colors.transparent,
                       elevation: 0,
                       height: 66,
-                      indicatorColor: (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: 0.14),
-                      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      indicatorColor:
+                          (isDark ? AppColors.brightBlue : AppColors.blue)
+                              .withValues(alpha: 0.14),
+                      indicatorShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       iconTheme: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return IconThemeData(
-                            color: isDark ? AppColors.brightBlue : AppColors.blue,
+                            color: isDark
+                                ? AppColors.brightBlue
+                                : AppColors.blue,
                             size: 22,
                           );
                         }
                         return IconThemeData(
-                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.muted,
                           size: 22,
                         );
                       }),
                       labelTextStyle: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return TextStyle(
-                            color: isDark ? AppColors.brightBlue : AppColors.blue,
+                            color: isDark
+                                ? AppColors.brightBlue
+                                : AppColors.blue,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             letterSpacing: -0.1,
                           );
                         }
                         return TextStyle(
-                          color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.muted,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           letterSpacing: -0.1,
@@ -529,38 +573,38 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   List<NavigationDestination> _buildNavDestinations(AppStrings strings) => [
-        NavigationDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home_rounded),
-          label: strings.navHome,
-        ),
-        NavigationDestination(
-          icon: KeyedSubtree(
-            key: AppTourKeys.navMapKey,
-            child: const Icon(Icons.map_outlined),
-          ),
-          selectedIcon: const Icon(Icons.map_rounded),
-          label: strings.navMap,
-        ),
-        NavigationDestination(
-          icon: KeyedSubtree(
-            key: AppTourKeys.navReportsKey,
-            child: const Icon(Icons.assignment_outlined),
-          ),
-          selectedIcon: const Icon(Icons.assignment_rounded),
-          label: strings.navReports,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.bar_chart_rounded),
-          selectedIcon: const Icon(Icons.bar_chart_rounded),
-          label: strings.navAnalytics,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.person_outline_rounded),
-          selectedIcon: const Icon(Icons.person_rounded),
-          label: strings.navProfile,
-        ),
-      ];
+    NavigationDestination(
+      icon: const Icon(Icons.home_outlined),
+      selectedIcon: const Icon(Icons.home_rounded),
+      label: strings.navHome,
+    ),
+    NavigationDestination(
+      icon: KeyedSubtree(
+        key: AppTourKeys.navMapKey,
+        child: const Icon(Icons.map_outlined),
+      ),
+      selectedIcon: const Icon(Icons.map_rounded),
+      label: strings.navMap,
+    ),
+    NavigationDestination(
+      icon: KeyedSubtree(
+        key: AppTourKeys.navReportsKey,
+        child: const Icon(Icons.assignment_outlined),
+      ),
+      selectedIcon: const Icon(Icons.assignment_rounded),
+      label: strings.navReports,
+    ),
+    NavigationDestination(
+      icon: const Icon(Icons.bar_chart_rounded),
+      selectedIcon: const Icon(Icons.bar_chart_rounded),
+      label: strings.navAnalytics,
+    ),
+    NavigationDestination(
+      icon: const Icon(Icons.person_outline_rounded),
+      selectedIcon: const Icon(Icons.person_rounded),
+      label: strings.navProfile,
+    ),
+  ];
 
   List<NavigationRailDestination> _buildRailDestinations(AppStrings strings) =>
       [

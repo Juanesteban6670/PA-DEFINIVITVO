@@ -66,8 +66,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
         await widget.session.requestPasswordReset(_email.text);
         if (!mounted) return;
         setState(
-          () => _message =
-              'Si el correo está registrado, recibirás instrucciones para recuperar tu cuenta.',
+          () => _message = 'Si el correo está registrado, recibirás instrucciones para recuperar tu cuenta.',
         );
       }
     } on ApiException catch (error) {
@@ -143,10 +142,10 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                       onSelectionChanged: _busy
                           ? null
                           : (selected) => setState(() {
-                                _resetting = selected.first;
-                                _error = null;
-                                _message = null;
-                              }),
+                              _resetting = selected.first;
+                              _error = null;
+                              _message = null;
+                            }),
                     ),
                     const SizedBox(height: 18),
                     if (!_resetting) ...[
@@ -157,7 +156,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                           labelText: 'Correo electrónico',
                           prefixIcon: Icon(Icons.mail_outline),
                         ),
-                        validator: (value) => value == null ||
+                        validator: (value) =>
+                            value == null ||
                                 !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
                                     .hasMatch(value.trim())
                             ? 'Escribe un correo válido'
@@ -172,8 +172,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                         ),
                         validator: (value) =>
                             value == null || value.trim().isEmpty
-                                ? 'Ingresa el token recibido'
-                                : null,
+                            ? 'Ingresa el token recibido'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

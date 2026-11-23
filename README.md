@@ -10,7 +10,7 @@ El ecosistema de **Cartagena Segura** se encuentra completamente desplegado e in
 
 | Servicio / Recurso | Plataforma | Enlace de Acceso Directo | Descripción |
 | :--- | :--- | :--- | :--- |
-| 🚀 **Aplicación Web Oficial** | **Render Cloud** | [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com) | Despliegue en vivo 24/7 del cliente Web PWA y API REST |
+| 🚀 **Aplicación Web Oficial** | **Render Cloud** | [https://pa-definivitvo.onrender.com](https://pa-definivitvo.onrender.com) | Cliente Web PWA y API REST |
 | 📲 **App Móvil Android (APK)** | **GitHub Releases (Permanente)** | [📥 Descargar APK (Enlace Directo)](https://github.com/Juanesteban6670/PA-DEFINIVITVO/releases/download/app-latest/app-release.apk) | Enlace permanente oficial de descarga directa sin login (.apk listo para instalar) |
 | ⚙️ **Panel de Despliegue & Métricas** | **Render Dashboard** | [https://dashboard.render.com](https://dashboard.render.com) | Administración del servicio `cartagena-segura`, logs y compilación continua |
 | 📖 **Documentación Swagger / OpenAPI** | **Springdoc OpenAPI 3** | [https://pa-definivitvo.onrender.com/swagger-ui/index.html](https://pa-definivitvo.onrender.com/swagger-ui/index.html) | Catálogo interactivo de endpoints REST y esquemas de datos |
@@ -168,6 +168,8 @@ La base de datos incluye semillas iniciales de prueba para evaluar los diferente
 ---
 
 ## 📱 Descarga e Instalación Móvil (APK Nativo Android & PWA)
+
+Esta entrega publica el APK **1.2.3 (build 6)**. El [plan de cierre](docs/plan-cierre.md) documenta las verificaciones de la entrega.
 
 ### 🤖 1. Descarga del APK Nativo para Android (Recomendado)
 El cliente para Android ha sido compilado de forma nativa en modo **Release** conectándose directamente a la API en producción en Render (`https://pa-definivitvo.onrender.com/api` y WebSockets `wss://pa-definivitvo.onrender.com/ws`):

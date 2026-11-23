@@ -307,8 +307,7 @@ void main() {
       final storage = _FakeSessionStorage({
         'session.token': 'saved-token',
         'session.user': jsonEncode({'username': 'citizen'}),
-      })
-        ..failDeleteKey = 'session.token';
+      })..failDeleteKey = 'session.token';
       final session = SessionController(
         api: ApiClient(
           baseUrl: 'https://api.example.com/api',
@@ -333,8 +332,7 @@ void main() {
         final storage = _FakeSessionStorage({
           'session.token': 'expired-token',
           'session.user': jsonEncode({'username': 'citizen'}),
-        })
-          ..failDeleteKey = 'session.token';
+        })..failDeleteKey = 'session.token';
         final session = SessionController(
           api: ApiClient(
             baseUrl: 'https://api.example.com/api',
@@ -371,7 +369,7 @@ void main() {
 
 class _FakeSessionStorage implements SessionStorage {
   _FakeSessionStorage([Map<String, String>? initialValues])
-      : values = Map.of(initialValues ?? const {});
+    : values = Map.of(initialValues ?? const {});
 
   final Map<String, String> values;
   String? failDeleteKey;

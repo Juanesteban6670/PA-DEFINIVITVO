@@ -6,16 +6,82 @@ import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/report_draft_store.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart' show MethodCall, MethodChannel;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  test('recognizes picker photos without MIME metadata', () {
+    expect(reportPhotoExtension([0xff, 0xd8, 0xff]), 'jpg');
+    expect(reportPhotoExtension([137, 80, 78, 71, 13, 10, 26, 10]), 'png');
+    expect(
+      reportPhotoExtension([
+        ...ascii.encode('RIFF'),
+        0,
+        0,
+        0,
+        0,
+        ...ascii.encode('WEBP'),
+      ]),
+      'webp',
+    );
+    expect(reportPhotoExtension(ascii.encode('not a photo')), isNull);
+  });
   group('ReportDraftStore', () {
+    test(
+      'consumes the Android reminder once and keeps newer reminders',
+      () async {
+        const channel = MethodChannel('cartagena/report-reminder');
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        final calls = <MethodCall>[];
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          return call.method == 'consume' ? true : null;
+        });
+        addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+        final store = ReportDraftStore(
+          storage: _MemorySessionStorage(),
+          owner: 'citizen',
+        );
+        const draft = ReportDraft(
+          type: 'ROBO',
+          description: 'Reporte',
+          location: 'Centro',
+          priority: 'HIGH',
+          idempotencyKey: 'reminder-qa',
+        );
+        final oldTime = DateTime.utc(2026, 11, 22, 8);
+        final currentTime = oldTime.add(const Duration(hours: 1));
+        await store.scheduleReminder(draft, oldTime);
+        await store.scheduleReminder(draft, currentTime);
+        expect(await store.acknowledgeReminder(oldTime), isNull);
+        expect(await store.acknowledgeReminder(currentTime), isTrue);
+        expect(await store.acknowledgeReminder(currentTime), isNull);
+        expect(calls.map((call) => call.method), [
+          'schedule',
+          'schedule',
+          'consume',
+        ]);
+        expect(calls.last.arguments, {
+          'owner': 'citizen',
+          'dueAt': currentTime.millisecondsSinceEpoch,
+        });
+      },
+    );
+
     test('removing a report clears only its own reminder', () async {
-      final store = ReportDraftStore(storage: _MemorySessionStorage(), owner: 'citizen');
+      final store = ReportDraftStore(
+        storage: _MemorySessionStorage(),
+        owner: 'citizen',
+      );
       const draft = ReportDraft(
-        type: 'ROBO', description: 'Reporte', location: 'Centro',
-        priority: 'HIGH', idempotencyKey: 'pending-key',
+        type: 'ROBO',
+        description: 'Reporte',
+        location: 'Centro',
+        priority: 'HIGH',
+        idempotencyKey: 'pending-key',
       );
       final due = DateTime.utc(2026, 11, 21, 9);
       await store.enqueue(draft);

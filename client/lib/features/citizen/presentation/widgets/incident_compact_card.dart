@@ -1,3 +1,4 @@
+import 'package:cartagena_segura/shared/evidence_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/models.dart';
@@ -32,36 +33,61 @@ class IncidentCompactCard extends StatelessWidget {
     return 'Hace ${diff.inDays} d';
   }
 
-  static (String, Color, Color, IconData) getCategoryMeta(String type, bool isDark) {
+  static (String, Color, Color, IconData) getCategoryMeta(
+    String type,
+    bool isDark,
+  ) {
     final t = type.toUpperCase();
-    if (t.contains('TRAF') || t.contains('TRANSIT') || t.contains('CONGESTION') || t.contains('VIA')) {
+    if (t.contains('TRAF') ||
+        t.contains('TRANSIT') ||
+        t.contains('CONGESTION') ||
+        t.contains('VIA')) {
       return (
         'Tráfico',
         isDark ? AppColors.darkAmber : AppColors.amber,
-        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.2 : 0.12),
+        (isDark ? AppColors.darkAmber : AppColors.amber).withValues(
+          alpha: isDark ? 0.2 : 0.12,
+        ),
         Icons.directions_car_rounded,
       );
     }
-    if (t.contains('ROBO') || t.contains('HURTO') || t.contains('SEGURIDAD') || t.contains('SOS') || t.contains('PELEA') || t.contains('ALTERCADO') || t.contains('PANICO')) {
+    if (t.contains('ROBO') ||
+        t.contains('HURTO') ||
+        t.contains('SEGURIDAD') ||
+        t.contains('SOS') ||
+        t.contains('PELEA') ||
+        t.contains('ALTERCADO') ||
+        t.contains('PANICO')) {
       return (
         'Seguridad',
         isDark ? AppColors.darkRed : AppColors.red,
-        (isDark ? AppColors.darkRed : AppColors.red).withValues(alpha: isDark ? 0.2 : 0.12),
+        (isDark ? AppColors.darkRed : AppColors.red).withValues(
+          alpha: isDark ? 0.2 : 0.12,
+        ),
         Icons.shield_rounded,
       );
     }
-    if (t.contains('ALUMBRADO') || t.contains('HUECO') || t.contains('BASURA') || t.contains('INFRAESTRUCTURA') || t.contains('AGUA') || t.contains('POSTE')) {
+    if (t.contains('ALUMBRADO') ||
+        t.contains('HUECO') ||
+        t.contains('BASURA') ||
+        t.contains('INFRAESTRUCTURA') ||
+        t.contains('AGUA') ||
+        t.contains('POSTE')) {
       return (
         'Servicios',
         isDark ? AppColors.sky : AppColors.blue,
-        (isDark ? AppColors.sky : AppColors.blue).withValues(alpha: isDark ? 0.2 : 0.12),
+        (isDark ? AppColors.sky : AppColors.blue).withValues(
+          alpha: isDark ? 0.2 : 0.12,
+        ),
         Icons.build_circle_rounded,
       );
     }
     return (
       'Incidente',
       isDark ? AppColors.darkPurple : AppColors.purple,
-      (isDark ? AppColors.darkPurple : AppColors.purple).withValues(alpha: isDark ? 0.2 : 0.12),
+      (isDark ? AppColors.darkPurple : AppColors.purple).withValues(
+        alpha: isDark ? 0.2 : 0.12,
+      ),
       Icons.warning_amber_rounded,
     );
   }
@@ -72,34 +98,48 @@ class IncidentCompactCard extends StatelessWidget {
         return (
           'Resuelto',
           isDark ? AppColors.darkGreen : AppColors.green,
-          (isDark ? AppColors.darkGreen : AppColors.green).withValues(alpha: isDark ? 0.22 : 0.12),
+          (isDark ? AppColors.darkGreen : AppColors.green).withValues(
+            alpha: isDark ? 0.22 : 0.12,
+          ),
         );
       case 'IN_PROGRESS':
         return (
           'En atención',
           isDark ? AppColors.brightBlue : AppColors.blue,
-          (isDark ? AppColors.brightBlue : AppColors.blue).withValues(alpha: isDark ? 0.22 : 0.12),
+          (isDark ? AppColors.brightBlue : AppColors.blue).withValues(
+            alpha: isDark ? 0.22 : 0.12,
+          ),
         );
       case 'REJECTED':
         return (
           'Desestimado',
           isDark ? AppColors.darkTextMuted : AppColors.muted,
-          (isDark ? AppColors.darkTextMuted : AppColors.muted).withValues(alpha: 0.15),
+          (isDark ? AppColors.darkTextMuted : AppColors.muted).withValues(
+            alpha: 0.15,
+          ),
         );
       case 'PENDING':
       default:
         return (
           'En revisión',
           isDark ? AppColors.darkAmber : AppColors.amber,
-          (isDark ? AppColors.darkAmber : AppColors.amber).withValues(alpha: isDark ? 0.22 : 0.12),
+          (isDark ? AppColors.darkAmber : AppColors.amber).withValues(
+            alpha: isDark ? 0.22 : 0.12,
+          ),
         );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final (catName, catColor, catBg, catIcon) = getCategoryMeta(incident.type, isDark);
-    final (statusLabel, statusColor, statusBg) = getStatusMeta(incident.status, isDark);
+    final (catName, catColor, catBg, catIcon) = getCategoryMeta(
+      incident.type,
+      isDark,
+    );
+    final (statusLabel, statusColor, statusBg) = getStatusMeta(
+      incident.status,
+      isDark,
+    );
     final timeAgo = formatTimeAgo(incident.createdAt);
 
     return Container(
@@ -159,7 +199,9 @@ class IncidentCompactCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.darkText : AppColors.navy,
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : AppColors.navy,
                                 letterSpacing: -0.2,
                               ),
                             ),
@@ -169,7 +211,9 @@ class IncidentCompactCard extends StatelessWidget {
                             Icon(
                               Icons.photo_camera_rounded,
                               size: 13,
-                              color: isDark ? AppColors.brightBlue : AppColors.blue,
+                              color: isDark
+                                  ? AppColors.brightBlue
+                                  : AppColors.blue,
                             ),
                           ],
                         ],
@@ -180,7 +224,9 @@ class IncidentCompactCard extends StatelessWidget {
                           Icon(
                             Icons.location_on_outlined,
                             size: 12,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.muted,
                           ),
                           const SizedBox(width: 3),
                           Expanded(
@@ -190,7 +236,9 @@ class IncidentCompactCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.muted,
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : AppColors.muted,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -204,7 +252,10 @@ class IncidentCompactCard extends StatelessWidget {
 
                 // Indicador de estado visual (Chip moderno con punto indicador)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(999),
@@ -246,10 +297,20 @@ class IncidentCompactCard extends StatelessWidget {
   }
 
   /// Abre un modal completo con la información detallada del incidente.
-  static void showDetail(BuildContext context, Incident incident, {ApiClient? api}) {
+  static void showDetail(
+    BuildContext context,
+    Incident incident, {
+    ApiClient? api,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final (catName, catColor, catBg, catIcon) = getCategoryMeta(incident.type, isDark);
-    final (statusLabel, statusColor, statusBg) = getStatusMeta(incident.status, isDark);
+    final (catName, catColor, catBg, catIcon) = getCategoryMeta(
+      incident.type,
+      isDark,
+    );
+    final (statusLabel, statusColor, statusBg) = getStatusMeta(
+      incident.status,
+      isDark,
+    );
 
     showModalBottomSheet<void>(
       context: context,
@@ -288,7 +349,10 @@ class IncidentCompactCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: catBg,
                       borderRadius: BorderRadius.circular(10),
@@ -311,11 +375,16 @@ class IncidentCompactCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: statusBg,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -361,7 +430,9 @@ class IncidentCompactCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
-                  color: isDark ? AppColors.darkTextMuted : const Color(0xFF334155),
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : const Color(0xFF334155),
                 ),
               ),
               const SizedBox(height: 16),
@@ -372,7 +443,9 @@ class IncidentCompactCard extends StatelessWidget {
               _buildDetailRow(
                 icon: Icons.place_rounded,
                 title: 'Ubicación',
-                value: incident.location.isNotEmpty ? incident.location : 'Cartagena de Indias',
+                value: incident.location.isNotEmpty
+                    ? incident.location
+                    : 'Cartagena de Indias',
                 isDark: isDark,
               ),
               const SizedBox(height: 10),
@@ -389,7 +462,8 @@ class IncidentCompactCard extends StatelessWidget {
                 _buildDetailRow(
                   icon: Icons.my_location_rounded,
                   title: 'Coordenadas GPS',
-                  value: '${incident.latitude!.toStringAsFixed(5)}, ${incident.longitude!.toStringAsFixed(5)}',
+                  value:
+                      '${incident.latitude!.toStringAsFixed(5)}, ${incident.longitude!.toStringAsFixed(5)}',
                   isDark: isDark,
                 ),
               ],
@@ -411,23 +485,19 @@ class IncidentCompactCard extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: incident.imageUrls.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 8),
                     itemBuilder: (_, index) {
                       final url = incident.imageUrls[index];
-                      final resolvedUrl = (api != null && !url.startsWith('http'))
-                          ? '${api.baseUrl}/${url.replaceFirst(RegExp(r"^/+"), "")}'
-                          : url;
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Container(
                           width: 80,
                           color: isDark ? AppColors.darkCard : Colors.black12,
-                          child: Image.network(
-                            resolvedUrl,
+                          child: EvidenceImage(
+                            url: url,
+                            api: api,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.broken_image_rounded, size: 24),
-                            ),
                           ),
                         ),
                       );
@@ -443,9 +513,15 @@ class IncidentCompactCard extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(ctx).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? AppColors.darkCardHover : const Color(0xFFE2E8F0),
-                    foregroundColor: isDark ? AppColors.darkText : AppColors.navy,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: isDark
+                        ? AppColors.darkCardHover
+                        : const Color(0xFFE2E8F0),
+                    foregroundColor: isDark
+                        ? AppColors.darkText
+                        : AppColors.navy,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
@@ -471,7 +547,11 @@ class IncidentCompactCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: isDark ? AppColors.brightBlue : AppColors.blue),
+        Icon(
+          icon,
+          size: 16,
+          color: isDark ? AppColors.brightBlue : AppColors.blue,
+        ),
         const SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

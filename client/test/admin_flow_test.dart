@@ -123,7 +123,10 @@ void main() {
 
     final details = find.byType(Dialog);
     expect(details, findsOneWidget);
-    expect(find.descendant(of: details, matching: find.text('Robo')), findsOneWidget);
+    expect(
+      find.descendant(of: details, matching: find.text('Robo')),
+      findsOneWidget,
+    );
   });
 }
 

@@ -36,13 +36,13 @@ class AppUser {
   }
 
   Map<String, dynamic> toJson() => {
-        'token': token,
-        'username': username,
-        'fullName': fullName,
-        'email': email,
-        'phone': phone,
-        'roles': roles,
-      };
+    'token': token,
+    'username': username,
+    'fullName': fullName,
+    'email': email,
+    'phone': phone,
+    'roles': roles,
+  };
 }
 
 class Incident {
@@ -71,20 +71,21 @@ class Incident {
   final List<String> imageUrls;
 
   factory Incident.fromJson(Map<String, dynamic> json) => Incident(
-        id: json['id']?.toString() ?? '',
-        type: json['type']?.toString() ?? 'Incidente',
-        description: json['description']?.toString() ?? '',
-        location: json['location']?.toString() ?? '',
-        latitude: _asDouble(json['latitude']),
-        longitude: _asDouble(json['longitude']),
-        priority: json['priority']?.toString() ?? 'MEDIUM',
-        status: json['status']?.toString() ?? 'PENDING',
-        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
-        imageUrls: (json['imageUrls'] as List?)?.whereType<String>().toList(
-                  growable: false,
-                ) ??
-            const [],
-      );
+    id: json['id']?.toString() ?? '',
+    type: json['type']?.toString() ?? 'Incidente',
+    description: json['description']?.toString() ?? '',
+    location: json['location']?.toString() ?? '',
+    latitude: _asDouble(json['latitude']),
+    longitude: _asDouble(json['longitude']),
+    priority: json['priority']?.toString() ?? 'MEDIUM',
+    status: json['status']?.toString() ?? 'PENDING',
+    createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+    imageUrls:
+        (json['imageUrls'] as List?)?.whereType<String>().toList(
+          growable: false,
+        ) ??
+        const [],
+  );
 
   static double? _asDouble(dynamic value) => value is num
       ? value.toDouble()
@@ -247,12 +248,12 @@ class ModelMetadata {
   final double accuracyScore;
 
   factory ModelMetadata.fromJson(Map<String, dynamic> json) => ModelMetadata(
-        modelName: json['modelName']?.toString() ?? 'NeuralNet',
-        architecture: json['architecture']?.toString() ?? 'MLP',
-        version: json['version']?.toString() ?? 'v2.4',
-        trainingSamples: (json['trainingSamples'] as num?)?.toInt() ?? 0,
-        accuracyScore: (json['accuracyScore'] as num?)?.toDouble() ?? 90.0,
-      );
+    modelName: json['modelName']?.toString() ?? 'NeuralNet',
+    architecture: json['architecture']?.toString() ?? 'MLP',
+    version: json['version']?.toString() ?? 'v2.4',
+    trainingSamples: (json['trainingSamples'] as num?)?.toInt() ?? 0,
+    accuracyScore: (json['accuracyScore'] as num?)?.toDouble() ?? 90.0,
+  );
 }
 
 class RiskForecastResponse {
@@ -286,7 +287,8 @@ class RiskForecastResponse {
         preventiveEffectiveness:
             (json['preventiveEffectiveness'] as num?)?.toDouble() ?? 85.0,
         modelMetadata: ModelMetadata.fromJson(
-            json['modelMetadata'] as Map<String, dynamic>? ?? const {}),
+          json['modelMetadata'] as Map<String, dynamic>? ?? const {},
+        ),
         hourlyForecast: (json['hourlyForecast'] as List? ?? const [])
             .whereType<Map<String, dynamic>>()
             .map(HourlyRiskPrediction.fromJson)
@@ -363,17 +365,15 @@ class SimulationResponse {
         neuralActivations:
             (json['neuralActivations'] as Map<String, dynamic>? ?? const {})
                 .map((k, v) => MapEntry(k, (v as num).toDouble())),
-        inferenceLatencyMs:
-            (json['inferenceLatencyMs'] as num?)?.toInt() ?? 2,
-        confidenceMargin:
-            (json['confidenceMargin'] as num?)?.toDouble() ?? 4.2,
+        inferenceLatencyMs: (json['inferenceLatencyMs'] as num?)?.toInt() ?? 2,
+        confidenceMargin: (json['confidenceMargin'] as num?)?.toDouble() ?? 4.2,
         modelCertaintyScore:
             (json['modelCertaintyScore'] as num?)?.toDouble() ?? 95.8,
-        featureContributions: (json['featureContributions'] as List<dynamic>? ??
-                const [])
-            .whereType<Map<String, dynamic>>()
-            .map(FeatureContribution.fromJson)
-            .toList(growable: false),
+        featureContributions:
+            (json['featureContributions'] as List<dynamic>? ?? const [])
+                .whereType<Map<String, dynamic>>()
+                .map(FeatureContribution.fromJson)
+                .toList(growable: false),
       );
 }
 
@@ -413,14 +413,12 @@ class DataDriftItem {
   final double shiftDeltaPercent;
 
   factory DataDriftItem.fromJson(Map<String, dynamic> json) => DataDriftItem(
-        incidentType: json['incidentType']?.toString() ?? '',
-        baselineRatioPercent:
-            (json['baselineRatioPercent'] as num?)?.toDouble() ?? 0.0,
-        recentRatioPercent:
-            (json['recentRatioPercent'] as num?)?.toDouble() ?? 0.0,
-        shiftDeltaPercent:
-            (json['shiftDeltaPercent'] as num?)?.toDouble() ?? 0.0,
-      );
+    incidentType: json['incidentType']?.toString() ?? '',
+    baselineRatioPercent:
+        (json['baselineRatioPercent'] as num?)?.toDouble() ?? 0.0,
+    recentRatioPercent: (json['recentRatioPercent'] as num?)?.toDouble() ?? 0.0,
+    shiftDeltaPercent: (json['shiftDeltaPercent'] as num?)?.toDouble() ?? 0.0,
+  );
 }
 
 class AiModelCardResponse {
@@ -470,48 +468,49 @@ class AiModelCardResponse {
   final List<String> inputFeatureNames;
   final List<String> outputCategoryNames;
 
-  factory AiModelCardResponse.fromJson(Map<String, dynamic> json) =>
-      AiModelCardResponse(
-        modelName: json['modelName']?.toString() ??
-            'Cartagena Segura Deep Neural Predictor',
-        architecture: json['architecture']?.toString() ??
-            'Multilayer Perceptron (MLP) Deep Feedforward',
-        version: json['version']?.toString() ?? 'v2.4-Production',
-        optimizer: json['optimizer']?.toString() ?? 'Adam (beta1=0.9, beta2=0.999)',
-        lossFunction: json['lossFunction']?.toString() ??
-            'Categorical Cross-Entropy + BCE',
-        learningRate: (json['learningRate'] as num?)?.toDouble() ?? 0.001,
-        inputNodes: (json['inputNodes'] as num?)?.toInt() ?? 6,
-        hiddenLayers: (json['hiddenLayers'] as List<dynamic>? ?? const [12, 8])
-            .map((e) => (e as num).toInt())
+  factory AiModelCardResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => AiModelCardResponse(
+    modelName:
+        json['modelName']?.toString() ??
+        'Cartagena Segura Deep Neural Predictor',
+    architecture:
+        json['architecture']?.toString() ??
+        'Multilayer Perceptron (MLP) Deep Feedforward',
+    version: json['version']?.toString() ?? 'v2.4-Production',
+    optimizer: json['optimizer']?.toString() ?? 'Adam (beta1=0.9, beta2=0.999)',
+    lossFunction:
+        json['lossFunction']?.toString() ?? 'Categorical Cross-Entropy + BCE',
+    learningRate: (json['learningRate'] as num?)?.toDouble() ?? 0.001,
+    inputNodes: (json['inputNodes'] as num?)?.toInt() ?? 6,
+    hiddenLayers: (json['hiddenLayers'] as List<dynamic>? ?? const [12, 8])
+        .map((e) => (e as num).toInt())
+        .toList(growable: false),
+    outputNodes: (json['outputNodes'] as num?)?.toInt() ?? 5,
+    accuracyScore: (json['accuracyScore'] as num?)?.toDouble() ?? 93.4,
+    precisionScore: (json['precisionScore'] as num?)?.toDouble() ?? 91.8,
+    recallScore: (json['recallScore'] as num?)?.toDouble() ?? 94.6,
+    f1Score: (json['f1Score'] as num?)?.toDouble() ?? 0.931,
+    aucRocScore: (json['aucRocScore'] as num?)?.toDouble() ?? 0.962,
+    averageLatencyMs: (json['averageLatencyMs'] as num?)?.toInt() ?? 2,
+    dataDriftIndex: (json['dataDriftIndex'] as num?)?.toDouble() ?? 0.042,
+    dataDriftStatus:
+        json['dataDriftStatus']?.toString() ?? 'ESTABLE / SIN DERIVA (Normal)',
+    dataDriftComparison:
+        (json['dataDriftComparison'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(DataDriftItem.fromJson)
             .toList(growable: false),
-        outputNodes: (json['outputNodes'] as num?)?.toInt() ?? 5,
-        accuracyScore: (json['accuracyScore'] as num?)?.toDouble() ?? 93.4,
-        precisionScore: (json['precisionScore'] as num?)?.toDouble() ?? 91.8,
-        recallScore: (json['recallScore'] as num?)?.toDouble() ?? 94.6,
-        f1Score: (json['f1Score'] as num?)?.toDouble() ?? 0.931,
-        aucRocScore: (json['aucRocScore'] as num?)?.toDouble() ?? 0.962,
-        averageLatencyMs: (json['averageLatencyMs'] as num?)?.toInt() ?? 2,
-        dataDriftIndex: (json['dataDriftIndex'] as num?)?.toDouble() ?? 0.042,
-        dataDriftStatus: json['dataDriftStatus']?.toString() ??
-            'ESTABLE / SIN DERIVA (Normal)',
-        dataDriftComparison:
-            (json['dataDriftComparison'] as List<dynamic>? ?? const [])
-                .whereType<Map<String, dynamic>>()
-                .map(DataDriftItem.fromJson)
-                .toList(growable: false),
-        confusionMatrix:
-            (json['confusionMatrix'] as List<dynamic>? ?? const [])
-                .whereType<Map<String, dynamic>>()
-                .map(ConfusionMatrixCell.fromJson)
-                .toList(growable: false),
-        inputFeatureNames:
-            (json['inputFeatureNames'] as List<dynamic>? ?? const [])
-                .map((e) => e.toString())
-                .toList(growable: false),
-        outputCategoryNames:
-            (json['outputCategoryNames'] as List<dynamic>? ?? const [])
-                .map((e) => e.toString())
-                .toList(growable: false),
-      );
+    confusionMatrix: (json['confusionMatrix'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(ConfusionMatrixCell.fromJson)
+        .toList(growable: false),
+    inputFeatureNames: (json['inputFeatureNames'] as List<dynamic>? ?? const [])
+        .map((e) => e.toString())
+        .toList(growable: false),
+    outputCategoryNames:
+        (json['outputCategoryNames'] as List<dynamic>? ?? const [])
+            .map((e) => e.toString())
+            .toList(growable: false),
+  );
 }

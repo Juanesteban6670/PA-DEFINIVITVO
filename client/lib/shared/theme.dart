@@ -25,7 +25,9 @@ abstract final class AppColors {
   static const textSecondary = Color(0xFF667085); // Alias para texto secundario
 
   // Acentos y estados
-  static const yellow = Color(0xFFFFB703); // Amarillo Cartagena Segura (#FFB703)
+  static const yellow = Color(
+    0xFFFFB703,
+  ); // Amarillo Cartagena Segura (#FFB703)
   static const amber = Color(0xFFFFB703); // Amarillo acento (#FFB703)
   static const red = Color(0xFFDC2626); // Rojo alerta
   static const green = Color(0xFF16A34A); // Verde atendido / resuelto
@@ -65,7 +67,9 @@ const List<String> appleFontFallbacks = [
 TextTheme _buildAppleTextTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
   final primaryColor = isDark ? AppColors.darkText : AppColors.textPrimary;
-  final secondaryColor = isDark ? AppColors.darkTextMuted : AppColors.textSecondary;
+  final secondaryColor = isDark
+      ? AppColors.darkTextMuted
+      : AppColors.textSecondary;
 
   return TextTheme(
     displayLarge: TextStyle(
@@ -303,7 +307,9 @@ ThemeData buildAppTheme() {
       backgroundColor: Colors.white,
       elevation: 0,
       indicatorColor: AppColors.blue.withValues(alpha: 0.1),
-      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
           fontSize: 11,
@@ -328,9 +334,14 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.canvas,
       elevation: 0,
       indicatorColor: AppColors.blue.withValues(alpha: 0.1),
-      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       selectedIconTheme: const IconThemeData(color: AppColors.blue, size: 22),
-      unselectedIconTheme: const IconThemeData(color: AppColors.muted, size: 22),
+      unselectedIconTheme: const IconThemeData(
+        color: AppColors.muted,
+        size: 22,
+      ),
       selectedLabelTextStyle: const TextStyle(
         color: AppColors.blue,
         fontSize: 12,
@@ -520,7 +531,9 @@ ThemeData buildDarkAppTheme() {
       backgroundColor: const Color(0xFF161618),
       elevation: 0,
       indicatorColor: AppColors.brightBlue.withValues(alpha: 0.16),
-      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
           fontSize: 11,
@@ -545,9 +558,17 @@ ThemeData buildDarkAppTheme() {
       backgroundColor: const Color(0xFF121214),
       elevation: 0,
       indicatorColor: AppColors.brightBlue.withValues(alpha: 0.16),
-      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      selectedIconTheme: const IconThemeData(color: AppColors.brightBlue, size: 22),
-      unselectedIconTheme: const IconThemeData(color: AppColors.darkTextMuted, size: 22),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      selectedIconTheme: const IconThemeData(
+        color: AppColors.brightBlue,
+        size: 22,
+      ),
+      unselectedIconTheme: const IconThemeData(
+        color: AppColors.darkTextMuted,
+        size: 22,
+      ),
       selectedLabelTextStyle: const TextStyle(
         color: AppColors.brightBlue,
         fontSize: 12,
@@ -599,7 +620,7 @@ ThemeData buildDarkAppTheme() {
 /// Gestor de estado reactivo para la preferencia de modo claro/oscuro.
 class ThemeModeController extends ChangeNotifier {
   ThemeModeController({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage() {
+    : _storage = storage ?? const FlutterSecureStorage() {
     _loadTheme();
   }
 

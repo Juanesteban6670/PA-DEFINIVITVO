@@ -14,7 +14,27 @@ import 'package:cartagena_segura/features/landing/presentation/landing_screen.da
 import 'providers.dart';
 
 // Capture this before the temporary loading MaterialApp can change the URL.
-final startupRecoveryLocationProvider = Provider<String?>((ref) => null);
+final startupLocationProvider = Provider<String?>((ref) => null);
+
+String? startupLocationFromUri(Uri uri) {
+  final recovery = recoveryLocationFromUri(uri);
+  if (recovery != null) return recovery;
+  final hashRoute = Uri.tryParse(uri.fragment);
+  final route =
+      hashRoute != null &&
+          !hashRoute.hasAuthority &&
+          hashRoute.path.startsWith('/')
+      ? hashRoute
+      : uri;
+  const publicPaths = {'/Login', '/Register', '/ForgotPassword', '/Chat'};
+  if (!publicPaths.contains(route.path) && !_isProtected(route.path)) {
+    return null;
+  }
+  return Uri(
+    path: route.path,
+    query: route.hasQuery ? route.query : null,
+  ).toString();
+}
 
 String? recoveryLocationFromUri(Uri uri) {
   final hashRoute = uri.fragment.isEmpty ? null : Uri.tryParse(uri.fragment);
@@ -22,16 +42,19 @@ String? recoveryLocationFromUri(Uri uri) {
   if (route.path != '/ResetPassword') return null;
   final token = route.queryParameters['token'];
   if (token == null || token.trim().isEmpty) return '/ForgotPassword';
-  return Uri(path: '/ResetPassword', queryParameters: {'token': token}).toString();
+  return Uri(
+    path: '/ResetPassword',
+    queryParameters: {'token': token},
+  ).toString();
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
   final session = ref.read(sessionProvider);
   final router = GoRouter(
-    initialLocation: ref.read(startupRecoveryLocationProvider) ?? '/',
-    overridePlatformDefaultLocation: ref.read(startupRecoveryLocationProvider) != null,
+    initialLocation: ref.read(startupLocationProvider) ?? '/',
+    overridePlatformDefaultLocation: ref.read(startupLocationProvider) != null,
     refreshListenable: session,
-    redirect: (context, state) => _redirect(session, state.matchedLocation),
+    redirect: (context, state) => _redirect(session, state.uri),
     routes: [
       GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
       GoRoute(
@@ -135,18 +158,34 @@ final routerProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-String? _redirect(SessionController session, String location) {
+bool _isAdminPath(String path) =>
+    path == '/Admin' || path.startsWith('/Admin/');
+
+bool _isProtected(String path) =>
+    path == '/App' || path.startsWith('/App/') || _isAdminPath(path);
+
+String? _redirect(SessionController session, Uri uri) {
   if (!session.initialized) return null;
   final user = session.user;
-  final isProtected =
-      location.startsWith('/App') || location.startsWith('/Admin');
-  if (user == null && isProtected) {
-    return Uri(path: '/Login', queryParameters: {'from': location}).toString();
+  final location = uri.path;
+  if (user == null && _isProtected(location)) {
+    return Uri(
+      path: '/Login',
+      queryParameters: {'from': uri.toString()},
+    ).toString();
   }
   if (user != null && (location == '/Login' || location == '/Register')) {
+    final target = Uri.tryParse(uri.queryParameters['from'] ?? '');
+    if (target != null &&
+        !target.hasScheme &&
+        !target.hasAuthority &&
+        _isProtected(target.path) &&
+        (user.isAdmin || !_isAdminPath(target.path))) {
+      return target.toString();
+    }
     return user.isAdmin ? '/Admin' : '/App';
   }
-  if (user != null && location.startsWith('/Admin') && !user.isAdmin) {
+  if (user != null && _isAdminPath(location) && !user.isAdmin) {
     return '/App';
   }
   return null;

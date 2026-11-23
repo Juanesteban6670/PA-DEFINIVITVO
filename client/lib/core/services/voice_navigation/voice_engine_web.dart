@@ -1,11 +1,17 @@
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+
 import 'package:flutter/foundation.dart';
 
 /// Motor de síntesis de voz en tiempo real para Flutter Web utilizando la API nativa
 /// window.speechSynthesis (compatible con Chrome, Safari, Edge, Firefox y navegadores móviles).
 class PlatformVoiceEngine {
-  void speak(String text, {double rate = 1.05, double pitch = 1.0, String lang = 'es-CO'}) {
+  void speak(
+    String text, {
+    double rate = 1.05,
+    double pitch = 1.0,
+    String lang = 'es-CO',
+  }) {
     try {
       final synth = globalContext['speechSynthesis'] as JSObject?;
       if (synth == null) return;
@@ -17,8 +23,9 @@ class PlatformVoiceEngine {
           globalContext['SpeechSynthesisUtterance'] as JSFunction?;
       if (utteranceConstructor == null) return;
 
-      final utterance =
-          utteranceConstructor.callAsConstructor<JSObject>(text.toJS);
+      final utterance = utteranceConstructor.callAsConstructor<JSObject>(
+        text.toJS,
+      );
       utterance['lang'] = lang.toJS;
       utterance['rate'] = rate.toJS;
       utterance['pitch'] = pitch.toJS;

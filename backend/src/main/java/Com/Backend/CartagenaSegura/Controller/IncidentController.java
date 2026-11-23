@@ -5,6 +5,7 @@ import Com.Backend.CartagenaSegura.Dto.SharedDto.ApiResponse;
 import Com.Backend.CartagenaSegura.Model.Incident;
 import Com.Backend.CartagenaSegura.Model.IncidentHistory;
 import Com.Backend.CartagenaSegura.Service.IncidentService;
+import Com.Backend.CartagenaSegura.Service.EvidenceAccess;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/Incidents")
@@ -27,19 +29,22 @@ import java.util.List;
 public class IncidentController {
 
     private final IncidentService incidentService;
+    private final EvidenceAccess evidenceAccess;
     private final Com.Backend.CartagenaSegura.Config.MongoDataSeeder mongoDataSeeder;
 
-    public IncidentController(IncidentService incidentService,
+    public IncidentController(IncidentService incidentService, EvidenceAccess evidenceAccess,
                               Com.Backend.CartagenaSegura.Config.MongoDataSeeder mongoDataSeeder) {
         this.incidentService = incidentService;
+        this.evidenceAccess = evidenceAccess;
         this.mongoDataSeeder = mongoDataSeeder;
     }
 
-    @RequestMapping(value = "/Seed", method = {RequestMethod.GET, RequestMethod.POST})
-    @Operation(summary = "Poblar incidentes iniciales en MongoDB", description = "Siembra incidentes históricos y territorialmente distribuidos en Cartagena si la base de datos está vacía o si force=true.")
-    public ResponseEntity<ApiResponse<String>> seed(
-            @RequestParam(defaultValue = "false") boolean force) {
-        int seeded = mongoDataSeeder.seedIfNecessary(force);
+    @PostMapping("/Seed")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cargar incidentes de demostración en una base vacía")
+    public ResponseEntity<ApiResponse<String>> seed() {
+        if (!mongoDataSeeder.isEnabled()) return ResponseEntity.notFound().build();
+        int seeded = mongoDataSeeder.seedIfNecessary();
         return ResponseEntity.ok(ApiResponse.ok("Siembra completada", "Incidentes en base de datos: " + seeded));
     }
 
@@ -61,15 +66,16 @@ public class IncidentController {
     )
     public ResponseEntity<ApiResponse<Incident>> create(
             @RequestBody CreateIncidentRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+        evidenceAccess.checkAttachments(request.imageUrls(), userDetails);
         return ResponseEntity.ok(ApiResponse.ok("Incidente creado",
                 incidentService.create(request, userDetails.getUsername())));
     }
 
     @GetMapping
     @Operation(summary = "Listar todos los incidentes")
-    public ResponseEntity<ApiResponse<List<Incident>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", incidentService.getAll()));
+    public ResponseEntity<ApiResponse<List<?>>> getAll(@AuthenticationPrincipal UserDetails user) {
+        return incidentList(incidentService.getAll(), user);
     }
 
     @GetMapping("/{id}")
@@ -78,10 +84,10 @@ public class IncidentController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Incidente encontrado"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Incidente no encontrado")
     })
-    public ResponseEntity<ApiResponse<Incident>> getById(
+    public ResponseEntity<ApiResponse<Object>> getById(
             @Parameter(description = "ID del incidente (MongoDB ObjectId)", example = "64abc1234567890def")
-            @PathVariable String id) {
-        return ResponseEntity.ok(ApiResponse.ok("OK", incidentService.getById(id)));
+            @PathVariable String id, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.ok("OK", incidentView(incidentService.getById(id), user)));
     }
 
     @GetMapping("/My")
@@ -96,18 +102,27 @@ public class IncidentController {
 
     @GetMapping("/Status/{status}")
     @Operation(summary = "Filtrar por estado")
-    public ResponseEntity<ApiResponse<List<Incident>>> getByStatus(
+    public ResponseEntity<ApiResponse<List<?>>> getByStatus(
             @Parameter(description = "Estado del incidente", example = "PENDING")
-            @PathVariable Incident.Status status) {
-        return ResponseEntity.ok(ApiResponse.ok("OK", incidentService.getByStatus(status)));
+            @PathVariable Incident.Status status, @AuthenticationPrincipal UserDetails user) {
+        return incidentList(incidentService.getByStatus(status), user);
     }
 
     @GetMapping("/Zone/{zoneId}")
     @Operation(summary = "Filtrar por zona")
-    public ResponseEntity<ApiResponse<List<Incident>>> getByZone(
+    public ResponseEntity<ApiResponse<List<?>>> getByZone(
             @Parameter(description = "ID de la zona", example = "64abc123")
-            @PathVariable String zoneId) {
-        return ResponseEntity.ok(ApiResponse.ok("OK", incidentService.getByZone(zoneId)));
+            @PathVariable String zoneId, @AuthenticationPrincipal UserDetails user) {
+        return incidentList(incidentService.getByZone(zoneId), user);
+    }
+
+    private ResponseEntity<ApiResponse<List<?>>> incidentList(List<Incident> incidents, UserDetails user) {
+        List<?> visible = incidents.stream().map(incident -> incidentView(incident, user)).toList();
+        return ResponseEntity.ok(ApiResponse.ok("OK", visible));
+    }
+
+    private Object incidentView(Incident incident, UserDetails user) {
+        return IncidentService.canReadDetails(incident, user) ? incident : PublicIncident.from(incident);
     }
 
     @GetMapping("/Assigned")

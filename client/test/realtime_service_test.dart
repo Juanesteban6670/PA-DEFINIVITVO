@@ -9,29 +9,34 @@ import 'package:cartagena_segura/core/data/realtime_service.dart';
 
 void main() {
   group('RealtimeAlertService', () {
-    test('polls the incidents API if the Android websocket is unavailable', () async {
-      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-      addTearDown(() => server.close(force: true));
-      server.listen((request) async {
-        request.response.statusCode = HttpStatus.notFound;
-        await request.response.close();
-      });
-      final requestedUri = Completer<Uri>();
-      final origin = 'http://127.0.0.1:${server.port}';
-      final service = RealtimeAlertService(
-        baseUrl: '$origin/api/',
-        client: MockClient((request) async {
-          if (!requestedUri.isCompleted) requestedUri.complete(request.url);
-          return http.Response('{"data":[]}', 200);
-        }),
-      );
-      addTearDown(service.dispose);
+    test(
+      'polls the incidents API if the Android websocket is unavailable',
+      () async {
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        addTearDown(() => server.close(force: true));
+        server.listen((request) async {
+          request.response.statusCode = HttpStatus.notFound;
+          await request.response.close();
+        });
+        final requestedUri = Completer<Uri>();
+        final origin = 'http://127.0.0.1:${server.port}';
+        final service = RealtimeAlertService(
+          baseUrl: '$origin/api/',
+          client: MockClient((request) async {
+            if (!requestedUri.isCompleted) requestedUri.complete(request.url);
+            return http.Response('{"data":[]}', 200);
+          }),
+        );
+        addTearDown(service.dispose);
 
-      service.connect();
+        service.connect();
 
-      expect(await requestedUri.future.timeout(const Duration(seconds: 5)),
-          Uri.parse('$origin/api/Incidents'));
-    });
+        expect(
+          await requestedUri.future.timeout(const Duration(seconds: 5)),
+          Uri.parse('$origin/api/Incidents'),
+        );
+      },
+    );
 
     test('initializes with disconnected state', () {
       final service = RealtimeAlertService(baseUrl: 'http://localhost:8080');

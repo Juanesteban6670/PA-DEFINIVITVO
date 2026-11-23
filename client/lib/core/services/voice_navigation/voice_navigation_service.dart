@@ -80,24 +80,33 @@ class VoiceNavigationService {
   }) {
     if (isMuted.value) return;
 
-    final brackets = _spokenManeuverBrackets.putIfAbsent(maneuverKey, () => <int>{});
+    final brackets = _spokenManeuverBrackets.putIfAbsent(
+      maneuverKey,
+      () => <int>{},
+    );
 
     // Bracket 500m (450m - 550m)
-    if (distanceMeters >= 450 && distanceMeters <= 550 && !brackets.contains(500)) {
+    if (distanceMeters >= 450 &&
+        distanceMeters <= 550 &&
+        !brackets.contains(500)) {
       brackets.add(500);
       speak('En 500 metros, $actionText.');
       return;
     }
 
     // Bracket 200m (180m - 250m)
-    if (distanceMeters >= 180 && distanceMeters <= 250 && !brackets.contains(200)) {
+    if (distanceMeters >= 180 &&
+        distanceMeters <= 250 &&
+        !brackets.contains(200)) {
       brackets.add(200);
       speak('En 200 metros, $actionText.');
       return;
     }
 
     // Bracket 50m (40m - 80m)
-    if (distanceMeters >= 40 && distanceMeters <= 80 && !brackets.contains(50)) {
+    if (distanceMeters >= 40 &&
+        distanceMeters <= 80 &&
+        !brackets.contains(50)) {
       brackets.add(50);
       speak('En 50 metros, prepárate para $actionText.');
       return;
@@ -128,12 +137,18 @@ class VoiceNavigationService {
   }
 
   /// Alerta preventiva de incidente/peligro detectado en la trayectoria
-  void announceHazard({required String hazardType, required double distanceMeters}) {
+  void announceHazard({
+    required String hazardType,
+    required double distanceMeters,
+  }) {
     if (isMuted.value) return;
     final bracket = distanceMeters > 150 ? 250 : 100;
     final hazardKey = 'hazard_${hazardType}_$bracket';
 
-    final brackets = _spokenManeuverBrackets.putIfAbsent(hazardKey, () => <int>{});
+    final brackets = _spokenManeuverBrackets.putIfAbsent(
+      hazardKey,
+      () => <int>{},
+    );
     if (!brackets.contains(bracket)) {
       brackets.add(bracket);
       final distFormatted = distanceMeters.round();

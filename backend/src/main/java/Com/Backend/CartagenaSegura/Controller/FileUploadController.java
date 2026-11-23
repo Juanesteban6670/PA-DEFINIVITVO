@@ -1,7 +1,8 @@
 package Com.Backend.CartagenaSegura.Controller;
 
 import Com.Backend.CartagenaSegura.Dto.SharedDto.ApiResponse;
-import com.cloudinary.Cloudinary;
+import Com.Backend.CartagenaSegura.Service.EvidenceAccess;
+import org.bson.Document;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,8 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,11 +41,11 @@ public class FileUploadController {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    @Value("${CLOUDINARY_URL:}")
-    private String cloudinaryUrl;
-
     @Autowired
     private GridFsTemplate evidenceStore;
+
+    @Autowired
+    private EvidenceAccess evidenceAccess;
 
     @Value("${EVIDENCE_STORE_MONGO:false}")
     private boolean useMongo;
@@ -60,22 +63,12 @@ public class FileUploadController {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 
-    private Cloudinary initCloudinary() {
-        String envUrl = System.getenv("CLOUDINARY_URL");
-        if (envUrl != null && !envUrl.isBlank()) {
-            return new Cloudinary(envUrl);
-        }
-        if (cloudinaryUrl != null && !cloudinaryUrl.isBlank()) {
-            return new Cloudinary(cloudinaryUrl);
-        }
-        return null;
-    }
-
     @PostMapping("/Upload")
     @Operation(summary = "Subir archivos de evidencia",
             description = "Sube hasta 5 archivos al almacenamiento de evidencias configurado.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> upload(
-            @RequestParam("files") List<MultipartFile> files) throws IOException {
+            @RequestParam("files") List<MultipartFile> files,
+            @AuthenticationPrincipal UserDetails user) throws IOException {
 
         if (files == null || files.isEmpty())
             return ResponseEntity.badRequest()
@@ -113,51 +106,27 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body(ApiResponse.error("No se recibieron archivos válidos"));
 
         if (useMongo) {
-            return uploadToMongo(acceptedFiles, extensions);
+            return uploadToMongo(acceptedFiles, extensions, user.getUsername());
         }
 
         Files.createDirectories(dir);
         List<String> urls = new ArrayList<>();
-        Cloudinary cloudinary = initCloudinary();
-
         try {
             for (int i = 0; i < acceptedFiles.size(); i++) {
                 MultipartFile file = acceptedFiles.get(i);
-                boolean uploadedToCloud = false;
-
-                if (cloudinary != null) {
-                    try {
-                        Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                                file.getBytes(),
-                                Map.of(
-                                        "folder", "cartagena_segura",
-                                        "resource_type", "auto"
-                                )
-                        );
-                        String secureUrl = (String) uploadResult.get("secure_url");
-                        if (secureUrl != null && !secureUrl.isBlank()) {
-                            urls.add(secureUrl);
-                            uploadedToCloud = true;
-                            log.info("Archivo almacenado en Cloudinary CDN: {}", secureUrl);
-                        }
-                    } catch (Exception cloudEx) {
-                        log.warn("Fallo al subir a Cloudinary, usando almacenamiento local de respaldo: {}", cloudEx.getMessage());
-                    }
+                String savedName = UUID.randomUUID() + extensions.get(i);
+                savedNames.add(savedName);
+                Files.writeString(dir.resolve(savedName + ".owner"), user.getUsername(),
+                        StandardOpenOption.CREATE_NEW);
+                try (InputStream input = file.getInputStream()) {
+                    Files.copy(input, dir.resolve(savedName));
                 }
-
-                // Fallback local si Cloudinary no está configurado o falló
-                if (!uploadedToCloud) {
-                    String savedName = UUID.randomUUID() + extensions.get(i);
-                    try (InputStream input = file.getInputStream()) {
-                        Files.copy(input, dir.resolve(savedName));
-                    }
-                    savedNames.add(savedName);
-                    urls.add(baseUrl + "/api/Files/" + savedName);
-                }
+                urls.add(baseUrl + "/api/Files/" + savedName);
             }
         } catch (IOException error) {
             for (String savedName : savedNames) {
                 Files.deleteIfExists(dir.resolve(savedName));
+                Files.deleteIfExists(dir.resolve(savedName + ".owner"));
             }
             throw error;
         }
@@ -170,7 +139,7 @@ public class FileUploadController {
     }
 
     private ResponseEntity<ApiResponse<Map<String, Object>>> uploadToMongo(
-            List<MultipartFile> files, List<String> extensions) {
+            List<MultipartFile> files, List<String> extensions, String username) {
         List<String> attempted = new ArrayList<>();
         List<String> urls = new ArrayList<>();
         try {
@@ -179,7 +148,7 @@ public class FileUploadController {
                 String filename = UUID.randomUUID() + extensions.get(i);
                 attempted.add(filename);
                 try (InputStream input = file.getInputStream()) {
-                    evidenceStore.store(input, filename, file.getContentType());
+                    evidenceStore.store(input, filename, file.getContentType(), new Document("owner", username));
                 }
                 urls.add(baseUrl + "/api/Files/" + filename);
             }
@@ -276,16 +245,11 @@ public class FileUploadController {
     }
 
     @GetMapping("/{filename:.+}")
-    @Operation(summary = "Servir archivo", description = "Retorna el archivo almacenado. No requiere autenticación.")
+    @Operation(summary = "Descargar evidencia autorizada")
     public ResponseEntity<org.springframework.core.io.Resource> serveFile(
-            @PathVariable String filename) throws IOException {
-
-        Path filePath = Paths.get(uploadDir).toAbsolutePath().normalize()
-                .resolve(filename).normalize();
-
-        // Seguridad: evitar path traversal
-        if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize()))
-            return ResponseEntity.badRequest().build();
+            @PathVariable String filename, @AuthenticationPrincipal UserDetails user) throws IOException {
+        if (user == null || !EvidenceAccess.FILENAME.matcher(filename).matches()) return ResponseEntity.notFound().build();
+        Path filePath = Paths.get(uploadDir).toAbsolutePath().normalize().resolve(filename);
 
         UrlResource resource = new UrlResource(filePath.toUri());
         if (!resource.exists() || !resource.isReadable()) {
@@ -293,10 +257,13 @@ public class FileUploadController {
             try {
                 var storedFile = evidenceStore.findOne(query(where("filename").is(filename)));
                 if (storedFile == null) return ResponseEntity.notFound().build();
+                var metadata = storedFile.getMetadata();
+                String owner = metadata == null ? null : metadata.getString("owner");
+                if (!evidenceAccess.canDownload(filename, user, owner)) return ResponseEntity.notFound().build();
                 var storedResource = evidenceStore.getResource(storedFile);
                 return ResponseEntity.ok()
                         .header("Content-Type", storedResource.getContentType())
-                        .header("Cache-Control", "public, max-age=31536000")
+                        .header("Cache-Control", "private, no-store")
                         .header("Content-Disposition", "inline; filename=\"" + filename + "\"")
                         .contentLength(storedFile.getLength())
                         .body(storedResource);
@@ -305,13 +272,17 @@ public class FileUploadController {
             }
         }
 
+        if (!evidenceAccess.canDownload(filename, user, evidenceAccess.localOwner(filename))) {
+            return ResponseEntity.notFound().build();
+        }
         String contentType = Files.probeContentType(filePath);
         if (contentType == null) contentType = "application/octet-stream";
 
         return ResponseEntity.ok()
                 .header("Content-Type", contentType)
-                .header("Cache-Control", "public, max-age=31536000")
+                .header("Cache-Control", "private, no-store")
                 .header("Content-Disposition", "inline; filename=\"" + filename + "\"")
                 .body(resource);
     }
+
 }

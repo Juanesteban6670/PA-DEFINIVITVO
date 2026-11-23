@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
@@ -15,7 +16,9 @@ class AppSyncService {
   bool _isSyncing = false;
   DateTime? _lastSyncTime;
   final ValueNotifier<bool> isSyncingNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<DateTime?> lastSyncNotifier = ValueNotifier<DateTime?>(null);
+  final ValueNotifier<DateTime?> lastSyncNotifier = ValueNotifier<DateTime?>(
+    null,
+  );
 
   bool get isSyncing => _isSyncing;
   DateTime? get lastSyncTime => _lastSyncTime;
@@ -66,13 +69,12 @@ class AppSyncService {
       // 3. Sincronizar notificaciones si hay token activo
       Future<dynamic>? notificationsFuture;
       if (api.token != null && api.token!.isNotEmpty) {
-        notificationsFuture = api.get('Notifications/Unread/Count').catchError((_) => null);
+        notificationsFuture = api
+            .get('Notifications/Unread/Count')
+            .catchError((_) => null);
       }
 
-      final syncFutures = <Future<dynamic>>[
-        incidentsFuture,
-        zonesFuture,
-      ];
+      final syncFutures = <Future<dynamic>>[incidentsFuture, zonesFuture];
       if (notificationsFuture != null) {
         syncFutures.add(notificationsFuture);
       }
@@ -84,12 +86,16 @@ class AppSyncService {
       lastSyncNotifier.value = _lastSyncTime;
 
       if (kDebugMode) {
-        debugPrint('[AppSyncService] Sincronización exitosa (${isBackground ? "Background" : "Manual/Resume"}) a las $_lastSyncTime');
+        debugPrint(
+          '[AppSyncService] Sincronización exitosa (${isBackground ? "Background" : "Manual/Resume"}) a las $_lastSyncTime',
+        );
       }
       return true;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[AppSyncService] Aviso: Sincronización en segundo plano con contingencia temporal: $e');
+        debugPrint(
+          '[AppSyncService] Aviso: Sincronización en segundo plano con contingencia temporal: $e',
+        );
       }
       return false;
     } finally {

@@ -87,7 +87,9 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
                     targetRect: targetRect,
                     borderRadius: step.borderRadius,
                     pulseValue: _pulseController.value,
-                    scrimColor: Colors.black.withValues(alpha: isDark ? 0.76 : 0.65),
+                    scrimColor: Colors.black.withValues(
+                      alpha: isDark ? 0.76 : 0.65,
+                    ),
                     glowColor: accentColor,
                   ),
                 ),
@@ -179,7 +181,9 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: isDark ? 0.20 : 0.12),
+                      color: accentColor.withValues(
+                        alpha: isDark ? 0.20 : 0.12,
+                      ),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: accentColor.withValues(alpha: 0.45),
@@ -194,7 +198,10 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
@@ -283,9 +290,14 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
                           style: TextButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            foregroundColor: isDark ? Colors.white70 : Colors.black54,
+                            foregroundColor: isDark
+                                ? Colors.white70
+                                : Colors.black54,
                           ),
-                          child: const Text('Anterior', style: TextStyle(fontSize: 12)),
+                          child: const Text(
+                            'Anterior',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                         const SizedBox(width: 4),
                       ],
@@ -294,18 +306,26 @@ class _SpotlightTourOverlayState extends State<SpotlightTourOverlay>
                         style: FilledButton.styleFrom(
                           backgroundColor: accentColor,
                           visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         icon: Icon(
-                          isLastStep ? Icons.check_rounded : Icons.arrow_forward_rounded,
+                          isLastStep
+                              ? Icons.check_rounded
+                              : Icons.arrow_forward_rounded,
                           size: 14,
                         ),
                         label: Text(
                           isLastStep ? '¡Comenzar!' : 'Siguiente',
-                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],

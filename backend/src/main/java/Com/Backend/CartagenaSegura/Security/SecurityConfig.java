@@ -109,10 +109,8 @@ public class SecurityConfig {
                         // ===== Estadisticas publicas para Landing Page (Solo GET) =====
                         .requestMatchers(HttpMethod.GET, "/api/Incidents").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/Zones").permitAll()
-                        .requestMatchers("/api/Incidents/Seed").permitAll()
-
-                        // ===== Archivos de evidencia - publico (solo GET) =====
-                        .requestMatchers(HttpMethod.GET, "/api/Files/**", "/api/files/**").permitAll()
+                        .requestMatchers("/api/Incidents/Seed").hasRole("ADMIN")
+                        .requestMatchers("/api/Files/**", "/api/files/**").authenticated()
                         // ===== Contactos de emergencia - publico =====
                         .requestMatchers("/api/EmergencyContacts", "/api/EmergencyContacts/**").permitAll()
                         // ===== Chatbot Asistente IA - publico para orientacion ciudadana =====

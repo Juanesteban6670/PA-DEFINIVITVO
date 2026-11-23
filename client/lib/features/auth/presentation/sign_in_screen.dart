@@ -110,14 +110,22 @@ class _SignInScreenState extends State<SignInScreen> {
                       width: emblemSize,
                       height: emblemSize,
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : const Color(0xFFE7F0F8),
-                        borderRadius: BorderRadius.circular(isCompact ? 20 : 28),
+                        color: isDark
+                            ? AppColors.darkCard
+                            : const Color(0xFFE7F0F8),
+                        borderRadius: BorderRadius.circular(
+                          isCompact ? 20 : 28,
+                        ),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : Colors.transparent,
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : Colors.transparent,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.35 : 0.08,
+                            ),
                             blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
@@ -138,7 +146,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     style: TextStyle(
                       fontSize: isCompact ? 24 : 28,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                      color: isDark
+                          ? AppColors.brightBlue
+                          : const Color(0xFF0F4C81),
                       letterSpacing: -0.6,
                     ),
                   ),
@@ -149,7 +159,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     style: TextStyle(
                       fontSize: isCompact ? 13 : 14,
                       fontWeight: FontWeight.w400,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   SizedBox(height: isCompact ? 18 : 28),
@@ -161,7 +173,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     style: TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkText : const Color(0xFF142C40),
+                      color: isDark
+                          ? AppColors.darkText
+                          : const Color(0xFF142C40),
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -173,7 +187,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -264,8 +280,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                           MaterialPageRoute<void>(
                                             builder: (_) =>
                                                 PasswordRecoveryScreen(
-                                              session: widget.session,
-                                            ),
+                                                  session: widget.session,
+                                                ),
                                           ),
                                         );
                                       }
@@ -280,7 +296,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                    color: isDark
+                                        ? AppColors.brightBlue
+                                        : const Color(0xFF0F4C81),
                                   ),
                                 ),
                               ),
@@ -344,7 +362,9 @@ class _SignInScreenState extends State<SignInScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                             ),
                             onPressed: _busy ? null : _submit,
                             child: _busy
@@ -357,8 +377,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                     ),
                                   )
                                 : Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Flexible(
                                         child: Text(
@@ -394,7 +413,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                   : '¿No tienes cuenta? ',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                             InkWell(
@@ -420,7 +441,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.brightBlue : const Color(0xFF0F4C81),
+                                  color: isDark
+                                      ? AppColors.brightBlue
+                                      : const Color(0xFF0F4C81),
                                 ),
                               ),
                             ),
@@ -468,8 +491,8 @@ class _SignInScreenState extends State<SignInScreen> {
       keyboardType: email
           ? TextInputType.emailAddress
           : phone
-              ? TextInputType.phone
-              : TextInputType.text,
+          ? TextInputType.phone
+          : TextInputType.text,
       textCapitalization: email || password || username || phone
           ? TextCapitalization.none
           : TextCapitalization.words,

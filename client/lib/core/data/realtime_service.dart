@@ -9,19 +9,14 @@ import 'websocket/websocket_client.dart';
 typedef AlertCallback = void Function(Map<String, dynamic> alert);
 
 /// Estado de la conexión en tiempo real
-enum RealtimeMode {
-  disconnected,
-  connecting,
-  webSocket,
-  pollingFallback,
-}
+enum RealtimeMode { disconnected, connecting, webSocket, pollingFallback }
 
 /// Servicio de sincronización y alertas en tiempo real híbrido:
 /// 1. Conexión WebSocket STOMP nativa de latencia cero (/ws) hacia Spring Boot.
 /// 2. Fallback adaptativo HTTP polling transparente ante microcortes o proxies restrictivos.
 class RealtimeAlertService {
   RealtimeAlertService({required this.baseUrl, http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final String baseUrl;
   final http.Client _client;
@@ -139,7 +134,8 @@ class RealtimeAlertService {
 
         final priority = decoded['priority']?.toString().toUpperCase();
         final type = decoded['type']?.toString().toUpperCase();
-        final isCritical = priority == 'CRITICAL' ||
+        final isCritical =
+            priority == 'CRITICAL' ||
             type == 'SOS' ||
             type == 'BOTON_PANICO' ||
             type == 'PANICO';
@@ -157,8 +153,11 @@ class RealtimeAlertService {
     } catch (_) {}
   }
 
-  void _sendStompFrame(String command, Map<String, String> headers,
-      [String body = '']) {
+  void _sendStompFrame(
+    String command,
+    Map<String, String> headers, [
+    String body = '',
+  ]) {
     if (_ws?.isOpen != true) return;
     final buffer = StringBuffer()..writeln(command);
     headers.forEach((k, v) => buffer.writeln('$k:$v'));
@@ -178,8 +177,10 @@ class RealtimeAlertService {
     connectionMode.value = RealtimeMode.pollingFallback;
     _checkNow();
     _pollingTimer?.cancel();
-    _pollingTimer =
-        Timer.periodic(const Duration(seconds: 4), (_) => _checkNow());
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _checkNow(),
+    );
 
     // Reintentar reconexión WebSocket con backoff exponencial
     _reconnectTimer?.cancel();
@@ -206,16 +207,15 @@ class RealtimeAlertService {
     if (_isDisposed) return;
     try {
       final url = _buildEndpoint('/api/Incidents');
-      final response = await _client.get(
-        url,
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 4));
+      final response = await _client
+          .get(url, headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final list = (decoded is Map<String, dynamic>
-                ? decoded['data']
-                : decoded) as List? ??
+        final list =
+            (decoded is Map<String, dynamic> ? decoded['data'] : decoded)
+                as List? ??
             const [];
 
         bool hasNew = false;
@@ -227,7 +227,8 @@ class RealtimeAlertService {
                 hasNew = true;
                 final priority = item['priority']?.toString().toUpperCase();
                 final type = item['type']?.toString().toUpperCase();
-                final isCritical = priority == 'CRITICAL' ||
+                final isCritical =
+                    priority == 'CRITICAL' ||
                     type == 'SOS' ||
                     type == 'BOTON_PANICO' ||
                     type == 'PANICO';

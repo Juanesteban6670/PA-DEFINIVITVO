@@ -28,7 +28,10 @@ class PillBadge extends StatelessWidget {
       (true, 'LOW') => ('Baja', AppColors.green),
       (true, 'MEDIUM') => ('Media', AppColors.amber),
       (true, 'HIGH') => ('Alta', AppColors.amber),
-      (true, 'CRITICAL') => ('Crítica', isDark ? AppColors.darkRed : AppColors.red),
+      (true, 'CRITICAL') => (
+        'Crítica',
+        isDark ? AppColors.darkRed : AppColors.red,
+      ),
       _ => (value, isDark ? AppColors.darkTextMuted : AppColors.muted),
     };
 

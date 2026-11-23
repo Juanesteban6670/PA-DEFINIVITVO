@@ -18,7 +18,8 @@ class DraftReminderCard extends StatefulWidget {
   State<DraftReminderCard> createState() => _DraftReminderCardState();
 }
 
-class _DraftReminderCardState extends State<DraftReminderCard> {
+class _DraftReminderCardState extends State<DraftReminderCard>
+    with WidgetsBindingObserver {
   Timer? _timer;
   ReportDraft? _draft;
   DateTime? _dueAt;
@@ -27,7 +28,13 @@ class _DraftReminderCardState extends State<DraftReminderCard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _read();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _read();
   }
 
   @override
@@ -68,14 +75,16 @@ class _DraftReminderCardState extends State<DraftReminderCard> {
   }
 
   Future<void> _notify() async {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
     final store = widget.store;
     final dueAt = _dueAt;
+    if (dueAt == null || _busy) return;
     try {
-      final reminder = await store.readReminder();
-      if (reminder == null || reminder.dueAt != dueAt) return;
-      await store.cancelReminder();
-      if (!mounted || widget.store != store) return;
+      final delivered = await store.acknowledgeReminder(dueAt);
+      if (!mounted || widget.store != store || delivered == null) return;
       setState(() => _dueAt = null);
+      if (delivered) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Tienes un reporte pendiente por enviar.'),
@@ -110,6 +119,7 @@ class _DraftReminderCardState extends State<DraftReminderCard> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -124,7 +134,7 @@ class _DraftReminderCardState extends State<DraftReminderCard> {
         title: const Text('Recordatorio de reporte'),
         subtitle: Text(
           time == null
-              ? 'Recibe el aviso mientras usas la app'
+              ? 'Programa un aviso para retomar el borrador'
               : '${locale.formatShortDate(time)} · ${locale.formatTimeOfDay(TimeOfDay.fromDateTime(time))}',
         ),
         trailing: PopupMenuButton<String>(
