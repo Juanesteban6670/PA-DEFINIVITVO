@@ -51,6 +51,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   List<SafeRoute>? _safeRoutes;
   int _selectedRouteIndex = 0;
+  LatLng? _routeOrigin;
+  bool? _incidentCardCollapsed;
+  final _dismissedHazards = <String>{};
   DestinationPreset? _selectedDestination;
   bool _isRouting = false;
   bool _isSelectingDestinationOnMap = false;
@@ -72,7 +75,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   String _navManeuverText = 'Continúa recto';
   IconData _navManeuverIcon = Icons.straight_rounded;
   double _navDistToNextManeuverMeters = 0.0;
-  Incident? _approachingHazard;
+
   bool _hasArrived = false;
   bool _isSimulating = false;
   Timer? _simulationTimer;
@@ -149,9 +152,29 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
   }
 
   void _reload() {
-    setState(() {
-      _incidents = _loadIncidents();
-    });
+    final request = _loadIncidents();
+    setState(() => _incidents = request);
+    request.then((incidents) {
+      if (!mounted || !identical(_incidents, request)) return;
+      final routes = _safeRoutes;
+      if (routes == null) return;
+      final selected = routes[_selectedRouteIndex].points;
+      final updated = SafeRouteService.refreshRoutes(routes, incidents);
+      setState(() {
+        _safeRoutes = updated;
+        _selectedRouteIndex = updated.indexWhere(
+          (route) => identical(route.points, selected),
+        );
+        _dismissedHazards.removeWhere(
+          (id) => !incidents.any(
+            (incident) =>
+                incident.id == id &&
+                SafeRouteService.isHighRisk(incident) &&
+                SafeRouteService.isActive(incident),
+          ),
+        );
+      });
+    }, onError: (Object _) {});
   }
 
   Future<void> _locateMe() async {
@@ -257,13 +280,33 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         category: 'Personalizado',
       );
       _startRouting(dest);
+      return;
     }
+    final routes = _safeRoutes;
+    if (_isNavigating || routes == null || routes.length < 2) return;
+    final zoom = _mapController.camera.zoom;
+    var nearest = 156543.0 * cos(point.latitude * pi / 180) / pow(2, zoom) * 12;
+    var selected = _selectedRouteIndex;
+    for (var i = 0; i < routes.length; i++) {
+      final distance = SafeRouteService.distanceToRoute(
+        point,
+        routes[i].points,
+      );
+      if (distance < nearest) {
+        nearest = distance;
+        selected = i;
+      }
+    }
+    _selectRoute(selected);
   }
 
   Future<void> _startRouting(DestinationPreset destination) async {
+    if (_isNavigating) _stopNavigation();
     setState(() {
       _isRouting = true;
       _selectedDestination = destination;
+      _safeRoutes = null;
+      _dismissedHazards.clear();
     });
 
     LatLng origin;
@@ -285,11 +328,18 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         origin: origin,
         destination: destination.location,
         incidents: currentIncidents,
+        allowFallback: false,
       );
 
-      if (!mounted) return;
+      final latestIncidents = await _incidents;
+      if (!mounted || !identical(_selectedDestination, destination)) return;
+      if (routes.isEmpty) {
+        _showMessage('No se encontraron rutas para este destino.');
+        return;
+      }
       setState(() {
-        _safeRoutes = routes;
+        _routeOrigin = origin;
+        _safeRoutes = SafeRouteService.refreshRoutes(routes, latestIncidents);
         _selectedRouteIndex = 0;
       });
 
@@ -299,10 +349,19 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         _showMessage('No fue posible calcular las rutas seguras: $e');
       }
     } finally {
-      if (mounted) {
+      if (mounted && identical(_selectedDestination, destination)) {
         setState(() => _isRouting = false);
       }
     }
+  }
+
+  void _selectRoute(int index) {
+    if (index == _selectedRouteIndex || _isRecalculating) return;
+    setState(() {
+      _selectedRouteIndex = index;
+      _dismissedHazards.clear();
+    });
+    _centerRoute();
   }
 
   void _centerRoute() {
@@ -347,7 +406,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
     _mapController.move(startPoint, 17.5);
     _updateNavProgress(startPoint, activeRoute);
-    _startGpsStream(activeRoute);
+    _startGpsStream();
 
     final destName = _selectedDestination?.name ?? 'tu destino';
     VoiceNavigationService.instance.announceStart(destName);
@@ -362,7 +421,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     setState(() {
       _isNavigating = false;
       _isSimulating = false;
-      _approachingHazard = null;
       _hasArrived = false;
       _currentSpeedKmh = 0.0;
       _traveledPoints = const [];
@@ -373,7 +431,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     _centerRoute();
   }
 
-  void _startGpsStream(SafeRoute route) {
+  void _startGpsStream() {
     _gpsStreamSubscription?.cancel();
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
@@ -381,33 +439,34 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     );
     try {
       _gpsStreamSubscription =
-          Geolocator.getPositionStream(locationSettings: locationSettings)
-              .listen(
-                (pos) {
-                  if (!_isNavigating || !mounted) return;
-                  if (_isSimulating) return;
+          Geolocator.getPositionStream(
+            locationSettings: locationSettings,
+          ).listen(
+            (pos) {
+              if (!_isNavigating || !mounted) return;
+              if (_isSimulating) return;
 
-                  final newPoint = LatLng(pos.latitude, pos.longitude);
-                  final speed = pos.speed > 0 ? (pos.speed * 3.6) : 0.0;
-                  final heading = pos.heading > 0 ? pos.heading : _navHeading;
+              final newPoint = LatLng(pos.latitude, pos.longitude);
+              final speed = pos.speed > 0 ? (pos.speed * 3.6) : 0.0;
+              final heading = pos.heading > 0 ? pos.heading : _navHeading;
 
-                  setState(() {
-                    _position = pos;
-                    _navPosition = newPoint;
-                    _currentSpeedKmh = speed;
-                    if (pos.heading > 0) _navHeading = heading;
-                  });
+              setState(() {
+                _position = pos;
+                _navPosition = newPoint;
+                _currentSpeedKmh = speed;
+                if (pos.heading > 0) _navHeading = heading;
+              });
 
-                  _updateNavProgress(newPoint, route);
+              _updateNavProgress(newPoint, _safeRoutes![_selectedRouteIndex]);
 
-                  if (_isFollowingGps) {
-                    _mapController.move(newPoint, 17.5);
-                  }
-                },
-                onError: (err) {
-                  debugPrint('Error en stream GPS de navegación: $err');
-                },
-              );
+              if (_isFollowingGps) {
+                _mapController.move(newPoint, 17.5);
+              }
+            },
+            onError: (err) {
+              debugPrint('Error en stream GPS de navegación: $err');
+            },
+          );
     } catch (e) {
       debugPrint('No se pudo inicializar getPositionStream: $e');
     }
@@ -447,7 +506,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     if (minDistance > 45.0 && !_isSimulating) {
       _offRouteCount++;
       if (_offRouteCount >= 3 && !_isRecalculating) {
-        _isRecalculating = true;
         VoiceNavigationService.instance.announceDeviation();
         _recalculateRoute(currentLoc);
       }
@@ -485,7 +543,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
           _navManeuverText = '¡Llegaste a tu destino!';
           _navManeuverIcon = Icons.flag_rounded;
           _navDistToNextManeuverMeters = 0.0;
-          _approachingHazard = null;
           _traveledPoints = traveled;
           _remainingPoints = const [];
         });
@@ -595,13 +652,13 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     }
 
     // 8. Detección de incidentes/peligros cercanos en la ruta (< 350 metros)
-    Incident? approaching;
-    for (final hazard in route.hazardsOnRoute) {
-      if (hazard.latitude == null || hazard.longitude == null) continue;
+    for (final hazard in SafeRouteService.incidentsNearRoute(
+      remaining,
+      route.hazardsOnRoute,
+    )) {
       final hLoc = LatLng(hazard.latitude!, hazard.longitude!);
       final hDist = _distance.as(LengthUnit.Meter, currentLoc, hLoc);
       if (hDist <= 350.0) {
-        approaching = hazard;
         VoiceNavigationService.instance.announceHazard(
           hazardType: hazard.type,
           distanceMeters: hDist,
@@ -616,43 +673,110 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       _navManeuverIcon = maneuverIcon;
       _navManeuverText = maneuverText;
       _navDistToNextManeuverMeters = distToTurn;
-      _approachingHazard = approaching;
       _traveledPoints = traveled;
       _remainingPoints = remaining;
     });
   }
 
-  Future<void> _recalculateRoute(LatLng currentLoc) async {
-    if (_selectedDestination == null) {
-      _isRecalculating = false;
-      return;
-    }
+  Future<void> _recalculateRoute(
+    LatLng origin, {
+    List<Incident> avoid = const [],
+  }) async {
+    final destination = _selectedDestination;
+    if (destination == null || _isRecalculating) return;
+    final selectedPoints = _safeRoutes![_selectedRouteIndex].points;
+    final wasNavigating = _isNavigating;
+    final manual = avoid.isNotEmpty;
+    bool stillCurrent() =>
+        mounted &&
+        identical(_selectedDestination, destination) &&
+        _isNavigating == wasNavigating &&
+        !_hasArrived &&
+        _safeRoutes != null &&
+        identical(_safeRoutes![_selectedRouteIndex].points, selectedPoints);
+    setState(() => _isRecalculating = true);
     try {
-      final currentIncidents = await _incidents;
-      final rawRoutes = await SafeRouteService.calculateRoutes(
-        origin: currentLoc,
-        destination: _selectedDestination!.location,
-        incidents: currentIncidents,
+      final incidents = await _incidents;
+      final routes = await SafeRouteService.calculateRoutes(
+        origin: origin,
+        destination: destination.location,
+        incidents: incidents,
+        allowFallback: false,
+        avoid: manual
+            ? [...incidents.where(SafeRouteService.isHighRisk), ...avoid]
+            : const [],
       );
-      if (rawRoutes.isNotEmpty && mounted && _isNavigating) {
-        setState(() {
-          _safeRoutes = rawRoutes;
-          _selectedRouteIndex = 0;
-          _navRoutePointIndex = 0;
-          _offRouteCount = 0;
-          _isRecalculating = false;
-        });
+      if (!stillCurrent()) return;
+      if (routes.isEmpty) {
+        if (manual)
+          _showMessage('No se encontró un desvío que evite la zona reportada.');
+        return;
+      }
+
+      final candidate = routes.first;
+      if (manual) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Desvío disponible'),
+            content: Text(
+              '${candidate.formattedDuration} · ${candidate.formattedDistance}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Conservar ruta'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Cambiar ruta'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !stillCurrent()) return;
+      }
+
+      final latest = await _incidents;
+      if (!stillCurrent()) return;
+      final current = wasNavigating ? _navPosition ?? origin : origin;
+      if (manual &&
+          (_distance.as(LengthUnit.Meter, origin, current) > 45 ||
+              SafeRouteService.incidentsNearRoute(
+                candidate.points,
+                latest.where(SafeRouteService.isHighRisk),
+              ).isNotEmpty)) {
+        _showMessage(
+          'Cambió tu ubicación o los reportes. Vuelve a calcular la ruta.',
+        );
+        return;
+      }
+      final updated = SafeRouteService.refreshRoutes(routes, latest);
+      setState(() {
+        _safeRoutes = updated;
+        _routeOrigin = origin;
+        _selectedRouteIndex = updated.indexWhere(
+          (route) => identical(route.points, candidate.points),
+        );
+        _navRoutePointIndex = 0;
+        _offRouteCount = 0;
+        _dismissedHazards.clear();
+      });
+      if (wasNavigating) {
         VoiceNavigationService.instance.speak(
           'Ruta recalculada. Continúa por la nueva vía.',
           force: true,
         );
-        _updateNavProgress(currentLoc, rawRoutes.first);
+        _updateNavProgress(current, updated[_selectedRouteIndex]);
       } else {
-        _isRecalculating = false;
+        _centerRoute();
       }
     } catch (e) {
+      if (manual && stillCurrent())
+        _showMessage('No fue posible recalcular la ruta.');
       debugPrint('Error en recálculo de ruta: $e');
-      _isRecalculating = false;
+    } finally {
+      if (mounted) setState(() => _isRecalculating = false);
     }
   }
 
@@ -871,8 +995,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   void _toggleSimulation() {
     if (_safeRoutes == null || _safeRoutes!.isEmpty) return;
-    final activeRoute = _safeRoutes![_selectedRouteIndex];
-    if (activeRoute.points.isEmpty) return;
+    final route = _safeRoutes![_selectedRouteIndex];
+    if (route.points.isEmpty) return;
 
     if (_isSimulating) {
       _simulationTimer?.cancel();
@@ -887,7 +1011,7 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     setState(() {
       _isSimulating = true;
       _isFollowingGps = true;
-      if (_hasArrived || _navRoutePointIndex >= activeRoute.points.length - 2) {
+      if (_hasArrived || _navRoutePointIndex >= route.points.length - 2) {
         _navRoutePointIndex = 0;
         _hasArrived = false;
       }
@@ -902,6 +1026,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         return;
       }
 
+      if (_isRecalculating) return;
+      final activeRoute = _safeRoutes![_selectedRouteIndex];
       if (_navRoutePointIndex < activeRoute.points.length - 1) {
         _navRoutePointIndex++;
         final cur = activeRoute.points[_navRoutePointIndex];
@@ -1024,7 +1150,8 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     return FutureBuilder<List<Incident>>(
       future: _incidents,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
@@ -1035,6 +1162,19 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         }
 
         final incidents = snapshot.data ?? const <Incident>[];
+        final selectedRoute = _safeRoutes?[_selectedRouteIndex];
+        final remaining = _isNavigating
+            ? _remainingPoints
+            : selectedRoute?.points ?? const <LatLng>[];
+        final dangerousReports = SafeRouteService.incidentsNearRoute(
+          remaining,
+          incidents.where(SafeRouteService.isHighRisk),
+        );
+        final visibleHazards = dangerousReports.where(
+          (incident) => !_dismissedHazards.contains(incident.id),
+        );
+        final cardCollapsed =
+            _incidentCardCollapsed ?? (MediaQuery.sizeOf(context).width < 600);
         var filtered = filterIncidents(
           incidents,
           type: _typeFilter,
@@ -2003,14 +2143,27 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 420),
-                              child: _FigmaMapIncidentCard(
-                                incident: displayedIncident,
-                                onTapReport: () {
-                                  if (displayedIncident != null) {
-                                    _showIncident(displayedIncident);
-                                  }
-                                },
-                              ),
+                              child: cardCollapsed
+                                  ? FilledButton.tonalIcon(
+                                      onPressed: () => setState(
+                                        () => _incidentCardCollapsed = false,
+                                      ),
+                                      icon: const Icon(Icons.expand_less),
+                                      label: const Text(
+                                        'Ver incidente cercano',
+                                      ),
+                                    )
+                                  : _FigmaMapIncidentCard(
+                                      onCollapse: () => setState(
+                                        () => _incidentCardCollapsed = true,
+                                      ),
+                                      incident: displayedIncident,
+                                      onTapReport: () {
+                                        if (displayedIncident != null) {
+                                          _showIncident(displayedIncident);
+                                        }
+                                      },
+                                    ),
                             ),
                           ),
                         ),
@@ -2020,7 +2173,6 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           when routes.isNotEmpty) ...[
                         if (_isNavigating) ...[
                           _buildTopManeuverCard(isDark),
-                          _buildHazardAlertBanner(isDark),
                           _buildSpeedometer(isDark),
                           _buildRecenterButton(isDark),
                           _buildBottomNavHud(
@@ -2040,17 +2192,21 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                 destinationName:
                                     _selectedDestination?.name ??
                                     'Destino seleccionado',
-                                onSelectRoute: (idx) {
-                                  setState(() => _selectedRouteIndex = idx);
-                                  _centerRoute();
-                                },
+                                onSelectRoute: _selectRoute,
                                 onCloseRoute: _closeRoute,
                                 onCenterRoute: _centerRoute,
-                                onStartNavigation: _startNavigation,
+                                onStartNavigation: () {
+                                  if (!_isRecalculating) _startNavigation();
+                                },
                               ),
                             ),
                           ),
                       ],
+                      if (visibleHazards.isNotEmpty)
+                        _buildHazardAlertBanner(
+                          visibleHazards.first,
+                          dangerousReports,
+                        ),
                     ],
                   ),
                 ),
@@ -2171,24 +2327,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
     );
   }
 
-  Widget _buildHazardAlertBanner(bool isDark) {
-    if (_approachingHazard == null) return const SizedBox.shrink();
-    final hazard = _approachingHazard!;
-    final hazardDist =
-        (_navPosition != null &&
-            hazard.latitude != null &&
-            hazard.longitude != null)
-        ? _distance
-              .as(
-                LengthUnit.Meter,
-                _navPosition!,
-                LatLng(hazard.latitude!, hazard.longitude!),
-              )
-              .round()
-        : 200;
-
+  Widget _buildHazardAlertBanner(Incident hazard, List<Incident> avoid) {
     return Positioned(
-      top: 96,
+      top: _isNavigating ? 96 : 60,
       left: 14,
       right: 14,
       child: Center(
@@ -2235,13 +2376,32 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                           ),
                         ),
                         Text(
-                          'A $hazardDist m: ${hazard.type} • ${hazard.description.isNotEmpty ? hazard.description : hazard.location}',
+                          '${hazard.type} · ${hazard.location}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: _isRecalculating
+                              ? null
+                              : () {
+                                  final origin = _isNavigating
+                                      ? _navPosition
+                                      : _routeOrigin;
+                                  if (origin != null)
+                                    _recalculateRoute(origin, avoid: avoid);
+                                },
+                          child: Text(
+                            _isRecalculating
+                                ? 'Calculando…'
+                                : 'Recalcular ruta',
                           ),
                         ),
                       ],
@@ -2254,7 +2414,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                       color: Colors.white70,
                       size: 18,
                     ),
-                    onPressed: () => setState(() => _approachingHazard = null),
+                    tooltip: 'Cerrar alerta',
+                    onPressed: () =>
+                        setState(() => _dismissedHazards.add(hazard.id)),
                   ),
                 ],
               ),
@@ -3467,10 +3629,12 @@ class _FigmaMapIncidentCard extends StatelessWidget {
   const _FigmaMapIncidentCard({
     required this.incident,
     required this.onTapReport,
+    required this.onCollapse,
   });
 
   final Incident? incident;
   final VoidCallback onTapReport;
+  final VoidCallback onCollapse;
 
   @override
   Widget build(BuildContext context) {
@@ -3515,6 +3679,11 @@ class _FigmaMapIncidentCard extends StatelessWidget {
                           : const Color(0xFF142C40),
                     ),
                   ),
+                ),
+                IconButton(
+                  tooltip: 'Ocultar tarjeta',
+                  onPressed: onCollapse,
+                  icon: const Icon(Icons.expand_more),
                 ),
               ],
             ),
@@ -3574,15 +3743,10 @@ class _FigmaMapIncidentCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                'a 450 m de ti',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark
-                      ? AppColors.darkTextMuted
-                      : const Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
+              IconButton(
+                tooltip: 'Ocultar tarjeta',
+                onPressed: onCollapse,
+                icon: const Icon(Icons.expand_more),
               ),
             ],
           ),
@@ -3599,7 +3763,7 @@ class _FigmaMapIncidentCard extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            '${inc.location.isNotEmpty ? inc.location : "Cartagena"} · Hace 10 min',
+            '${inc.location.isNotEmpty ? inc.location : "Cartagena"}',
             style: TextStyle(
               fontSize: 12,
               color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
