@@ -56,6 +56,9 @@ class SafeRoute {
   final String label;
   final bool isRecommended;
 
+  int get highRiskCount =>
+      hazardsOnRoute.where(SafeRouteService.isHighRisk).length;
+
   String get formattedDuration {
     final minutes = (durationSeconds / 60).round();
     if (minutes < 60) return '$minutes min';
@@ -141,6 +144,8 @@ class SafeRouteService {
     required List<Incident> incidents,
     TransportMode mode = TransportMode.driving,
     http.Client? client,
+    bool allowFallback = true,
+    List<Incident> avoid = const [],
   }) async {
     final httpClient = client ?? http.Client();
     final profile = mode.osrmProfile;
@@ -148,7 +153,7 @@ class SafeRouteService {
       'https://router.project-osrm.org/route/v1/$profile/'
       '${origin.longitude},${origin.latitude};'
       '${destination.longitude},${destination.latitude}'
-      '?overview=full&geometries=geojson&alternatives=true',
+      '?overview=full&geometries=geojson&alternatives=3',
     );
 
     List<Map<String, dynamic>> rawRoutes = [];
@@ -173,12 +178,9 @@ class SafeRouteService {
 
     // Si no obtuvimos rutas de OSRM, generamos ruta de contingencia
     if (rawRoutes.isEmpty) {
+      if (!allowFallback || avoid.isNotEmpty) return const [];
       rawRoutes = [_generateFallbackRoute(origin, destination)];
     }
-
-    final validIncidents = incidents
-        .where((i) => i.latitude != null && i.longitude != null)
-        .toList();
 
     final evaluatedRoutes = <SafeRoute>[];
 
@@ -194,8 +196,15 @@ class SafeRouteService {
         return LatLng(lat, lon);
       }).toList();
 
-      if (points.isEmpty) {
-        points.addAll([origin, destination]);
+      if (points.length < 2 ||
+          evaluatedRoutes.any(
+            (route) =>
+                route.points.length == points.length &&
+                Iterable<int>.generate(points.length)
+                    .every((index) => route.points[index] == points[index]),
+          ) ||
+          incidentsNearRoute(points, avoid).isNotEmpty) {
+        continue;
       }
 
       final distanceMeters =
@@ -205,152 +214,141 @@ class SafeRouteService {
       final durationSeconds =
           ((raw['duration'] as num?) ?? (distanceMeters / 8.5)).toDouble();
 
-      // Evaluar peligrosidad
-      final (dangerIndex, hazards) = _evaluateRouteSafety(
-        points,
-        validIncidents,
-      );
-      final safetyScore = max(5, min(100, 100 - dangerIndex.round()));
-
-      final safetyLevel = switch (dangerIndex) {
-        <= 15.0 => SafetyLevel.safe,
-        <= 35.0 => SafetyLevel.moderate,
-        _ => SafetyLevel.risky,
-      };
-
       evaluatedRoutes.add(
-        SafeRoute(
-          points: points,
-          distanceMeters: distanceMeters,
-          durationSeconds: durationSeconds,
-          dangerIndex: dangerIndex,
-          safetyScore: safetyScore,
-          safetyLevel: safetyLevel,
-          hazardsOnRoute: hazards,
-          label: i == 0 ? 'Ruta Principal' : 'Alternativa ${i + 1}',
-          isRecommended: false,
-        ),
+        _score(points, distanceMeters, durationSeconds, incidents),
       );
     }
 
-    // Ordenar de mayor a menor seguridad (menor dangerIndex es más segura)
-    evaluatedRoutes.sort((a, b) {
-      final scoreComp = a.dangerIndex.compareTo(b.dangerIndex);
-      if (scoreComp != 0) return scoreComp;
-      return a.durationSeconds.compareTo(b.durationSeconds);
-    });
-
-    // Etiquetar la ruta más segura como la Recomendada
-    final labeledRoutes = <SafeRoute>[];
-    for (var i = 0; i < evaluatedRoutes.length; i++) {
-      final r = evaluatedRoutes[i];
-      final isRec = (i == 0);
-      String customLabel;
-      if (isRec) {
-        customLabel = r.safetyLevel == SafetyLevel.safe
-            ? 'Ruta Segura (Recomendada)'
-            : 'Ruta con Menos Riesgo';
-      } else {
-        customLabel = 'Ruta Alternativa (${r.formattedDuration})';
-      }
-
-      labeledRoutes.add(
-        SafeRoute(
-          points: r.points,
-          distanceMeters: r.distanceMeters,
-          durationSeconds: r.durationSeconds,
-          dangerIndex: r.dangerIndex,
-          safetyScore: r.safetyScore,
-          safetyLevel: r.safetyLevel,
-          hazardsOnRoute: r.hazardsOnRoute,
-          label: customLabel,
-          isRecommended: isRec,
-        ),
-      );
-    }
-
-    return labeledRoutes;
+    return refreshRoutes(evaluatedRoutes, incidents).take(3).toList();
   }
 
-  /// Evalúa el peligro de la ruta calculando la distancia de cada incidente al trayecto.
-  /// Un incidente a menos de 220 metros de la calle penaliza la ruta según su prioridad y estado.
-  static (double, List<Incident>) _evaluateRouteSafety(
-    List<LatLng> points,
+  static bool isActive(Incident incident) => !const {
+    'RESOLVED',
+    'REJECTED',
+    'DISMISSED',
+  }.contains(incident.status.toUpperCase());
+
+  static bool isHighRisk(Incident incident) =>
+      const {'HIGH', 'CRITICAL'}.contains(incident.priority.toUpperCase());
+
+  static List<SafeRoute> refreshRoutes(
+    List<SafeRoute> routes,
     List<Incident> incidents,
   ) {
-    if (points.isEmpty || incidents.isEmpty) {
-      return (0.0, const []);
-    }
-
-    // Muestreo de puntos de la ruta cada ~50 metros para no sobrecargar el cálculo
-    final sampledPoints = _samplePolyline(points, stepMeters: 50.0);
-    final hazards = <Incident>[];
-    double totalDanger = 0.0;
-
-    for (final incident in incidents) {
-      final incPoint = LatLng(incident.latitude!, incident.longitude!);
-      double minDistance = double.infinity;
-
-      for (final routePoint in sampledPoints) {
-        final d = _distance.as(LengthUnit.Meter, incPoint, routePoint);
-        if (d < minDistance) {
-          minDistance = d;
-          if (minDistance < 220.0) break; // Ya está en rango de riesgo
-        }
-      }
-
-      if (minDistance <= 220.0) {
-        hazards.add(incident);
-
-        // Ponderación por severidad
-        double weight = switch (incident.priority.toUpperCase()) {
-          'CRITICAL' => 25.0,
-          'HIGH' => 15.0,
-          'MEDIUM' => 8.0,
-          _ => 3.0,
-        };
-
-        // Si el estado es resuelto, penaliza menos (antecedente histórico)
-        final status = incident.status.toUpperCase();
-        if (status == 'RESOLVED' || status == 'DISMISSED') {
-          weight *= 0.25;
-        }
-
-        totalDanger += weight;
-      }
-    }
-
-    return (totalDanger, hazards);
+    final scored = routes
+        .map(
+          (route) => _score(
+            route.points,
+            route.distanceMeters,
+            route.durationSeconds,
+            incidents,
+          ),
+        )
+        .toList();
+    scored.sort((a, b) {
+      final highRisk = a.highRiskCount.compareTo(b.highRiskCount);
+      if (highRisk != 0) return highRisk;
+      final total = a.hazardsOnRoute.length.compareTo(b.hazardsOnRoute.length);
+      return total != 0
+          ? total
+          : a.durationSeconds.compareTo(b.durationSeconds);
+    });
+    return [
+      for (var i = 0; i < scored.length; i++)
+        SafeRoute(
+          points: scored[i].points,
+          distanceMeters: scored[i].distanceMeters,
+          durationSeconds: scored[i].durationSeconds,
+          dangerIndex: scored[i].dangerIndex,
+          safetyScore: scored[i].safetyScore,
+          safetyLevel: scored[i].safetyLevel,
+          hazardsOnRoute: scored[i].hazardsOnRoute,
+          label: i == 0
+              ? 'Menor riesgo según reportes activos'
+              : 'Alternativa ${i + 1}',
+          isRecommended: i == 0,
+        ),
+    ];
   }
 
-  /// Muestrea puntos espaciados uniformemente a lo largo de la polilínea
-  static List<LatLng> _samplePolyline(
-    List<LatLng> points, {
-    double stepMeters = 50.0,
+  static SafeRoute _score(
+    List<LatLng> points,
+    double distance,
+    double duration,
+    List<Incident> incidents,
+  ) {
+    final hazards = incidentsNearRoute(points, incidents);
+    final danger = hazards.fold(
+      0.0,
+      (total, incident) =>
+          total +
+          switch (incident.priority.toUpperCase()) {
+            'CRITICAL' => 25,
+            'HIGH' => 15,
+            'MEDIUM' => 8,
+            _ => 3,
+          },
+    );
+    return SafeRoute(
+      points: points,
+      distanceMeters: distance,
+      durationSeconds: duration,
+      dangerIndex: danger,
+      safetyScore: max(5, 100 - danger.round()),
+      safetyLevel: switch (danger) {
+        <= 15 => SafetyLevel.safe,
+        <= 35 => SafetyLevel.moderate,
+        _ => SafetyLevel.risky,
+      },
+      hazardsOnRoute: hazards,
+      label: '',
+      isRecommended: false,
+    );
+  }
+
+  static const routeCorridorMeters = 220.0;
+
+  static List<Incident> incidentsNearRoute(
+    List<LatLng> points,
+    Iterable<Incident> incidents, {
+    double corridorMeters = routeCorridorMeters,
   }) {
-    if (points.length <= 2) return points;
+    final seen = <String>{};
+    return [
+      for (final incident in incidents)
+        if (isActive(incident) &&
+            incident.latitude != null &&
+            incident.longitude != null &&
+            distanceToRoute(
+                  LatLng(incident.latitude!, incident.longitude!),
+                  points,
+                ) <=
+                corridorMeters &&
+            seen.add(incident.id))
+          incident,
+    ];
+  }
 
-    final samples = <LatLng>[points.first];
-    double accumulated = 0.0;
-
-    for (var i = 0; i < points.length - 1; i++) {
-      final p1 = points[i];
-      final p2 = points[i + 1];
-      final segDist = _distance.as(LengthUnit.Meter, p1, p2);
-
-      if (accumulated + segDist >= stepMeters) {
-        samples.add(p2);
-        accumulated = 0.0;
-      } else {
-        accumulated += segDist;
-      }
+  static double distanceToRoute(LatLng point, List<LatLng> points) {
+    const metersPerDegree = 111195.0;
+    final longitudeScale = metersPerDegree * cos(point.latitude * pi / 180);
+    var closest = double.infinity;
+    for (var i = 1; i < points.length; i++) {
+      final start = points[i - 1];
+      final end = points[i];
+      final x = (start.longitude - point.longitude) * longitudeScale;
+      final y = (start.latitude - point.latitude) * metersPerDegree;
+      final dx = (end.longitude - start.longitude) * longitudeScale;
+      final dy = (end.latitude - start.latitude) * metersPerDegree;
+      final lengthSquared = dx * dx + dy * dy;
+      final t = lengthSquared == 0
+          ? 0.0
+          : (-(x * dx + y * dy) / lengthSquared).clamp(0.0, 1.0);
+      final px = x + t * dx;
+      final py = y + t * dy;
+      closest = min(closest, px * px + py * py);
     }
-
-    if (samples.last != points.last) {
-      samples.add(points.last);
-    }
-
-    return samples;
+    return sqrt(closest);
   }
 
   /// Genera una ruta de contingencia conectando origen y destino con puntos intermedios
