@@ -16,7 +16,7 @@ import java.util.Map;
 @Tag(name = "Sistema", description = "Información del sistema, versiones y estado del servicio")
 public class SystemController {
 
-    @Value("${ANDROID_LATEST_VERSION:1.2.3}")
+    @Value("${ANDROID_LATEST_VERSION:1.2.4}")
     private String androidLatestVersion;
 
     @GetMapping("/Version")
