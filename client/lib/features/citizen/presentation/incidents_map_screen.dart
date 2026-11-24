@@ -708,13 +708,14 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
       );
       if (!stillCurrent()) return;
       if (routes.isEmpty) {
-        if (manual)
+        if (manual) {
           _showMessage('No se encontró un desvío que evite la zona reportada.');
+        }
         return;
       }
 
       final candidate = routes.first;
-      if (manual) {
+      if (manual && mounted) {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -772,8 +773,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
         _centerRoute();
       }
     } catch (e) {
-      if (manual && stillCurrent())
+      if (manual && stillCurrent()) {
         _showMessage('No fue posible recalcular la ruta.');
+      }
       debugPrint('Error en recálculo de ruta: $e');
     } finally {
       if (mounted) setState(() => _isRecalculating = false);
@@ -2395,8 +2397,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
                                   final origin = _isNavigating
                                       ? _navPosition
                                       : _routeOrigin;
-                                  if (origin != null)
+                                  if (origin != null) {
                                     _recalculateRoute(origin, avoid: avoid);
+                                  }
                                 },
                           child: Text(
                             _isRecalculating
@@ -3763,7 +3766,7 @@ class _FigmaMapIncidentCard extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            '${inc.location.isNotEmpty ? inc.location : "Cartagena"}',
+            inc.location.isNotEmpty ? inc.location : 'Cartagena',
             style: TextStyle(
               fontSize: 12,
               color: isDark ? AppColors.darkTextMuted : const Color(0xFF64748B),
