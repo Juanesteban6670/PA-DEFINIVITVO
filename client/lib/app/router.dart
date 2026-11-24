@@ -54,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: ref.read(startupLocationProvider) ?? '/',
     overridePlatformDefaultLocation: ref.read(startupLocationProvider) != null,
     refreshListenable: session,
-    redirect: (context, state) => _redirect(session, state.uri),
+    redirect: (context, state) => sessionRedirect(session, state.uri),
     routes: [
       GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
       GoRoute(
@@ -164,7 +164,12 @@ bool _isAdminPath(String path) =>
 bool _isProtected(String path) =>
     path == '/App' || path.startsWith('/App/') || _isAdminPath(path);
 
-String? _redirect(SessionController session, Uri uri) {
+bool _isWrongWorkspace(String path, bool isAdmin) {
+  if (!_isProtected(path) || path == '/App/Notifications') return false;
+  return _isAdminPath(path) != isAdmin;
+}
+
+String? sessionRedirect(SessionController session, Uri uri) {
   if (!session.initialized) return null;
   final user = session.user;
   final location = uri.path;
@@ -180,13 +185,15 @@ String? _redirect(SessionController session, Uri uri) {
         !target.hasScheme &&
         !target.hasAuthority &&
         _isProtected(target.path) &&
-        (user.isAdmin || !_isAdminPath(target.path))) {
+        !_isWrongWorkspace(target.path, user.isAdmin)) {
       return target.toString();
     }
     return user.isAdmin ? '/Admin' : '/App';
   }
-  if (user != null && _isAdminPath(location) && !user.isAdmin) {
-    return '/App';
+  if (user != null &&
+      (_isWrongWorkspace(location, user.isAdmin) ||
+          (location == '/' && user.isAdmin))) {
+    return user.isAdmin ? '/Admin' : '/App';
   }
   return null;
 }
