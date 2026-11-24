@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cartagena_segura/app/router.dart';
+import 'package:cartagena_segura/core/data/models.dart';
 import 'package:cartagena_segura/core/data/api_client.dart';
 import 'package:cartagena_segura/core/data/session_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +9,44 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('routes administrators away from the citizen workspace', () {
+    final session = SessionController(
+      api: ApiClient(baseUrl: 'https://example.test/api'),
+      storage: _FakeSessionStorage(),
+    )..initialized = true;
+    addTearDown(session.dispose);
+    session.user = const AppUser(
+      token: 'test-token',
+      username: 'admin',
+      fullName: 'Admin',
+      roles: ['USER', 'ADMIN'],
+    );
+
+    expect(
+      sessionRedirect(session, Uri.parse('/Login?from=/App/Profile')),
+      '/Admin',
+    );
+    expect(sessionRedirect(session, Uri.parse('/App/Profile')), '/Admin');
+    expect(sessionRedirect(session, Uri.parse('/')), '/Admin');
+    expect(
+      sessionRedirect(session, Uri.parse('/Login?from=/Admin/Incidents')),
+      '/Admin/Incidents',
+    );
+    expect(sessionRedirect(session, Uri.parse('/App/Notifications')), isNull);
+
+    session.user = const AppUser(
+      token: 'test-token',
+      username: 'citizen',
+      fullName: 'Citizen',
+      roles: ['USER'],
+    );
+    expect(sessionRedirect(session, Uri.parse('/Admin')), '/App');
+    expect(
+      sessionRedirect(session, Uri.parse('/Login?from=/App/Profile')),
+      '/App/Profile',
+    );
+  });
+
   group('SessionController', () {
     test(
       'logs in, trims the username and persists the returned session',
