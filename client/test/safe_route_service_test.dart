@@ -114,6 +114,117 @@ void main() {
       expect(route.hazardsOnRoute.first.id, 'inc-1');
     });
 
+    test(
+      'ranks active incidents, excludes closed incidents and verifies detours',
+      () async {
+        const origin = LatLng(10.420, -75.550);
+        const destination = LatLng(10.420, -75.530);
+        final shortRoute = {
+          'distance': 2200,
+          'duration': 200,
+          'geometry': {
+            'coordinates': [
+              [-75.550, 10.420],
+              [-75.530, 10.420],
+            ],
+          },
+        };
+        final detour = {
+          'distance': 3200,
+          'duration': 340,
+          'geometry': {
+            'coordinates': [
+              [-75.550, 10.420],
+              [-75.550, 10.427],
+              [-75.530, 10.427],
+              [-75.530, 10.420],
+            ],
+          },
+        };
+        const high = Incident(
+          id: 'high',
+          type: 'SOS',
+          description: '',
+          location: '',
+          latitude: 10.420,
+          longitude: -75.540,
+          priority: 'HIGH',
+        );
+        final incidents = [
+          high,
+          high,
+          for (final status in ['RESOLVED', 'DISMISSED', 'REJECTED'])
+            Incident(
+              id: status,
+              type: 'SOS',
+              description: '',
+              location: '',
+              latitude: 10.427,
+              longitude: -75.540,
+              priority: 'CRITICAL',
+              status: status,
+            ),
+        ];
+        final client = MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'code': 'Ok',
+              'routes': [shortRoute, shortRoute, detour],
+            }),
+            200,
+          ),
+        );
+
+        final options = await SafeRouteService.calculateRoutes(
+          origin: origin,
+          destination: destination,
+          incidents: incidents,
+          client: client,
+        );
+        expect(options.length, 2);
+        expect(options.first.isRecommended, isTrue);
+        expect(options.first.hazardsOnRoute, isEmpty);
+        expect(options.last.highRiskCount, 1);
+        expect(options.last.hazardsOnRoute, [high]);
+
+        final diversions = await SafeRouteService.calculateRoutes(
+          origin: origin,
+          destination: destination,
+          incidents: incidents,
+          avoid: [high],
+          client: client,
+        );
+        expect(diversions.single.distanceMeters, 3200);
+
+        final onlyBlocked = MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'code': 'Ok',
+              'routes': [shortRoute],
+            }),
+            200,
+          ),
+        );
+        expect(
+          await SafeRouteService.calculateRoutes(
+            origin: origin,
+            destination: destination,
+            incidents: incidents,
+            avoid: [high],
+            client: onlyBlocked,
+          ),
+          isEmpty,
+        );
+        expect(
+          SafeRouteService.incidentsNearRoute(const [
+            LatLng(10.420, -75.535),
+            destination,
+          ], incidents),
+          isEmpty,
+        );
+      },
+    );
+
     test('calculateRoutes gracefully falls back when OSRM fails', () async {
       final mockClient = MockClient((request) async {
         return http.Response('Server error', 500);

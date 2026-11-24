@@ -247,7 +247,7 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
           ),
 
           // Selector de Alternativas de Ruta
-          if (widget.routes.length > 1) ...[
+          if (widget.routes.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               child: SingleChildScrollView(
@@ -274,7 +274,13 @@ class _SafeRouteSheetState extends State<SafeRouteSheet> {
                                           : const Color(0xFF475569)),
                               ),
                               const SizedBox(width: 5),
-                              Text(widget.routes[i].label),
+                              Text(
+                                '${widget.routes[i].label} · '
+                                '${widget.routes[i].formattedDuration} · '
+                                '${widget.routes[i].formattedDistance} · '
+                                '${widget.routes[i].hazardsOnRoute.length} activos · '
+                                '${widget.routes[i].highRiskCount} de alto riesgo',
+                              ),
                             ],
                           ),
                           selectedColor: AppColors.brightBlue,
