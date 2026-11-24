@@ -153,7 +153,9 @@ class _IncidentsMapScreenState extends State<IncidentsMapScreen> {
 
   void _reload() {
     final request = _loadIncidents();
-    setState(() => _incidents = request);
+    setState(() {
+      _incidents = request;
+    });
     request.then((incidents) {
       if (!mounted || !identical(_incidents, request)) return;
       final routes = _safeRoutes;
